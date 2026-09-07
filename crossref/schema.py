@@ -188,12 +188,29 @@ class Registry:
         return scored[:top]
 
     def detect_from_category(self, category_path: Iterable[str]) -> str | None:
-        """Asigna familia a un item del catalogo por su ruta de categorias."""
+        """Asigna familia a un item del catalogo por su ruta de categorias.
+
+        Se recorre la ruta de la categoria MAS ESPECIFICA a la mas general:
+        "EMC Components > Ferrites for PCB Assembly" debe resolverse por la
+        segunda, que solo tiene una familia, y no por la primera, que la
+        comparten media docena.
+        """
         path = [normalize_text(p) for p in category_path if p]
-        for family in self.families.values():
-            wanted = {normalize_text(c) for c in family.source_categories}
-            if wanted & set(path):
-                return family.id
+        for level in reversed(path):
+            matches = [
+                family.id
+                for family in self.families.values()
+                if level in {normalize_text(c) for c in family.source_categories}
+            ]
+            if len(matches) == 1:
+                return matches[0]
+            if matches:
+                # Varias familias comparten esa categoria: desempata el texto
+                # completo de la ruta.
+                for family_id, _ in self.detect(" ".join(path), top=len(self.families)):
+                    if family_id in matches:
+                        return family_id
+                return matches[0]
         if path:
             best = self.detect(" ".join(path), top=1)
             if best and best[0][1] >= 0.5:

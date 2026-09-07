@@ -272,6 +272,13 @@ class WebCatalogSource:
     # ------------------------------------------------------------------- red
 
     def _get(self, url: str) -> str | None:
+        local = _local_path(url)
+        if local is not None:
+            # Ficha guardada en disco: util para ajustar los selectores sin red.
+            if not local.exists():
+                raise SourceError(f"no existe el fichero: {local}")
+            return local.read_text(encoding="utf-8", errors="ignore")
+
         if self.respect_robots and not self._robots_allows(url):
             raise SourceError(
                 f"robots.txt no permite descargar {url}. Pide una API o una exportacion "
@@ -328,6 +335,22 @@ class WebCatalogSource:
 # --------------------------------------------------------------------------
 # Utilidades de extraccion
 # --------------------------------------------------------------------------
+
+
+def _local_path(url: str) -> Path | None:
+    """Devuelve la ruta si `url` apunta a un fichero local (file:// o ruta suelta)."""
+    if url.startswith("file://"):
+        return Path(url_to_path(url))
+    if url.startswith(("http://", "https://")):
+        return None
+    candidate = Path(url)
+    return candidate if candidate.suffix.lower() in (".html", ".htm") else None
+
+
+def url_to_path(url: str) -> str:
+    from urllib.parse import unquote, urlparse
+
+    return unquote(urlparse(url).path)
 
 
 def _clean_key(key: str) -> str:

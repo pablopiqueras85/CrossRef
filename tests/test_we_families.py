@@ -211,3 +211,66 @@ def test_la_serie_mas_ajustada_puntua_mas_alto(series_service):
     """Pedir 500 ohm y 8,7 A deberia acercar a WE-SUKW (416-580 ohm, 8,5-9 A)."""
     response = series_service.crossref(text="ferrita 500 ohm a 100 MHz 8,7 A", limit=3)
     assert response["results"][0]["reference"] == "WE-SUKW"
+
+
+def test_la_categoria_mas_especifica_manda(catalog_registry):
+    """'EMC Components' la comparten muchas familias; 'Ferrites for PCB Assembly' no."""
+    assert catalog_registry.detect_from_category(
+        ["EMC Components", "Ferrites for PCB Assembly"]
+    ) == "ferrite_bead"
+    assert catalog_registry.detect_from_category(
+        ["EMC Components", "Ferrites for Cable Assembly"]
+    ) == "cable_ferrite"
+    assert catalog_registry.detect_from_category(
+        ["EMC Components", "Surge Protection"]
+    ) == "varistor"
+    assert catalog_registry.detect_from_category(
+        ["Passive Components", "Power Magnetics", "Shielded Power Inductors"]
+    ) == "power_inductor"
+
+
+def test_una_ficha_guardada_en_disco_se_puede_inspeccionar(tmp_path, catalog_registry):
+    """La opcion B de tools/README.md: ajustar selectores sin salir a la red."""
+    from crossref.ingest import resolve_family
+    from crossref.sources.web import WebCatalogSource
+
+    ficha = tmp_path / "ficha.html"
+    ficha.write_text(
+        """<html><body>
+        <nav class="breadcrumb"><a>Home</a><a>EMC Components</a><a>Ferrites for PCB Assembly</a></nav>
+        <h1 class="product-title">WE-CBF SMT EMI Suppression Ferrite Bead</h1>
+        <div class="order-code"><span class="value">742792022</span></div>
+        <table class="properties-table">
+          <tr><th>Impedance @ 100 MHz</th><td>600 &#937;</td></tr>
+          <tr><th>Rated Current IR</th><td>500 mA</td></tr>
+          <tr><th>DC Resistance RDC max</th><td>0.35 &#937;</td></tr>
+          <tr><th>Size</th><td>0603</td></tr>
+        </table></body></html>""",
+        encoding="utf-8",
+    )
+    source = WebCatalogSource(
+        {
+            "id": "local", "type": "web", "base_url": "https://ejemplo.local",
+            "product": {
+                "reference": {"selector": "div.order-code span.value"},
+                "description": {"selector": "h1.product-title"},
+                "category_path": {"selector": "nav.breadcrumb a", "skip": 1},
+                "specs": {"table_rows": "table.properties-table tr",
+                          "key_selector": "th", "value_selector": "td"},
+            },
+        }
+    )
+    html = source._get(f"file://{ficha}")  # noqa: SLF001 - igual que hace `crossref probe`
+    product = source.parse_product(html, f"file://{ficha}")
+    source.close()
+
+    assert product.reference == "742792022"
+    assert resolve_family(catalog_registry, product) == "ferrite_bead"
+
+    from crossref.extract import map_fields
+
+    mapped, unmapped = map_fields(catalog_registry["ferrite_bead"], product.specs)
+    assert not unmapped
+    assert mapped["impedance_at_frequency"].number == pytest.approx(600.0)
+    assert mapped["dcr"].number == pytest.approx(0.35)
+    assert mapped["package"].text == "0603"

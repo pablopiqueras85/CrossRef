@@ -440,3 +440,12 @@ attributes:
     aliases: [corriente de fuga, leakage current, fuga, leakage, ableitstrom,
               corriente de derivacion]
     rule: {kind: at_most, alt_rel_tol: 0.1}
+
+  packaging:
+    id: packaging
+    label: Presentacion
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [presentacion, packaging, embalaje, suministro, tape and reel, carrete,
+              verpackung, formato de entrega]

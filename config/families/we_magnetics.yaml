@@ -180,8 +180,10 @@
     - use: package
       required: true
     - use: mounting
+    - use: tolerance
     - use: aec_q
     - use: series
+    - use: packaging
     - use: temperature_range
     - use: rohs
 
