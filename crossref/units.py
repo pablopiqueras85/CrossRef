@@ -260,7 +260,9 @@ def _case_variants(unit: str) -> list[str]:
 # --------------------------------------------------------------------------
 
 _NUM_RE = re.compile(r"^[+-]?(?:\d+(?:[.,]\d+)*|[.,]\d+)(?:[eE][+-]?\d+)?$")
-_THOUSANDS_RE = re.compile(r"^[+-]?\d{1,3}(?:([.,])\d{3})+$")
+#: agrupacion de millares (1.234.567). El primer grupo nunca es "0": nadie
+#: escribe "0.005" queriendo decir 5, asi que ahi el separador es decimal.
+_THOUSANDS_RE = re.compile(r"^[+-]?(?!0[.,])\d{1,3}(?:([.,])\d{3})+$")
 
 
 def parse_number(text: str) -> float:

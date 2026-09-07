@@ -25,6 +25,21 @@ def test_parse_number_admite_formatos_es_y_en(text, expected):
     assert parse_number(text) == pytest.approx(expected)
 
 
+@pytest.mark.parametrize("text", ["0.005", "0,005", "0.500", "0,500", "0.001"])
+def test_un_cero_delante_es_siempre_separador_decimal(text):
+    """Nadie escribe "0.005" queriendo decir 5.
+
+    La agrupacion de millares nunca empieza por cero, y confundirlos desviaba
+    el valor por mil: un shunt de 5 mohm se leia como 5 ohm.
+    """
+    assert parse_number(text) < 1.0
+
+
+def test_un_shunt_no_se_desvia_por_mil():
+    assert parse_quantity("0.005", "resistance", "ohm").value == pytest.approx(0.005)
+    assert format_quantity(parse_quantity("0.005", "resistance", "ohm")) == "5 mohm"
+
+
 @pytest.mark.parametrize(
     "text,dimension,expected",
     [

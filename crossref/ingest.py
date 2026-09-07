@@ -151,7 +151,9 @@ def to_catalog_item(
             spec = family.attributes.get(attr_id)
             if spec is None or not spec.unit or value.is_empty():
                 continue
-            if value.kind in ("number", "range") and not any(c.isalpha() for c in value.raw):
+            # '%', '°' y 'Ω' son unidades aunque no sean letras.
+            tiene_unidad = any(c.isalpha() or c in "%°ºΩω" for c in value.raw)
+            if value.kind in ("number", "range") and not tiene_unidad:
                 count, unit, example = report.assumed_units.get(attr_id, (0, spec.unit, value.raw))
                 report.assumed_units[attr_id] = (count + 1, spec.unit, example)
         if family_id is None:
