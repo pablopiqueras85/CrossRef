@@ -89,6 +89,48 @@ crossref sync config/sources/we_online.yaml
 crossref find "ferrita 600 ohm a 100 MHz, 500 mA, DCR máximo 0,4 ohm"
 ```
 
+Estado actual: **10.152 referencias distintas** de 22 categorías, repartidas en
+29 familias, sin ninguna sin clasificar. (La sincronización procesa 11.196 fichas:
+la diferencia son referencias listadas en más de una categoría, como las líneas de
+automoción.)
+
+<details>
+<summary>Referencias por familia</summary>
+
+| Familia | Referencias |
+| --- | --- |
+| `power_inductor` | 3094 |
+| `rf_chip_inductor` | 1067 |
+| `transformer` | 838 |
+| `crystal_oscillator` | 578 |
+| `thick_film_resistor` | 568 |
+| `common_mode_choke` | 441 |
+| `flat_cable` | 432 |
+| `ferrite_bead` | 428 |
+| `esd_tvs` | 417 |
+| `ffc_fpc_connector` | 398 |
+| `mlcc` | 301 |
+| `led` | 298 |
+| `film_capacitor` | 270 |
+| `cable_ferrite` | 168 |
+| `pin_header` | 138 |
+| `io_connector` | 126 |
+| `varistor` | 126 |
+| `balun` | 102 |
+| `thermal_interface` | 83 |
+| `wireless_power_coil` | 65 |
+| `line_filter` | 50 |
+| `circular_connector` | 40 |
+| `power_module` | 40 |
+| `press_fit_terminal` | 24 |
+| `terminal_block` | 24 |
+| `antenna` | 16 |
+| `metal_plate_resistor` | 10 |
+| `supercapacitor` | 9 |
+| `emc_shielding` | 1 |
+
+</details>
+
 ```
 [EQUIVALENTE] 74279204  afinidad 78%
     WE-CBF SMT EMI Suppression Ferrite Bead
@@ -409,7 +451,7 @@ configuración.
 ## Tests
 
 ```bash
-pytest -q     # 165 tests
+pytest -q     # 209 tests
 ```
 
 Cubren la conversión de unidades y formatos, las reglas de equivalencia y sus

@@ -77,6 +77,16 @@ table:
 #                  descriptivo ("WE-CBF SMT EMI Suppression Ferrite Bead").
 #   constant_specs: datos que la categoría da por sabidos y no publica como
 #                  columna. Nunca pisan a una columna real.
+#
+# ORDEN: las categorías se procesan de arriba abajo y, si una referencia aparece
+# en dos, gana la última. Por eso las de automoción van al final: una referencia
+# listada en la categoría AEC-Q lo está por algo, y esa es la lectura correcta.
+#
+# La cualificación AEC-Q no la publica el catálogo como columna de la tabla: se
+# deduce de la categoría en la que aparece la serie. Las series de automoción son
+# líneas propias (WE-CBA, WE-MPSA, AUTOMOTIVE_IND_WE_PD…) con sus propios códigos
+# de artículo, así que no contamina a las referencias estándar. Aun así, para un
+# uso en automoción hay que confirmarlo contra la hoja de datos.
 categories:
 
   # --- Passive Components -------------------------------------------------

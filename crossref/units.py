@@ -373,7 +373,9 @@ def _log_to_base(value: float, unit: str, dim: Dimension) -> float:
     raise UnitError(f"unidad logaritmica no soportada: {unit}")
 
 
-_RKM_RE = re.compile(r"^(\d+)\s*([a-zA-ZµμΩω])\s*(\d+)$")
+#: notacion RKM: 4K7 = 4,7 k. La 'E' queda fuera a proposito: no es un prefijo
+#: SI y "1E3" es notacion cientifica, no "1 exa 3".
+_RKM_RE = re.compile(r"^(\d+)\s*(?![eE])([a-zA-ZµμΩω])\s*(\d+)$")
 _QTY_RE = re.compile(
     r"^\s*(?P<num>[+-]?(?:\d+(?:[.,]\d+)*|[.,]\d+)(?:[eE][+-]?\d+)?)\s*(?P<unit>[^\d\s].*?)?\s*$"
 )

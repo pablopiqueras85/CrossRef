@@ -26,7 +26,10 @@ class IngestReport:
     """Resumen de una sincronizacion, pensado para leerlo y actuar."""
 
     source: str
+    #: fichas procesadas (una referencia listada en dos categorias cuenta dos veces)
     items: int = 0
+    #: referencias distintas que quedan en el indice
+    unique_items: int = 0
     by_family: Counter = field(default_factory=Counter)
     unclassified: list[str] = field(default_factory=list)
     #: campo del catalogo -> (veces que aparece, ejemplos de valor)
@@ -42,6 +45,7 @@ class IngestReport:
         return {
             "source": self.source,
             "items": self.items,
+            "unique_items": self.unique_items,
             "by_family": dict(self.by_family),
             "unclassified": self.unclassified[:50],
             "unclassified_total": len(self.unclassified),
@@ -63,7 +67,14 @@ class IngestReport:
         }
 
     def summary_lines(self) -> list[str]:
-        lines = [f"Fuente '{self.source}': {self.items} referencias indexadas."]
+        if self.unique_items and self.unique_items != self.items:
+            lines = [
+                f"Fuente '{self.source}': {self.unique_items} referencias distintas "
+                f"({self.items} fichas procesadas; el resto son referencias listadas "
+                "en mas de una categoria)."
+            ]
+        else:
+            lines = [f"Fuente '{self.source}': {self.items} referencias indexadas."]
         for family, count in self.by_family.most_common():
             lines.append(f"  - {family}: {count}")
         if self.unclassified:
@@ -196,6 +207,7 @@ def ingest_source(
                 batch = []
         if batch:
             report.items += store.upsert(batch)
+        report.unique_items = len(set(seen))
         if deactivate_missing:
             store.deactivate_missing(source_id, seen)
     except Exception as exc:  # se registra y se propaga el motivo al informe
@@ -216,6 +228,7 @@ def ingest_products(
     report = IngestReport(source=source_id)
     items = [to_catalog_item(registry, product, source_id, report) for product in products]
     report.items = store.upsert(items)
+    report.unique_items = len({item.id for item in items})
     return report
 
 
