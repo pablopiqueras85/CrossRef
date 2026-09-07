@@ -375,3 +375,38 @@ def test_las_series_de_conexion_tienen_familia(catalog_registry):
     for serie, familia in casos.items():
         detectada = catalog_registry.detect(serie, top=1)
         assert detectada and detectada[0][0] == familia, f"{serie} -> {detectada}"
+
+
+def test_la_frecuencia_de_un_cristal_llega_en_hercios(catalog_registry):
+    """El catálogo publica 'f' como número desnudo en Hz: 38400000 = 38,4 MHz.
+
+    Con MHz por defecto, un cristal de reloj de 32,768 kHz se leía como
+    32,768 GHz y no encontraba nunca su equivalente.
+    """
+    from crossref.extract import coerce_value
+
+    spec = catalog_registry["crystal_oscillator"].attributes["frequency"]
+    assert spec.unit == "Hz"
+    assert coerce_value(spec, "38400000").number == pytest.approx(38.4e6)
+    assert coerce_value(spec, "32768").number == pytest.approx(32768.0)
+    # Con unidad explícita manda la unidad, no el valor por defecto
+    assert coerce_value(spec, "16 MHz").number == pytest.approx(16e6)
+
+
+def test_el_informe_avisa_de_las_unidades_asumidas(registry, store):
+    """Un valor sin unidad se interpreta con la del esquema: hay que poder verlo."""
+    from crossref.ingest import ingest_products
+    from crossref.sources.base import RawProduct
+
+    productos = [
+        RawProduct(reference="X-1", description="WE-XTAL Quartz Crystal",
+                   family_hint="WE-XTAL Quartz Crystal",
+                   specs={"f": "38400000", "Cload": "12 pF"})
+    ]
+    report = ingest_products(registry, store, productos, source_id="s")
+    assert "frequency" in report.assumed_units
+    veces, unidad, ejemplo = report.assumed_units["frequency"]
+    assert (veces, unidad, ejemplo) == (1, "Hz", "38400000")
+    # 'Cload' trae unidad explícita, así que no se avisa de él
+    assert "load_capacitance" not in report.assumed_units
+    assert any("unidad" in linea for linea in report.summary_lines())

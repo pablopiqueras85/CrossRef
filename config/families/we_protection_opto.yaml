@@ -203,7 +203,10 @@
       label: Frecuencia
       type: number
       dimension: frequency
-      unit: MHz
+      # El catalogo publica la frecuencia como numero desnudo en Hz
+      # (38400000 = 38,4 MHz). Con MHz por defecto, un cristal de reloj de
+      # 32,768 kHz se leia como 32,768 GHz.
+      unit: Hz
       required: true
       weight: 3
       aliases: [frecuencia, frequency, f, f nominal, nominal frequency,

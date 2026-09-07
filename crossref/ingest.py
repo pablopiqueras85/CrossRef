@@ -32,6 +32,10 @@ class IngestReport:
     #: campo del catalogo -> (veces que aparece, ejemplos de valor)
     unmapped_fields: dict[str, tuple[int, list[str]]] = field(default_factory=dict)
     incomplete: list[tuple[str, list[str]]] = field(default_factory=list)
+    #: atributo -> (veces, unidad asumida, ejemplo). Un valor sin unidad se
+    #: interpreta con la unidad por defecto del atributo: si esa unidad no es
+    #: la que usa el catalogo, el error es silencioso y grave.
+    assumed_units: dict[str, tuple[int, str, str]] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict:
@@ -51,6 +55,10 @@ class IngestReport:
                 {"reference": ref, "missing": missing} for ref, missing in self.incomplete[:50]
             ],
             "incomplete_total": len(self.incomplete),
+            "assumed_units": [
+                {"attribute": a, "count": c, "unit": u, "example": e}
+                for a, (c, u, e) in sorted(self.assumed_units.items(), key=lambda kv: -kv[1][0])
+            ],
             "errors": self.errors[:20],
         }
 
@@ -68,6 +76,12 @@ class IngestReport:
             lines.append("  ! campos del catalogo sin mapear (anadelos como alias en el YAML):")
             for name, (count, examples) in top:
                 lines.append(f"      {name} (x{count}) p. ej. {examples[0] if examples else ''}")
+        if self.assumed_units:
+            lines.append("  ! valores sin unidad en la ficha: se ha asumido la del esquema")
+            for attr, (count, unit, example) in sorted(
+                self.assumed_units.items(), key=lambda kv: -kv[1][0]
+            )[:8]:
+                lines.append(f"      {attr} (x{count}) '{example}' -> {unit}. Confirma la unidad.")
         if self.incomplete:
             lines.append(
                 f"  ! {len(self.incomplete)} fichas sin todos los campos obligatorios de su familia"
@@ -133,6 +147,13 @@ def to_catalog_item(
     )
 
     if report is not None:
+        for attr_id, value in attributes.items():
+            spec = family.attributes.get(attr_id)
+            if spec is None or not spec.unit or value.is_empty():
+                continue
+            if value.kind in ("number", "range") and not any(c.isalpha() for c in value.raw):
+                count, unit, example = report.assumed_units.get(attr_id, (0, spec.unit, value.raw))
+                report.assumed_units[attr_id] = (count + 1, spec.unit, example)
         if family_id is None:
             report.unclassified.append(product.reference)
         else:
