@@ -129,6 +129,53 @@ categories:
     category_path: [Optoelectronic Components, Ultraviolet]
 
   # --- Conectores y electromecánica ---------------------------------------
+  # Los conectores tienen subcategorías de tercer y cuarto nivel que la rejilla
+  # de /em/connectors no enlaza directamente. Los bloques enchufables (la
+  # familia equivalente a las MSTB de Phoenix Contact) viven aquí, con una
+  # subcategoría por paso.
+  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl_pitch_2_50mm
+    family: terminal_block
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
+                    Pluggable Connector CONTBL3, Pitch 2.50 mm]
+    # El paso es la propia subcategoría: no aparece como columna de la tabla.
+    constant_specs:
+      Pitch: 2.50 mm
+  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_3_50mm
+    family: terminal_block
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
+                    Pluggable Connector CONTBL3, Pitch 3.50 mm]
+    # El paso es la propia subcategoría: no aparece como columna de la tabla.
+    constant_specs:
+      Pitch: 3.50 mm
+  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_3_81mm
+    family: terminal_block
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
+                    Pluggable Connector CONTBL3, Pitch 3.81 mm]
+    # El paso es la propia subcategoría: no aparece como columna de la tabla.
+    constant_specs:
+      Pitch: 3.81 mm
+  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_5_00mm
+    family: terminal_block
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
+                    Pluggable Connector CONTBL3, Pitch 5.00 mm]
+    # El paso es la propia subcategoría: no aparece como columna de la tabla.
+    constant_specs:
+      Pitch: 5.00 mm
+  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_5_08mm
+    family: terminal_block
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
+                    Pluggable Connector CONTBL3, Pitch 5.08 mm]
+    # El paso es la propia subcategoría: no aparece como columna de la tabla.
+    constant_specs:
+      Pitch: 5.08 mm
+  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_7_62mm
+    family: terminal_block
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
+                    Pluggable Connector CONTBL3, Pitch 7.62 mm]
+    # El paso es la propia subcategoría: no aparece como columna de la tabla.
+    constant_specs:
+      Pitch: 7.62 mm
+
   - url: /en/components/products/em/connectors
     category_path: [Electromechanic Components, Connectors]
 
