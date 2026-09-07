@@ -357,7 +357,8 @@ def _extract_values(query: ComponentQuery, text: str, family: FamilySpec) -> lis
         dimension = dimension_of_unit(unit) if unit else None
         if not dimension:
             continue
-        spec = _pick_attribute(family, dimension, ("range",), text, match.start(), query)
+        spec = _pick_attribute(family, dimension, ("range",), text, match.start(), query,
+                               context_start=_ultimo_final(consumed))
         if spec is None:
             continue
         query.attributes[spec.id] = coerce_value(spec, match.group(0), source_field="texto libre")
@@ -369,7 +370,8 @@ def _extract_values(query: ComponentQuery, text: str, family: FamilySpec) -> lis
         dimension = dimension_of_unit(match.group("unit"))
         if not dimension:
             continue
-        spec = _pick_attribute(family, dimension, ("number", "range"), text, match.start(), query)
+        spec = _pick_attribute(family, dimension, ("number", "range"), text, match.start(), query,
+                               context_start=_ultimo_final(consumed))
         if spec is None:
             continue
         if spec.type == "range":
@@ -386,7 +388,8 @@ def _extract_values(query: ComponentQuery, text: str, family: FamilySpec) -> lis
         if _overlaps(match.span(), consumed):
             continue
         for dimension in ("resistance", "capacitance", "inductance"):
-            spec = _pick_attribute(family, dimension, ("number",), text, match.start(), query)
+            spec = _pick_attribute(family, dimension, ("number",), text, match.start(), query,
+                                   context_start=_ultimo_final(consumed))
             if spec is None:
                 continue
             value = coerce_value(spec, match.group(0), source_field="texto libre")
@@ -411,6 +414,11 @@ def _extract_values(query: ComponentQuery, text: str, family: FamilySpec) -> lis
     return consumed
 
 
+def _ultimo_final(consumed: list[tuple[int, int]]) -> int:
+    """Donde acaba el ultimo valor ya reconocido."""
+    return max((end for _, end in consumed), default=0)
+
+
 def _unit_of(text: str) -> str | None:
     m = re.search(r"([A-Za-zΩµμ%]+)\s*$", text.strip())
     return m.group(1) if m else None
@@ -423,19 +431,29 @@ def _pick_attribute(
     text: str,
     position: int,
     query: ComponentQuery,
+    context_start: int = 0,
 ) -> AttributeSpec | None:
-    """Elige a que atributo pertenece un valor suelto de esa dimension."""
+    """Elige a que atributo pertenece un valor suelto de esa dimension.
+
+    `context_start` marca donde acaba el valor anterior: la ventana de contexto
+    no puede pasar de ahi. Sin ese limite, en "paso 5,08 mm 2 contactos seccion
+    2,5 mm" la palabra "paso" quedaba dentro de la ventana del segundo valor y
+    los 2,5 mm de seccion se tomaban por el paso.
+    """
     candidates = [
         spec
         for spec in family.attributes.values()
         if spec.dimension == dimension and spec.type in kinds and not spec.informative
     ]
-    if not candidates:
+    # Un atributo ya resuelto no se sobrescribe con un valor posterior.
+    libres = [spec for spec in candidates if spec.id not in query.attributes]
+    if not libres:
         return None
 
-    # 1) Palabra clave del atributo cerca del valor (ventana previa de 40 caracteres).
-    context = normalize_text(text[max(0, position - 40) : position + 15])
-    for spec in sorted(candidates, key=lambda s: -s.weight):
+    # 1) Palabra clave del atributo cerca del valor, sin invadir el valor anterior.
+    inicio = max(context_start, position - 40)
+    context = normalize_text(text[inicio : position + 15])
+    for spec in sorted(libres, key=lambda s: -s.weight):
         for alias in [spec.label, *spec.aliases]:
             alias_norm = normalize_text(alias)
             if len(alias_norm) >= 3 and alias_norm in context:
@@ -445,10 +463,7 @@ def _pick_attribute(
     def priority(spec: AttributeSpec) -> tuple:
         return (kinds.index(spec.type), not spec.required, -spec.weight, spec.id)
 
-    for spec in sorted(candidates, key=priority):
-        if spec.id not in query.attributes:
-            return spec
-    return None
+    return sorted(libres, key=priority)[0] if libres else None
 
 
 def _alias_pattern(alias: str) -> re.Pattern[str]:

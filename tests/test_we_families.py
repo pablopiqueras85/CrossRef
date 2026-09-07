@@ -410,3 +410,31 @@ def test_el_informe_avisa_de_las_unidades_asumidas(registry, store):
     # 'Cload' trae unidad explícita, así que no se avisa de él
     assert "load_capacitance" not in report.assumed_units
     assert any("unidad" in linea for linea in report.summary_lines())
+
+
+def test_una_palabra_clave_no_se_aplica_al_valor_siguiente(catalog_registry):
+    """En "paso 5,08 mm ... sección 2,5 mm" el "paso" es del primer valor.
+
+    La ventana de contexto miraba 40 caracteres hacia atrás sin límite, así que
+    alcanzaba la palabra clave del valor anterior y la sección de cable acababa
+    interpretada como el paso del conector.
+    """
+    from crossref.extract import extract_from_text
+
+    query = extract_from_text(
+        catalog_registry,
+        "bornero enchufable base de placa, paso 5,08 mm, 2 contactos, seccion 2,5 mm2",
+        "terminal_block",
+    )
+    assert query.attributes["pitch"].number == pytest.approx(0.00508)
+    assert query.attributes["positions"].number == pytest.approx(2)
+
+
+def test_un_atributo_ya_resuelto_no_se_sobrescribe(catalog_registry):
+    """El primer valor con su palabra clave manda sobre los que vengan después."""
+    from crossref.extract import extract_from_text
+
+    query = extract_from_text(
+        catalog_registry, "paso 5,08 mm y altura 11 mm", "terminal_block"
+    )
+    assert query.attributes["pitch"].number == pytest.approx(0.00508)

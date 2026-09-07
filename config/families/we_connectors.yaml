@@ -62,18 +62,36 @@
         crimpar: [crimp, crimpar, a crimpar]
         soldar: [solder, soldar, a soldar]
     - use: orientation
+      aliases: [orientacion, orientation, type, tipo, entrada, plug entry, cable entry,
+                salida, angulo, angle, ausrichtung]
     - use: mounting
     - use: rated_current
       required: true
+      aliases: [corriente nominal, rated current, ir, i r, "ir culus", "ir vde",
+                "ir[culus]", "ir[vde]", corriente, current]
     - use: voltage
       required: true
+      aliases: [tension, tension nominal, voltage, working voltage,
+                "working voltage culus", vr, rated voltage]
     - id: wire_size
       label: Seccion de cable
       type: text
-      weight: 1
-      aliases: [seccion, wire size, cable, awg, seccion de cable, conductor,
-                leiterquerschnitt]
+      weight: 2
+      aliases: [seccion, wire size, wire section, cable, awg, seccion de cable,
+                conductor, leiterquerschnitt, seccion de conductor]
       rule: {kind: text_equal, alt_similarity: 0.85}
+    - id: connector_side
+      label: Lado del conector
+      type: enum
+      required: true
+      weight: 3
+      aliases: [lado, side, pcb cable panel, pcb/cable/panel, montaje en, tipo de pieza]
+      rule: {kind: enum_equal}
+      values:
+        # La base macho va soldada a la placa; el conector hembra va al cable.
+        placa: [pcb, placa, base, header, regleta, board]
+        cable: [cable, plug, conector volante, hembra]
+        panel: [panel, chasis]
     - use: temperature_range
     - use: rohs
 
