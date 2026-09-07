@@ -94,6 +94,32 @@ Estado actual: **10.152 referencias distintas** de 22 categorías, repartidas en
 la diferencia son referencias listadas en más de una categoría, como las líneas de
 automoción.)
 
+#### Cobertura: un 13 % sin confirmar
+
+De las 313 páginas de serie recorridas, **283 están completas**: el número de filas
+extraídas coincide exactamente con el que la propia página declara en
+`data-total-article-count`.
+
+En **30 series** la página declara más artículos de los que renderiza en la tabla —
+en total 12.921 declarados frente a 11.196 extraídos, o sea **1.725 sin recoger**.
+Son las series más grandes (WE-TI declara 328 y muestra 140; WE-LQ declara 156 y
+muestra 52).
+
+No he podido determinar si esos 1.725 son referencias que faltan o variantes de
+embalaje que el contador suma y la tabla agrupa. Lo comprobado:
+
+- Ningún parámetro de URL (`?page`, `?size`, `?limit`, `?showAll`) cambia el número
+  de filas servidas.
+- El HTML no expone el endpoint que cargaría el resto.
+- Muchas proporciones son exactamente 2 o 3 (156/52, 150/50, 30/10), lo que encaja
+  con variantes de embalaje; pero otras no (328/140, 168/126), lo que no encaja.
+
+**Cómo resolverlo, por orden de coste:** abrir una de esas series en el navegador
+y bajar hasta el final de la tabla; si aparecen las 156 filas, están cargadas por
+JavaScript y hay que recogerlas por su API interna. Si se quedan en 52, el contador
+incluye variantes y el índice ya está completo. La API REST de la empresa zanja la
+duda de raíz.
+
 <details>
 <summary>Referencias por familia</summary>
 
