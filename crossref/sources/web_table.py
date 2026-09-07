@@ -78,6 +78,12 @@ class WebTableCatalogSource:
         }
         self.only_active = bool(table.get("only_active", False))
         self.ignore_columns = {_clean_label(c) for c in table.get("ignore_columns", [])}
+        #: de donde sale el numero de articulos que la pagina dice tener, para
+        #: poder contrastarlo con las filas que sirve de verdad
+        self.total_selector = table.get("total_selector")
+        self.total_attr = table.get("total_attr")
+        #: (url, declarados, extraidos) de cada pagina de serie recorrida
+        self.coverage: list[tuple[str, int, int]] = []
 
     # ------------------------------------------------------------------ publico
 
@@ -151,6 +157,7 @@ class WebTableCatalogSource:
 
         series_name = self._series_name(tree, url)
         category_path = [str(c) for c in category.get("category_path", []) if c]
+        extraidos = 0
 
         for row in table.css(self.row_selector):
             cells = row.css(self.cell_selector)
@@ -174,6 +181,7 @@ class WebTableCatalogSource:
                     datasheet = urljoin(url, link.attributes["href"])
             if not reference:
                 continue
+            extraidos += 1
             if self.only_active and self.status_column:
                 status = (specs.get(self.status_column) or "").strip().lower()
                 if status and not any(a in status for a in self.active_values):
@@ -201,6 +209,23 @@ class WebTableCatalogSource:
                 datasheet_url=datasheet,
                 extra={"series_url": url},
             )
+
+        declarados = self._declared_total(tree)
+        if declarados is not None:
+            self.coverage.append((url, declarados, extraidos))
+
+    def _declared_total(self, tree: HTMLParser) -> int | None:
+        """Cuantos articulos dice la pagina que tiene, si lo publica."""
+        if not self.total_selector or not self.total_attr:
+            return None
+        node = tree.css_first(self.total_selector)
+        if node is None:
+            return None
+        raw = node.attributes.get(self.total_attr)
+        try:
+            return int(str(raw).strip())
+        except (TypeError, ValueError):
+            return None
 
     def _series_name(self, tree: HTMLParser, url: str) -> str | None:
         node = tree.css_first(self.series_title_selector)

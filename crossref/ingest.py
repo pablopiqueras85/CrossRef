@@ -35,6 +35,9 @@ class IngestReport:
     #: campo del catalogo -> (veces que aparece, ejemplos de valor)
     unmapped_fields: dict[str, tuple[int, list[str]]] = field(default_factory=dict)
     incomplete: list[tuple[str, list[str]]] = field(default_factory=list)
+    #: (url, declarados, extraidos) de las paginas que declaran su total y
+    #: sirven menos filas de las que dicen tener
+    short_pages: list[tuple[str, int, int]] = field(default_factory=list)
     #: atributo -> (veces, unidad asumida, ejemplo). Un valor sin unidad se
     #: interpreta con la unidad por defecto del atributo: si esa unidad no es
     #: la que usa el catalogo, el error es silencioso y grave.
@@ -59,6 +62,11 @@ class IngestReport:
                 {"reference": ref, "missing": missing} for ref, missing in self.incomplete[:50]
             ],
             "incomplete_total": len(self.incomplete),
+            "short_pages": [
+                {"url": u, "declared": d, "extracted": e} for u, d, e in self.short_pages[:40]
+            ],
+            "short_pages_total": len(self.short_pages),
+            "short_pages_missing": sum(d - e for _, d, e in self.short_pages),
             "assumed_units": [
                 {"attribute": a, "count": c, "unit": u, "example": e}
                 for a, (c, u, e) in sorted(self.assumed_units.items(), key=lambda kv: -kv[1][0])
@@ -87,6 +95,15 @@ class IngestReport:
             lines.append("  ! campos del catalogo sin mapear (anadelos como alias en el YAML):")
             for name, (count, examples) in top:
                 lines.append(f"      {name} (x{count}) p. ej. {examples[0] if examples else ''}")
+        if self.short_pages:
+            faltan = sum(d - e for _, d, e in self.short_pages)
+            lines.append(
+                f"  ! {len(self.short_pages)} paginas sirven menos filas de las que dicen "
+                f"tener ({faltan} articulos de diferencia). Comprueba si son variantes "
+                "de embalaje que la tabla agrupa o si faltan referencias:"
+            )
+            for url, dec, ext in sorted(self.short_pages, key=lambda x: x[1] - x[2], reverse=True)[:5]:
+                lines.append(f"      {url.rsplit('/', 1)[-1]}: declara {dec}, sirve {ext}")
         if self.assumed_units:
             lines.append("  ! valores sin unidad en la ficha: se ha asumido la del esquema")
             for attr, (count, unit, example) in sorted(
@@ -208,6 +225,11 @@ def ingest_source(
         if batch:
             report.items += store.upsert(batch)
         report.unique_items = len(set(seen))
+        report.short_pages = [
+            (url, declarados, extraidos)
+            for url, declarados, extraidos in getattr(source, "coverage", [])
+            if extraidos < declarados
+        ]
         if deactivate_missing:
             store.deactivate_missing(source_id, seen)
     except Exception as exc:  # se registra y se propaga el motivo al informe

@@ -286,3 +286,54 @@ def test_la_serie_clasifica_la_ficha(registry):
     for serie, familia in casos.items():
         producto = RawProduct(reference="1", family_hint=serie, description=serie)
         assert resolve_family(registry, producto) == familia, serie
+
+
+SERIE_INCOMPLETA_HTML = SERIE_HTML.replace(
+    '<div class="parametricSearch" data-total-article-count="2"></div>',
+    '<div class="parametricSearch" data-total-article-count="6"></div>',
+)
+
+
+def _config_con_total():
+    cfg = config()
+    cfg["table"] = {**cfg["table"], "total_selector": "div.parametricSearch",
+                    "total_attr": "data-total-article-count"}
+    return cfg
+
+
+def test_se_registra_lo_declarado_frente_a_lo_extraido():
+    src = WebTableCatalogSource(_config_con_total())
+    list(src.parse_table(SERIE_HTML, "https://catalogo.example/x", config()["categories"][0]))
+    src.close()
+    assert src.coverage == [("https://catalogo.example/x", 2, 2)]
+
+
+def test_una_pagina_que_sirve_menos_filas_de_las_que_dice_se_avisa(registry, store):
+    """Si la página declara 6 artículos y solo sirve 2, hay que enterarse."""
+    import httpx
+
+    from crossref.ingest import ingest_source
+
+    def responder(request: httpx.Request) -> httpx.Response:
+        cuerpo = CATEGORIA_HTML if request.url.path == "/cat" else SERIE_INCOMPLETA_HTML
+        return httpx.Response(200, text=cuerpo)
+
+    cfg = _config_con_total()
+    cfg["request"] = {"respect_robots": False, "rate_limit_per_sec": 0}
+    cfg["categories"] = [{"url": "/cat", "family": "ferrite_bead"}]
+    src = WebTableCatalogSource(cfg, httpx.Client(transport=httpx.MockTransport(responder)))
+    report = ingest_source(registry, store, src)
+    src.close()
+
+    assert len(report.short_pages) == 2          # las dos series del fixture
+    assert all(dec == 6 and ext == 2 for _, dec, ext in report.short_pages)
+    resumen = " ".join(report.summary_lines())
+    assert "menos filas de las que dicen" in resumen
+    assert "8 articulos de diferencia" in resumen
+
+
+def test_sin_total_declarado_no_se_avisa_de_nada():
+    src = WebTableCatalogSource(config())        # sin total_selector
+    list(src.parse_table(SERIE_HTML, "https://catalogo.example/x", config()["categories"][0]))
+    src.close()
+    assert src.coverage == []

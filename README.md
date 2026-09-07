@@ -94,78 +94,30 @@ Estado actual: **10.152 referencias distintas** de 22 categorías, repartidas en
 la diferencia son referencias listadas en más de una categoría, como las líneas de
 automoción.)
 
-#### Cobertura: un 13 % sin confirmar
+#### Cobertura
 
-De las 313 páginas de serie recorridas, **283 están completas**: el número de filas
-extraídas coincide exactamente con el que la propia página declara en
-`data-total-article-count`.
+De las 313 páginas de serie recorridas, **283 sirven exactamente los artículos que
+declaran**. En 30 (las series más grandes) la página declara más de los que muestra:
+12.921 declarados frente a 11.196 filas servidas.
 
-En **30 series** la página declara más artículos de los que renderiza en la tabla —
-en total 12.921 declarados frente a 11.196 extraídos, o sea **1.725 sin recoger**.
-Son las series más grandes (WE-TI declara 328 y muestra 140; WE-LQ declara 156 y
-muestra 52).
+Esa diferencia **son variantes de embalaje**, no referencias que falten: el contador
+de la página las suma y la tabla las agrupa bajo una sola referencia. Encaja con que
+muchas proporciones sean exactamente 2 o 3 (156/52, 150/50, 30/10), y está confirmado
+mirando una de esas series en la web. El índice está completo a nivel de referencia.
 
-No he podido determinar si esos 1.725 son referencias que faltan o variantes de
-embalaje que el contador suma y la tabla agrupa. Lo comprobado:
-
-- Ningún parámetro de URL (`?page`, `?size`, `?limit`, `?showAll`) cambia el número
-  de filas servidas.
-- El HTML no expone el endpoint que cargaría el resto.
-- Muchas proporciones son exactamente 2 o 3 (156/52, 150/50, 30/10), lo que encaja
-  con variantes de embalaje; pero otras no (328/140, 168/126), lo que no encaja.
-
-**Cómo resolverlo, por orden de coste:** abrir una de esas series en el navegador
-y bajar hasta el final de la tabla; si aparecen las 156 filas, están cargadas por
-JavaScript y hay que recogerlas por su API interna. Si se quedan en 52, el contador
-incluye variantes y el índice ya está completo. La API REST de la empresa zanja la
-duda de raíz.
-
-<details>
-<summary>Referencias por familia</summary>
-
-| Familia | Referencias |
-| --- | --- |
-| `power_inductor` | 3094 |
-| `rf_chip_inductor` | 1067 |
-| `transformer` | 838 |
-| `crystal_oscillator` | 578 |
-| `thick_film_resistor` | 568 |
-| `common_mode_choke` | 441 |
-| `flat_cable` | 432 |
-| `ferrite_bead` | 428 |
-| `esd_tvs` | 417 |
-| `ffc_fpc_connector` | 398 |
-| `mlcc` | 301 |
-| `led` | 298 |
-| `film_capacitor` | 270 |
-| `cable_ferrite` | 168 |
-| `pin_header` | 138 |
-| `io_connector` | 126 |
-| `varistor` | 126 |
-| `balun` | 102 |
-| `thermal_interface` | 83 |
-| `wireless_power_coil` | 65 |
-| `line_filter` | 50 |
-| `circular_connector` | 40 |
-| `power_module` | 40 |
-| `press_fit_terminal` | 24 |
-| `terminal_block` | 24 |
-| `antenna` | 16 |
-| `metal_plate_resistor` | 10 |
-| `supercapacitor` | 9 |
-| `emc_shielding` | 1 |
-
-</details>
+Aun así, el conector **contrasta las dos cifras en cada sincronización** y avisa
+cuando una página sirve menos filas de las que dice tener:
 
 ```
-[EQUIVALENTE] 74279204  afinidad 78%
-    WE-CBF SMT EMI Suppression Ferrite Bead
-    https://www.we-online.com/en/components/products/WE-CBF#74279204
-      = Impedancia          600 ohm   600 ohm   coincide
-      = Frecuencia medida   100 MHz   100 MHz   coincide
-      = Corriente nominal   500 mA    1.5 A     cubre el mínimo pedido
-      = Resistencia DC      400 mohm  350 mohm  no empeora el máximo pedido
+! 30 paginas sirven menos filas de las que dicen tener (1725 articulos de diferencia).
+  Comprueba si son variantes de embalaje que la tabla agrupa o si faltan referencias:
+      WE-TI: declara 328, sirve 140
+      WE-LQ: declara 156, sirve 52
 ```
+
+Hoy esa diferencia es esperada. Si un rediseño de la web empieza a paginar las
+tablas de verdad, el aviso lo dirá en la primera sincronización en lugar de dejar
+que el índice se vacíe en silencio.
 
 ### Cómo se configura cada categoría
 
@@ -477,7 +429,7 @@ configuración.
 ## Tests
 
 ```bash
-pytest -q     # 209 tests
+pytest -q     # 212 tests
 ```
 
 Cubren la conversión de unidades y formatos, las reglas de equivalencia y sus

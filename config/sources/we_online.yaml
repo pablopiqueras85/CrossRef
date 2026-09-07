@@ -54,6 +54,10 @@ table:
   # El estado trae detrás el texto del tooltip: se coge solo el estado.
   value_selectors:
     Status: ".wecLifecycle__status-wrapper > span"
+  # La página declara cuántos artículos tiene; se contrasta con las filas que
+  # sirve de verdad para avisar si alguna vez deja de servirlas todas.
+  total_selector: "div.parametricSearch"
+  total_attr: "data-total-article-count"
   status_column: "Status"
   active_values: ["active"]
   only_active: false           # true para indexar solo lo que está en producción
