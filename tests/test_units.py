@@ -120,3 +120,27 @@ def test_format_quantity_usa_prefijo_legible():
 def test_valor_no_interpretable_lanza():
     with pytest.raises(UnitError):
         parse_quantity("azul", "frequency")
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [("3.3E-11", 3.3e-11), ("1.0E-08", 1e-8), ("2.2e-6", 2.2e-6), ("1E3", 1e3)],
+)
+def test_la_notacion_cientifica_no_es_un_rango(text, expected):
+    """En "3.3E-11" el guion es el signo del exponente, no un separador.
+
+    El catalogo publica asi las capacidades: leerlo como rango dejaba a todos
+    los condensadores ceramicos fuera de cualquier busqueda.
+    """
+    from crossref.units import looks_like_range
+
+    assert not looks_like_range(text)
+    assert parse_quantity(text, "capacitance", "F").value == pytest.approx(expected)
+
+
+def test_un_rango_de_verdad_si_se_detecta():
+    from crossref.units import looks_like_range
+
+    assert looks_like_range("10 to 2700 Ohm")
+    assert looks_like_range("0.009 to 0.03 Ohm")
+    assert not looks_like_range("100 nF")

@@ -589,14 +589,26 @@ _RANGE_TEXT_RE = re.compile(
 )
 
 
+#: un unico numero en notacion cientifica: "3.3E-11" es 33 pF, no un rango
+_SCIENTIFIC_RE = re.compile(
+    r"^\s*[+-]?\d+(?:[.,]\d+)?\s*[eE]\s*[+-]?\d+\s*[a-zA-ZΩωµμ°º%/]*\s*$"
+)
+
+
 def looks_like_range(text: str) -> bool:
     """True si el texto contiene dos valores unidos por un separador de rango.
 
     Los catalogos publican a menudo el rango de una serie ("Z 10 to 2700 Ohm")
     en un campo que el esquema declara como numerico; conviene detectarlo en
     lugar de descartar el dato.
+
+    La notacion cientifica se descarta antes: en "3.3E-11" el guion es el signo
+    del exponente, no un separador de rango.
     """
-    return bool(_RANGE_TEXT_RE.search(str(text or "")))
+    raw = str(text or "")
+    if _SCIENTIFIC_RE.match(raw):
+        return False
+    return bool(_RANGE_TEXT_RE.search(raw))
 
 
 def _trim(value: float, digits: int) -> str:
