@@ -5,7 +5,8 @@ __pycache__/
 *.egg-info/
 data/catalog.db
 data/catalog.db-*
-data/cache_web/
+# Cualquier caché de descargas: son cientos de MB de HTML
+data/cache*/
 config/sources/catalogo_web.yaml
 config/sources/catalogo_api.yaml
 .DS_Store

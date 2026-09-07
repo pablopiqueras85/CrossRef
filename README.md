@@ -64,43 +64,103 @@ Entendido: Rango de frecuencia=0 Hz - 18 GHz, Atenuacion=3 dB, Impedancia=50 ohm
       = Potencia media        2 W             2 W             cubre el minimo pedido
 ```
 
-## Conectar el catálogo (we-online.com)
+## El catálogo, ya conectado
 
-El catálogo es una **dependencia intercambiable**. Hay tres conectores, en este orden
-de preferencia:
+`config/sources/we_online.yaml` funciona hoy contra we-online.com.
 
-| Fuente | Cuándo usarla | Plantilla |
+El catálogo **no tiene una página por referencia**: tiene una página por línea de
+producto con una tabla donde cada fila es una referencia y cada columna un
+parámetro. El recorrido es de dos niveles:
+
+```
+categoría  ->  enlaces a las series  ->  tabla de artículos de cada serie
+```
+
+Eso son ~12 peticiones por categoría en lugar de una por referencia. Y cada celda
+trae el dato ya etiquetado, así que los valores salen limpios sin adivinar unidades:
+
+```html
+<td data-column="Z @ 100 MHz" data-unit="Ω">
+  <span data-sort-value="600">600 Ω</span>
+```
+
+```bash
+crossref sync config/sources/we_online.yaml
+crossref find "ferrita 600 ohm a 100 MHz, 500 mA, DCR máximo 0,4 ohm"
+```
+
+```
+[EQUIVALENTE] 74279204  afinidad 78%
+    WE-CBF SMT EMI Suppression Ferrite Bead
+    https://www.we-online.com/en/components/products/WE-CBF#74279204
+      = Impedancia          600 ohm   600 ohm   coincide
+      = Frecuencia medida   100 MHz   100 MHz   coincide
+      = Corriente nominal   500 mA    1.5 A     cubre el mínimo pedido
+      = Resistencia DC      400 mohm  350 mohm  no empeora el máximo pedido
+```
+
+### Cómo se configura cada categoría
+
+```yaml
+categories:
+  # Categoría homogénea: se fuerza la familia.
+  - url: /en/components/products/led/leds
+    family: led
+    category_path: [Optoelectronic Components, LEDs]
+
+  # Categoría que mezcla familias (EMC lleva ferritas, chokes, varistores,
+  # apantallamiento…): se omite `family` y se deduce del nombre de la serie,
+  # que es descriptivo ("WE-CBF SMT EMI Suppression Ferrite Bead").
+  - url: /en/components/products/pbs/emc_components
+    category_path: [Passive Components, EMC Components]
+    constant_specs:
+      Test frequency: 100 MHz      # dato que la web da por sabido y no publica
+
+  # Automoción: son referencias distintas, con su cualificación.
+  - url: /en/components/products/am/aecq_single_coil_power_inductors
+    family: power_inductor
+    category_path: [Automotive, Single Coil Power Inductors]
+    constant_specs:
+      AEC-Q: "si"
+```
+
+En las mismas rejillas conviven kits de diseño, bolsas de filtros, manuales y placas
+de evaluación. No son componentes que se puedan ofrecer como equivalencia, así que
+`series.exclude_pattern` los deja fuera.
+
+El rastreo va a **media petición por segundo**, respeta `robots.txt` y cachea lo
+descargado, de modo que repetir una sincronización no vuelve a pedir nada.
+
+> **Hay una vía mejor**: la empresa publica una **API REST** para clientes
+> ([we-online.com/en/support/collaboration/api](https://www.we-online.com/en/support/collaboration/api))
+> con datos de artículo, disponibilidad y hojas de datos. Con acceso, conviene pasar
+> a `type: api`: no se rompe cuando se rediseña la web. También existe ya un
+> [buscador de equivalencias propio](https://www.we-online.com/en/support/design-tools/crossreference-search/crossreference-components)
+> que merece la pena revisar antes de duplicar esfuerzo.
+
+## Otras fuentes de catálogo
+
+El catálogo es una **dependencia intercambiable**. Hay cuatro conectores:
+
+| Fuente | Cuándo usarla | Configuración |
 | --- | --- | --- |
-| **API JSON** | El catálogo web expone API | `config/sources/catalogo_api.yaml.example` |
+| **API JSON** | El catálogo expone API | `config/sources/catalogo_api.yaml.example` |
 | **Fichero** | Exportación CSV / XLSX / JSON del ERP o PIM | `examples/fuente_demo.yaml` |
-| **Web** | No hay más remedio que leer las fichas | `config/sources/catalogo_web.yaml.example` |
+| **Tabla web** | Una tabla de artículos por serie | `config/sources/we_online.yaml` |
+| **Ficha web** | Una página por referencia | `config/sources/catalogo_web.yaml.example` |
 
-Al ser el catálogo de vuestra propia empresa, lo más probable es que exista una vía
-mejor que leer la web: una exportación del PIM/ERP o el mismo feed que alimenta la
-web. Merece la pena preguntarlo antes de montar un rastreador, porque el HTML se
-rompe con cada rediseño y una exportación no.
-
-Para el caso web, el conector se configura con selectores CSS, sin escribir código.
-Además aprovecha los datos estructurados JSON-LD (`Product`) si la ficha los publica,
-que es lo más estable. Respeta `robots.txt`, limita el ritmo de peticiones y cachea
-las descargas.
-
+Para el caso de una página por referencia, el conector se configura con selectores
+CSS y aprovecha los datos estructurados JSON-LD (`Product`) si la ficha los publica.
 Para ajustar los selectores contra una ficha real:
 
 ```bash
-cp config/sources/catalogo_web.yaml.example config/sources/catalogo_web.yaml
-# editar base_url, sitemap y selectores...
-crossref probe config/sources/catalogo_web.yaml https://www.we-online.com/en/components/products/<ficha>
+crossref probe config/sources/catalogo_web.yaml <URL de una ficha>
+crossref probe config/sources/catalogo_web.yaml file:///ruta/a/ficha.html   # sin red
 ```
 
 `probe` descarga **una** página y muestra qué ha entendido, a qué familia la asigna,
-qué especificaciones ha mapeado y cuáles se quedan fuera. Se itera sobre el YAML hasta
-que no queda nada sin mapear. Después:
-
-```bash
-crossref sync config/sources/catalogo_web.yaml --limit 20   # prueba
-crossref sync config/sources/catalogo_web.yaml --deactivate-missing
-```
+qué especificaciones ha mapeado y cuáles se quedan fuera. `tools/README.md` explica
+las tres formas de averiguar los selectores de un catálogo nuevo.
 
 ## Definir las familias y sus reglas
 

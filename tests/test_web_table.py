@@ -220,3 +220,69 @@ def test_el_tipo_de_fuente_esta_registrado(tmp_path):
     path = tmp_path / "fuente.yaml"
     path.write_text(json.dumps(config()), encoding="utf-8")
     assert isinstance(load_source(path), WebTableCatalogSource)
+
+
+CATEGORIA_MIXTA_HTML = """
+<html><body>
+  <div class="wec-grid">
+    <div class="wec-grid__item"><a href="/en/components/products/WE-CBF">ferritas</a></div>
+    <div class="wec-grid__item"><a href="/en/components/products/DESIGNKIT_742700">kit</a></div>
+    <div class="wec-grid__item"><a href="/en/components/products/DESIGN_KIT_560112">kit</a></div>
+    <div class="wec-grid__item"><a href="/en/components/products/ABC_OF_CAPACITORS_EN">manual</a></div>
+    <div class="wec-grid__item"><a href="/en/components/products/DCDC_CONVERTER_HANDBOOK">manual</a></div>
+    <div class="wec-grid__item"><a href="/en/components/products/WE-MPSB">ferritas</a></div>
+  </div>
+</body></html>
+"""
+
+EXCLUIR = r"(?i)/(DESIGN_?KIT|ABC_OF_|[^/]*_HANDBOOK$)"
+
+
+def test_los_kits_y_manuales_no_son_componentes():
+    """En las rejillas de series conviven kits de diseño y manuales."""
+    import httpx
+
+    def responder(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=CATEGORIA_MIXTA_HTML)
+
+    cfg = config()
+    cfg["series"] = {**cfg["series"], "exclude_pattern": EXCLUIR}
+    cfg["request"] = {"respect_robots": False, "rate_limit_per_sec": 0}
+    src = WebTableCatalogSource(cfg, httpx.Client(transport=httpx.MockTransport(responder)))
+    urls = [u.rsplit("/", 1)[-1] for u in src._series_urls(cfg["categories"][0])]  # noqa: SLF001
+    src.close()
+    assert urls == ["WE-CBF", "WE-MPSB"]
+
+
+def test_sin_familia_configurada_la_serie_es_la_pista(source):
+    """Una categoría que mezcla familias se resuelve por el nombre de la serie."""
+    items = list(source.parse_table(
+        SERIE_HTML, "https://catalogo.example/x",
+        {"category_path": ["EMC Components"]},   # sin 'family'
+    ))
+    assert items[0].family_hint.startswith("WE-CBF")
+
+
+def test_la_familia_configurada_manda_sobre_la_serie(source):
+    items = list(source.parse_table(SERIE_HTML, "https://catalogo.example/x",
+                                    {"family": "cable_ferrite"}))
+    assert items[0].family_hint == "cable_ferrite"
+
+
+def test_la_serie_clasifica_la_ficha(registry):
+    """El nombre de serie del catálogo lleva a la familia correcta."""
+    from crossref.ingest import resolve_family
+    from crossref.sources.base import RawProduct
+
+    casos = {
+        "WE-CBF SMT EMI Suppression Ferrite Bead": "ferrite_bead",
+        "WE-CMB Common Mode Power Line Choke": "common_mode_choke",
+        "WE-TVS TVS Diode Standard Series": "esd_tvs",
+        "WCAP-ATG5 Aluminum Electrolytic Capacitor": "aluminum_capacitor",
+        "WRIS-PSMB Metal Plate Resistor": "metal_plate_resistor",
+        "WE-LQS SMT Power Inductor": "power_inductor",
+        "WE-XTAL Quartz Crystal": "crystal_oscillator",
+    }
+    for serie, familia in casos.items():
+        producto = RawProduct(reference="1", family_hint=serie, description=serie)
+        assert resolve_family(registry, producto) == familia, serie

@@ -92,7 +92,9 @@
 - id: common_mode_choke
   label: Choque de modo comun
   aliases: [choque de modo comun, common mode choke, cmc, filtro de modo comun,
-            common mode filter, bobina de modo comun, we-sl, we-cnsw, we-ucf]
+            common mode filter, common mode line filter, common mode power line choke,
+            common mode choke power line, power line choke, choque de linea,
+            bobina de modo comun, we-sl, we-cnsw, we-ucf]
   keywords: [modo comun, common mode, choke, choque, emc, emi, lineas]
   source_categories: [Common Mode Chokes for Extra-low Voltage and Data Lines,
                       Common Mode Chokes for Mains Power Lines, EMC Components,

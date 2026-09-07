@@ -46,6 +46,10 @@ class WebTableCatalogSource:
 
         series = config.get("series") or {}
         self.series_pattern = re.compile(str(series.get("url_pattern", r".")))
+        exclude = series.get("exclude_pattern")
+        #: kits de diseño, bolsas de filtros y manuales viven en las mismas
+        #: rejillas que las series de producto, pero no son componentes
+        self.series_exclude = re.compile(str(exclude)) if exclude else None
         #: acota donde buscar los enlaces: si no, las migas de pan y el menu
         #: cuelan paginas que no son series
         self.series_link_selector = str(series.get("link_selector", "a[href]"))
@@ -123,7 +127,11 @@ class WebTableCatalogSource:
         found: list[str] = []
         for node in tree.css(self.series_link_selector):
             href = urldefrag(node.attributes.get("href", ""))[0]
-            if href and self.series_pattern.search(href):
+            if not href or not self.series_pattern.search(href):
+                continue
+            if self.series_exclude and self.series_exclude.search(href):
+                continue
+            if True:
                 absolute = urljoin(self.base_url + "/", href)
                 if absolute not in found:
                     found.append(absolute)
@@ -184,7 +192,10 @@ class WebTableCatalogSource:
                 url=f"{url}#{reference}",
                 manufacturer=self.config.get("manufacturer"),
                 description=" ".join(filter(None, [series_name, reference])),
-                family_hint=category.get("family"),
+                # Una categoria como "EMC Components" mezcla ferritas, chokes,
+                # varistores y apantallamiento: el nombre de la serie es mucho
+                # mejor pista que la categoria para clasificar la ficha.
+                family_hint=category.get("family") or series_name,
                 category_path=category_path,
                 specs=specs,
                 datasheet_url=datasheet,

@@ -34,6 +34,10 @@ series:
   # Los enlaces de serie viven en la rejilla de líneas de producto. Sin acotar
   # el contenedor se cuelan las migas de pan (que apuntan a la categoría padre).
   link_selector: ".wec-grid__item a[href]"
+  # En las mismas rejillas hay kits de diseño, bolsas de filtros, manuales y
+  # placas de evaluación. No son componentes que se puedan ofrecer como
+  # equivalencia, así que se dejan fuera.
+  exclude_pattern: '(?i)/(DESIGN_?KIT|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
   url_pattern: '^/en/components/products/[A-Za-z0-9][A-Za-z0-9_\-]*$'
   title_selector: "h1"
 
@@ -64,11 +68,117 @@ table:
     - Sample
     - Compare
 
+# Categorías a indexar.
+#
+#   family:        fuerza la familia para toda la categoría. Se usa solo cuando
+#                  la categoría es homogénea. En las que mezclan (EMC Components
+#                  lleva ferritas, chokes, varistores y apantallamiento) se omite
+#                  y la familia se deduce del nombre de la serie, que es
+#                  descriptivo ("WE-CBF SMT EMI Suppression Ferrite Bead").
+#   constant_specs: datos que la categoría da por sabidos y no publica como
+#                  columna. Nunca pisan a una columna real.
 categories:
-  - url: /en/components/products/am/ferrites_for_pcb_assembly
-    family: ferrite_bead
-    category_path: [Passive Components, EMC Components, Ferrites for PCB Assembly]
-    # La impedancia de esta categoría se publica siempre a 100 MHz: va en el
-    # nombre de la columna ("Z @ 100 MHz"), no como columna aparte.
+
+  # --- Passive Components -------------------------------------------------
+  - url: /en/components/products/pbs/emc_components
+    category_path: [Passive Components, EMC Components]
     constant_specs:
       Test frequency: 100 MHz
+
+  - url: /en/components/products/pbs/power_magnetics
+    category_path: [Passive Components, Power Magnetics]
+
+  - url: /en/components/products/pbs/capacitors
+    category_path: [Passive Components, Capacitors]
+
+  - url: /en/components/products/pbs/eiris
+    category_path: [Passive Components, Resistors]
+
+  - url: /en/components/products/pbs/frq_frequency_products_fp
+    family: crystal_oscillator
+    category_path: [Passive Components, Quartz Crystals & Oscillators]
+
+  - url: /en/components/products/pbs/signal_and_communications
+    category_path: [Passive Components, Signal & Communications]
+
+  # --- Optoelectrónica ----------------------------------------------------
+  - url: /en/components/products/led/leds
+    family: led
+    category_path: [Optoelectronic Components, LEDs]
+
+  - url: /en/components/products/led/infrared
+    family: led
+    category_path: [Optoelectronic Components, Infrared]
+
+  - url: /en/components/products/led/ultraviolet
+    family: led
+    category_path: [Optoelectronic Components, Ultraviolet]
+
+  # --- Conectores y electromecánica ---------------------------------------
+  - url: /en/components/products/em/connectors
+    category_path: [Electromechanic Components, Connectors]
+
+  - url: /en/components/products/em/redcube_terminals
+    category_path: [Electromechanic Components, REDCUBE Terminals]
+
+  # --- Gestión térmica ----------------------------------------------------
+  - url: /en/components/products/tm/gap_filling_solutions
+    family: thermal_interface
+    category_path: [Thermal Management, Gap Filling Solutions]
+
+  - url: /en/components/products/tm/thermal_heat_spreading_solutions
+    family: thermal_interface
+    category_path: [Thermal Management, Heat Spreading Solutions]
+
+  - url: /en/components/products/tm/thermal_hybrid_solutions
+    family: thermal_interface
+    category_path: [Thermal Management, Hybrid Solutions]
+
+  # --- Módulos de alimentación --------------------------------------------
+  - url: /en/components/products/ac/pm_active
+    family: power_module
+    category_path: [Active Components, Power Modules]
+
+  # --- Automoción (AEC-Q). Van aparte porque son referencias distintas. ----
+  - url: /en/components/products/am/aecq_ferrites_for_pcb_assembly
+    family: ferrite_bead
+    category_path: [Automotive, Ferrites for PCB Assembly]
+    constant_specs:
+      Test frequency: 100 MHz
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/aecq_ferrites_for_cable_assembly
+    family: cable_ferrite
+    category_path: [Automotive, Ferrites for Cable Assembly]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/aecq_single_coil_power_inductors
+    family: power_inductor
+    category_path: [Automotive, Single Coil Power Inductors]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/we_automotive_common_mode_chokes
+    family: common_mode_choke
+    category_path: [Automotive, Common Mode Chokes]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/we_automotive_rf_inductors
+    family: rf_chip_inductor
+    category_path: [Automotive, RF Inductors]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/filterchokes
+    family: common_mode_choke
+    category_path: [Automotive, Filter Chokes]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/automotive_aecq_group_power_magnetics
+    family: transformer
+    category_path: [Automotive, Power Transformer]
+    constant_specs:
+      AEC-Q: "si"
