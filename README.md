@@ -376,6 +376,13 @@ poniendo la variable de entorno `CROSSREF_ADMIN_TOKEN`; entonces exigen la cabec
 | `requiere revisión` | Falta un dato obligatorio en la petición o en la ficha | Pedir el dato que falta |
 | `descartado` | Incumple un campo obligatorio | Se muestra el motivo, no se oculta |
 
+## Cómo preguntar
+
+La herramienta compara parámetros, no nombres: una referencia de fabricante, por
+sí sola, no dice nada. [`docs/como-preguntar.md`](docs/como-preguntar.md) explica
+cómo se escribe una petición, qué pedir en cada familia y qué hacer cuando lo
+único que hay es la referencia de la competencia.
+
 ## Línea de comandos
 
 ```bash
