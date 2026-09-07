@@ -36,15 +36,16 @@ pip install -e ".[dev]"
 ## Puesta en marcha en 3 minutos
 
 ```bash
-# 1. Cargar el catálogo de ejemplo (51 referencias) en el índice local
-crossref sync config/sources/ejemplo_csv.yaml
+# Con el catálogo de ejemplo que trae el repositorio (51 referencias ficticias).
+# El flag --families añade las familias de demo a las del catálogo real.
+DEMO='--families config/families,examples/families'
 
-# 2. Buscar una equivalencia desde la terminal
-crossref find "atenuador 3 dB 50 ohm DC-18 GHz 2 W SMA macho/hembra"
-
-# 3. Levantar la interfaz web y la API
-crossref serve          # http://127.0.0.1:8000
+crossref $DEMO sync examples/fuente_demo.yaml
+crossref $DEMO find "atenuador 3 dB 50 ohm DC-18 GHz 2 W SMA macho/hembra"
+crossref serve                                   # http://127.0.0.1:8000
 ```
+
+Con el catálogo real, `--families` sobra: `config/families` es el valor por defecto.
 
 Salida de `find`:
 
@@ -63,7 +64,7 @@ Entendido: Rango de frecuencia=0 Hz - 18 GHz, Atenuacion=3 dB, Impedancia=50 ohm
       = Potencia media        2 W             2 W             cubre el minimo pedido
 ```
 
-## Conectar vuestro catálogo real
+## Conectar el catálogo (we-online.com)
 
 El catálogo es una **dependencia intercambiable**. Hay tres conectores, en este orden
 de preferencia:
@@ -71,8 +72,13 @@ de preferencia:
 | Fuente | Cuándo usarla | Plantilla |
 | --- | --- | --- |
 | **API JSON** | El catálogo web expone API | `config/sources/catalogo_api.yaml.example` |
-| **Fichero** | Exportación CSV / XLSX / JSON del ERP o PIM | `config/sources/ejemplo_csv.yaml` |
+| **Fichero** | Exportación CSV / XLSX / JSON del ERP o PIM | `examples/fuente_demo.yaml` |
 | **Web** | No hay más remedio que leer las fichas | `config/sources/catalogo_web.yaml.example` |
+
+Al ser el catálogo de vuestra propia empresa, lo más probable es que exista una vía
+mejor que leer la web: una exportación del PIM/ERP o el mismo feed que alimenta la
+web. Merece la pena preguntarlo antes de montar un rastreador, porque el HTML se
+rompe con cada rediseño y una exportación no.
 
 Para el caso web, el conector se configura con selectores CSS, sin escribir código.
 Además aprovecha los datos estructurados JSON-LD (`Product`) si la ficha los publica,
@@ -83,8 +89,8 @@ Para ajustar los selectores contra una ficha real:
 
 ```bash
 cp config/sources/catalogo_web.yaml.example config/sources/catalogo_web.yaml
-# editar selectores...
-crossref probe config/sources/catalogo_web.yaml https://vuestro-catalogo/producto/xxx
+# editar base_url, sitemap y selectores...
+crossref probe config/sources/catalogo_web.yaml https://www.we-online.com/en/components/products/<ficha>
 ```
 
 `probe` descarga **una** página y muestra qué ha entendido, a qué familia la asigna,
@@ -147,15 +153,52 @@ crossref check                     # valida la configuración
 curl -X POST localhost:8000/api/v1/families/reload
 ```
 
-## Familias incluidas de serie
+## Familias incluidas
 
-RF/microondas: atenuadores, cargas, divisores/combinadores, acopladores, filtros,
-adaptadores, latiguillos y conectores. Pasivos: resistencias, condensadores y bobinas.
-Más una familia `generic` de reserva que solo compara lo que coincide por nombre y
-nunca confirma un 1:1 por sí sola.
+`config/families/` contiene 20 familias orientadas a las líneas del catálogo, más una
+familia `generic` de reserva que solo compara lo que coincide por nombre y nunca
+confirma un 1:1 por sí sola:
 
-Son un punto de partida: lo normal es ajustarlas a las familias reales del catálogo,
-usando el informe de `sync` como guía.
+| Fichero | Familias |
+| --- | --- |
+| `we_magnetics.yaml` | Inductancias de potencia, inductancias de chip/RF, choques de modo común, ferritas EMI, transformadores, bobinas de carga inalámbrica |
+| `we_capacitors.yaml` | MLCC, electrolíticos de aluminio/polímero, película, supercondensadores |
+| `we_connectors.yaml` | Tiras de pines y zócalos, borneros, conectores de E/S (USB, RJ45, jack) |
+| `we_protection_opto.yaml` | TVS/ESD, varistores, LEDs, cristales y osciladores, antenas, interfaz térmica, módulos de alimentación |
+
+Cada familia lleva los parámetros que de verdad deciden una sustitución. Por ejemplo,
+en una inductancia de potencia el DCR se compara como **máximo** (más resistencia
+empeora), la corriente nominal como **mínimo** y el paso de un conector con **igualdad
+exacta** (2,50 mm y 2,54 mm no son intercambiables por mucho que se parezcan).
+
+Están dimensionadas a partir de los parámetros habituales de cada tipo de componente,
+no de una lectura de vuestras fichas. En cuanto se sincronice el catálogo real, el
+informe de `sync` dirá qué campos publican de verdad las fichas y qué hay que ajustar.
+
+`examples/families/` contiene familias de demostración (RF coaxial y pasivos
+genéricos) que solo usa el catálogo de ejemplo y los tests. No se cargan en producción.
+
+## Equivalencias ya declaradas
+
+Lo normal en un fabricante es que ya existan listas de "esta referencia de la
+competencia se sustituye por esta nuestra". Esas decisiones valen más que cualquier
+comparación de parámetros, así que se cargan aparte y se consultan primero:
+
+```bash
+crossref crossrefs equivalencias_2024.csv --source "lista comercial 2024"
+```
+
+El CSV necesita una columna con la referencia ajena y otra con la propia; los nombres
+de columna se reconocen solos (`Referencia competencia`, `Competitor PN`, `MPN`,
+`Referencia propia`, `Our reference`…), y admite además fabricante y una nota.
+
+Cuando la petición trae esa referencia, el resultado la cita con su procedencia:
+
+> *Equivalencia ya declarada para 'XYZ-3DB-SMA' de OtroFabricante (según lista
+> comercial 2024): validado en 2024.*
+
+Así queda claro que la equivalencia viene de una decisión previa y no de una
+comparación automática, y se puede auditar quién la aprobó y cuándo.
 
 ## Interfaz web
 
@@ -226,6 +269,7 @@ poniendo la variable de entorno `CROSSREF_ADMIN_TOKEN`; entonces exigen la cabec
 crossref find "TEXTO" [--family X] [--strict] [--rejected] [--json]
 crossref batch peticiones.csv --column peticion --out resultados.csv
 crossref sync FUENTE.yaml [--limit N] [--deactivate-missing]
+crossref crossrefs TABLA.csv [--source NOMBRE]   # equivalencias ya declaradas
 crossref probe FUENTE.yaml URL          # ajustar el conector web
 crossref families [ID]                  # esquema y reglas vigentes
 crossref coverage FAMILIA               # cobertura de datos del catálogo
@@ -244,13 +288,18 @@ crossref/
   matching.py    Veredicto y ordenación de candidatos
   store.py       Índice SQLite con FTS, procedencia y fecha
   ingest.py      Normalización de fichas + informe de calidad
+  crossrefs.py   Tabla de equivalencias declaradas de la competencia
   sources/       Conectores: web, ficheros y API
   service.py     Capa común a API, web y CLI
   api.py         FastAPI + interfaz web
   cli.py         Línea de comandos
-config/families/ Familias y reglas (lo que se toca a menudo)
+config/families/ Familias y reglas del catálogo propio (lo que se toca a menudo)
 config/sources/  Configuración de las fuentes de catálogo
+examples/        Catálogo y familias de demostración (borrables)
 ```
+
+`--families` admite varios directorios separados por comas, por si conviene separar
+las familias por línea de producto o por unidad de negocio.
 
 El motor es **determinista**: mismas entradas, mismo resultado, sin modelos
 estadísticos de por medio. Todo lo que el sistema no entiende se devuelve en
@@ -267,22 +316,26 @@ configuración.
 ## Tests
 
 ```bash
-pytest -q     # 109 tests
+pytest -q     # 146 tests
 ```
 
 Cubren la conversión de unidades y formatos, las reglas de equivalencia y sus
 tolerancias, la interpretación de peticiones reales, los veredictos, el índice y sus
-conectores, y el contrato de la API.
+conectores, la tabla de equivalencias, el contrato de la API y la detección e
+interpretación de las 20 familias del catálogo.
 
 ## Estado y siguientes pasos
 
 Funciona de punta a punta con un catálogo de ejemplo. Para ponerlo en producción:
 
-1. Conectar el catálogo real (API o exportación si es posible; si no, el conector web).
-2. Revisar el informe de `sync` y ajustar familias, alias y categorías.
-3. Confirmar con negocio las tolerancias de `alternativa` de cada familia.
-4. Programar la sincronización periódica (`crossref sync --deactivate-missing`).
-5. Decidir si hace falta autenticación y trazabilidad por usuario.
+1. Conectar el catálogo real (API o exportación si es posible; si no, el conector web,
+   ajustando los selectores con `crossref probe`).
+2. Revisar el informe de `sync` y ajustar familias, alias y categorías a lo que
+   publiquen de verdad las fichas.
+3. Cargar las listas históricas de equivalencias con `crossref crossrefs`.
+4. Confirmar con negocio las tolerancias de `alternativa` de cada familia.
+5. Programar la sincronización periódica (`crossref sync --deactivate-missing`).
+6. Decidir si hace falta autenticación y trazabilidad por usuario.
 
 Fuera del alcance actual: sustituciones aproximadas sin tolerancia aprobada, compra
 automática y aprendizaje a partir del histórico de decisiones.

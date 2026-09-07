@@ -146,8 +146,9 @@ attributes:
       en linea: [in-line, inline, en linea, entre conectores, in line]
       panel: [bulkhead, panel, montaje en panel, panel mount, chasis, chassis]
       brida: [flange, flange mount, brida, con brida]
-      smd: [smd, smt, superficie, surface mount]
-      through hole: [tht, through hole, pasante, orificio pasante]
+      smd: [smd, smt, superficie, surface mount, smd/smt, montaje superficial]
+      through hole: [tht, through hole, pasante, orificio pasante, thd, dip]
+      press-fit: [press fit, press-fit, a presion, einpress]
       rack: [rack, 19 pulgadas, 19", rack mount]
 
   package:
@@ -232,3 +233,173 @@ attributes:
     informative: true
     aliases: [equivalencia, cross reference, cross-ref, referencia equivalente,
               equivalente, sustituto, replaces]
+
+  # ---------------------------------------------------------------------
+  # Atributos habituales en componentes de montaje (pasivos, EMC, conectores)
+  # ---------------------------------------------------------------------
+
+  rated_current:
+    id: rated_current
+    label: Corriente nominal
+    type: number
+    dimension: current
+    unit: A
+    weight: 3
+    aliases: [corriente nominal, rated current, ir, i r, corriente, current,
+              corriente maxima, max current, corriente continua, dc current,
+              nennstrom, corriente de trabajo]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  saturation_current:
+    id: saturation_current
+    label: Corriente de saturacion
+    type: number
+    dimension: current
+    unit: A
+    weight: 2
+    aliases: [corriente de saturacion, saturation current, isat, i sat, i_sat,
+              corriente saturacion, saettigungsstrom]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  dcr:
+    id: dcr
+    label: Resistencia DC (DCR)
+    type: number
+    dimension: resistance
+    unit: ohm
+    weight: 2
+    aliases: [dcr, rdc, r dc, resistencia dc, dc resistance, resistencia en continua,
+              resistencia ohmica, gleichstromwiderstand]
+    # Mas resistencia que la pedida empeora el rendimiento: es un maximo.
+    rule: {kind: at_most, alt_ratio: 1.1}
+
+  srf:
+    id: srf
+    label: Frecuencia de autorresonancia (SRF)
+    type: number
+    dimension: frequency
+    unit: MHz
+    weight: 1
+    aliases: [srf, autorresonancia, self resonant frequency, self-resonant frequency,
+              frecuencia de resonancia propia, resonanzfrequenz]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  q_factor:
+    id: q_factor
+    label: Factor Q
+    type: number
+    dimension: ratio
+    weight: 1
+    aliases: [q, factor q, q factor, quality factor, factor de calidad]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  esr:
+    id: esr
+    label: ESR
+    type: number
+    dimension: resistance
+    unit: ohm
+    weight: 2
+    aliases: [esr, resistencia serie equivalente, equivalent series resistance,
+              esr max, resistencia serie]
+    rule: {kind: at_most, alt_ratio: 1.1}
+
+  ripple_current:
+    id: ripple_current
+    label: Corriente de rizado
+    type: number
+    dimension: current
+    unit: A
+    weight: 2
+    aliases: [rizado, ripple, ripple current, corriente de rizado, i ripple,
+              corriente rizado]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  pitch:
+    id: pitch
+    label: Paso (pitch)
+    type: number
+    dimension: length
+    unit: mm
+    weight: 3
+    aliases: [paso, pitch, raster, separacion, spacing, distancia entre pines,
+              rastermass, paso de pines]
+    # El paso es mecanico: no admite tolerancia comercial.
+    rule: {kind: numeric_equal, rel_tol: 0.0}
+
+  positions:
+    id: positions
+    label: Numero de contactos
+    type: number
+    dimension: ratio
+    weight: 3
+    aliases: [contactos, numero de contactos, posiciones, positions, pines, pins,
+              numero de pines, vias, poles, polos, way, ways, no of pins, pin count,
+              polzahl]
+    rule: {kind: numeric_equal}
+
+  rows:
+    id: rows
+    label: Numero de filas
+    type: number
+    dimension: ratio
+    weight: 2
+    aliases: [filas, rows, numero de filas, hileras, row count, reihen]
+    rule: {kind: numeric_equal}
+
+  orientation:
+    id: orientation
+    label: Orientacion
+    type: enum
+    weight: 2
+    aliases: [orientacion, orientation, salida, angulo, angle, tipo de salida,
+              ausrichtung, forma]
+    rule: {kind: enum_equal}
+    values:
+      recto: [recto, straight, vertical, 180, gerade, recta]
+      acodado: [acodado, angled, right angle, 90, horizontal, abgewinkelt, codo]
+
+  gender:
+    id: gender
+    label: Genero
+    type: enum
+    weight: 2
+    aliases: [genero, gender, macho hembra, tipo de contacto, sexo]
+    rule: {kind: enum_equal}
+    values:
+      macho: [macho, male, pin, plug, header, tira de pines, stift]
+      hembra: [hembra, female, socket, jack, receptacle, zocalo, buchse]
+
+  height_max:
+    id: height_max
+    label: Altura maxima
+    type: number
+    dimension: length
+    unit: mm
+    weight: 2
+    aliases: [altura, height, altura maxima, max height, alto, h, hoehe,
+              altura total]
+    # Un componente mas bajo siempre cabe; mas alto no.
+    rule: {kind: at_most, alt_rel_tol: 0.05}
+
+  isolation_voltage:
+    id: isolation_voltage
+    label: Tension de aislamiento
+    type: number
+    dimension: voltage
+    unit: V
+    weight: 2
+    aliases: [aislamiento, isolation, isolation voltage, tension de aislamiento,
+              rigidez dielectrica, dielectric strength, hipot, vdc aislamiento]
+    rule: {kind: at_least, alt_ratio: 0.95}
+
+  lifetime_hours:
+    id: lifetime_hours
+    label: Vida util
+    type: number
+    dimension: time
+    unit: h
+    weight: 1
+    aliases: [vida util, lifetime, load life, horas, endurance, useful life,
+              lebensdauer]
+    rule: {kind: at_least, alt_ratio: 0.8}

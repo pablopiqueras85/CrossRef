@@ -6,7 +6,7 @@ import csv
 import io
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
@@ -48,9 +48,17 @@ class SyncRequest(BaseModel):
 
 
 def create_app(
-    families_dir: str | Path = DEFAULT_FAMILIES_DIR,
-    db_path: str | Path = DEFAULT_DB_PATH,
+    families_dir: str | Path | Sequence[str | Path] | None = None,
+    db_path: str | Path | None = None,
 ) -> FastAPI:
+    """Crea la aplicacion.
+
+    Sin argumentos toma la configuracion de las variables de entorno
+    CROSSREF_FAMILIES y CROSSREF_DB, para que `uvicorn crossref.api:app`
+    (con o sin --reload) use la misma que la linea de comandos.
+    """
+    families_dir = families_dir or os.environ.get("CROSSREF_FAMILIES") or DEFAULT_FAMILIES_DIR
+    db_path = db_path or os.environ.get("CROSSREF_DB") or DEFAULT_DB_PATH
     service = CrossRefService(families_dir, db_path)
     admin_token = os.environ.get("CROSSREF_ADMIN_TOKEN")
 

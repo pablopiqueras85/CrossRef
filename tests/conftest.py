@@ -16,8 +16,11 @@ from crossref.service import CrossRefService  # noqa: E402
 from crossref.sources.files import FileCatalogSource  # noqa: E402
 from crossref.store import CatalogStore  # noqa: E402
 
-FAMILIES_DIR = ROOT / "config" / "families"
-SAMPLE_CSV = ROOT / "data" / "catalogo_ejemplo.csv"
+#: config real (catalogo propio) + familias de ejemplo que usa el catalogo demo
+FAMILIES_DIR = [ROOT / "config" / "families", ROOT / "examples" / "families"]
+#: solo las familias reales, sin las de ejemplo
+CATALOG_FAMILIES_DIR = ROOT / "config" / "families"
+SAMPLE_CSV = ROOT / "examples" / "catalogo_demo.csv"
 
 
 @pytest.fixture(scope="session")

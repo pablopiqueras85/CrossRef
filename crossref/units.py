@@ -181,6 +181,31 @@ DIMENSIONS: dict[str, Dimension] = {
     "angle": _d("angle", "deg", {"deg": 1.0, "°": 1.0, "º": 1.0, "grados": 1.0, "rad": 180.0 / math.pi}),
     "percent": _d("percent", "%", {"%": 1.0, "pct": 1.0, "percent": 1.0, "por ciento": 1.0, "ppm": 1e-4}),
     "torque": _d("torque", "Nm", {"nm": 1.0, "n.m": 1.0, "n-m": 1.0, "in-lb": 0.112984829, "inlb": 0.112984829}),
+    "luminous_intensity": _d(
+        "luminous_intensity",
+        "mcd",
+        {"cd": 1000.0, "mcd": 1.0, "candela": 1000.0, "candelas": 1000.0, "ucd": 1e-3},
+    ),
+    "luminous_flux": _d(
+        "luminous_flux", "lm", {"lm": 1.0, "lumen": 1.0, "lumens": 1.0, "mlm": 1e-3}
+    ),
+    "thermal_conductivity": _d(
+        "thermal_conductivity",
+        "W/mK",
+        {
+            "w/mk": 1.0, "w/m k": 1.0, "w/(m k)": 1.0, "w/(m·k)": 1.0, "wmk": 1.0,
+            "w/mc": 1.0, "w/m°c": 1.0, "w m-1 k-1": 1.0,
+        },
+    ),
+    "thermal_resistance": _d(
+        "thermal_resistance",
+        "K/W",
+        {"k/w": 1.0, "kw": 1.0, "°c/w": 1.0, "c/w": 1.0, "k/w typ": 1.0},
+    ),
+    "energy": _d("energy", "J", {"j": 1.0, "joule": 1.0, "joules": 1.0, "julios": 1.0},
+                 prefixable=["j", "joule", "joules"]),
+    "charge": _d("charge", "C", {"c": 1.0, "culombios": 1.0, "coulomb": 1.0},
+                 prefixable=["c", "coulomb"]),
     "ratio": _d("ratio", "", {":1": 1.0, "": 1.0}),
 }
 

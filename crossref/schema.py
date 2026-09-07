@@ -10,7 +10,7 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Sequence
 
 import yaml
 
@@ -310,28 +310,52 @@ def _build_family(data: dict[str, Any], common: dict[str, dict[str, Any]]) -> Fa
     )
 
 
-def load_registry(path: str | Path) -> Registry:
-    """Carga todas las familias de un directorio (`_common.yaml` aparte)."""
-    directory = Path(path)
-    if not directory.exists():
-        raise SchemaError(f"directorio de familias inexistente: {directory}")
+def load_registry(path: str | Path | Sequence[str | Path]) -> Registry:
+    """Carga las familias de uno o varios directorios.
+
+    Admite una ruta, una lista de rutas o varias separadas por comas. Los
+    atributos comunes (`_common.yaml`) se acumulan entre directorios, de modo
+    que un directorio adicional (por ejemplo el de ejemplos, o el de otra
+    unidad de negocio) puede reutilizar los del principal.
+    """
+    directories = _as_directories(path)
 
     common: dict[str, dict[str, Any]] = {}
-    common_file = directory / "_common.yaml"
-    if common_file.exists():
-        loaded = yaml.safe_load(common_file.read_text(encoding="utf-8")) or {}
-        common = loaded.get("attributes", {}) or {}
+    for directory in directories:
+        common_file = directory / "_common.yaml"
+        if common_file.exists():
+            loaded = yaml.safe_load(common_file.read_text(encoding="utf-8")) or {}
+            common.update(loaded.get("attributes", {}) or {})
 
     families: dict[str, FamilySpec] = {}
-    for yaml_file in sorted(directory.glob("*.yaml")):
-        if yaml_file.name.startswith("_"):
-            continue
-        data = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
-        for entry in data if isinstance(data, list) else [data]:
-            family = _build_family(entry, common)
-            if family.id in families:
-                raise SchemaError(f"familia duplicada: {family.id}")
-            families[family.id] = family
+    for directory in directories:
+        for yaml_file in sorted(directory.glob("*.yaml")):
+            if yaml_file.name.startswith("_"):
+                continue
+            data = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
+            for entry in data if isinstance(data, list) else [data]:
+                family = _build_family(entry, common)
+                if family.id in families:
+                    raise SchemaError(
+                        f"familia duplicada '{family.id}' (segunda vez en {yaml_file})"
+                    )
+                families[family.id] = family
     if not families:
-        raise SchemaError(f"no se encontro ninguna familia en {directory}")
+        raise SchemaError(
+            "no se encontro ninguna familia en " + ", ".join(str(d) for d in directories)
+        )
     return Registry(families, common)
+
+
+def _as_directories(path: str | Path | Sequence[str | Path]) -> list[Path]:
+    if isinstance(path, (str, Path)):
+        candidates = [p for p in str(path).split(",") if p.strip()]
+    else:
+        candidates = [str(p) for p in path]
+    directories = [Path(c.strip()) for c in candidates]
+    if not directories:
+        raise SchemaError("no se ha indicado ningun directorio de familias")
+    for directory in directories:
+        if not directory.is_dir():
+            raise SchemaError(f"directorio de familias inexistente: {directory}")
+    return directories

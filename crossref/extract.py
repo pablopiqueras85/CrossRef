@@ -167,7 +167,7 @@ _KV_RE = re.compile(r"^\s*([^:=]{2,60}?)\s*[:=]\s*(.+?)\s*$")
 _SEGMENT_SPLIT_RE = re.compile(r"[\n\r;|]+|(?<!\d),(?!\d)|\s{3,}")
 
 _NUM = r"[+-]?\d+(?:[.,]\d+)?"
-_UNIT = r"[a-zA-ZΩµμ%°º]{1,8}"
+_UNIT = r"[a-zA-ZΩµμ%°º]{1,8}(?:/[a-zA-ZΩµμ°º]{1,6})?"
 _RANGE_RE = re.compile(
     rf"(?<![\w.]) (?P<lo>{_NUM}\s*(?:{_UNIT})?|dc|cc)\s*(?:-{{1,2}}|–|—|\.{{2,}}|~|\ba\b|\bto\b|\bhasta\b)\s*"
     rf"(?P<hi>{_NUM})\s*(?P<unit>{_UNIT})?".replace(" ", "", 1),
@@ -179,6 +179,10 @@ _PN_RE = re.compile(
     r"(?<![\w/-])(?=[A-Za-z0-9][A-Za-z0-9\-/_.]{3,})(?=[^\s]*\d)(?=[^\s]*[A-Za-z])"
     r"[A-Za-z0-9][A-Za-z0-9\-/_.]{3,}\+?"
 )
+
+#: por debajo de esta confianza no se da por buena la familia detectada:
+#: es preferible caer en 'generic' y avisar que comparar con el esquema equivocado
+MIN_FAMILY_CONFIDENCE = 0.35
 
 #: palabras que nunca aportan informacion tecnica y no deben ir a `unparsed`
 _STOPWORDS = {
@@ -199,25 +203,33 @@ def extract_from_text(
     """Interpreta una peticion escrita en lenguaje natural."""
     raw_text = (text or "").strip()
     query = ComponentQuery(raw_text=raw_text, description=raw_text or None)
+    if family_id and registry.get(family_id) is not None:
+        query.family, query.family_confidence = family_id, 1.0
     if not raw_text:
-        query.warnings.append("peticion vacia")
+        # Sin texto libre no hay nada que interpretar, pero la familia indicada
+        # a mano debe conservarse para que luego se mapeen los campos del formulario.
+        if not family_id:
+            query.warnings.append("peticion vacia")
         return query
 
     segments = [s.strip() for s in _SEGMENT_SPLIT_RE.split(raw_text) if s and s.strip()]
 
     # 1. Familia: la indicada por el usuario, o la deducida del texto completo.
-    if family_id:
-        family = registry.get(family_id)
-        if family is None:
-            query.warnings.append(f"familia desconocida '{family_id}', se usa deteccion automatica")
-        else:
-            query.family, query.family_confidence = family.id, 1.0
+    if family_id and registry.get(family_id) is None:
+        query.warnings.append(f"familia desconocida '{family_id}', se usa deteccion automatica")
     if query.family is None:
         candidates = registry.detect(raw_text)
         query.family_candidates = candidates
-        if candidates:
+        if candidates and candidates[0][1] >= MIN_FAMILY_CONFIDENCE:
             query.family, query.family_confidence = candidates[0]
-        if len(candidates) > 1 and candidates[0][1] - candidates[1][1] < 0.1:
+        elif candidates:
+            query.warnings.append(
+                "no se reconoce con claridad el tipo de componente (mejor opcion: "
+                + ", ".join(f"{fid} {score:.0%}" for fid, score in candidates)
+                + "). Indica la familia a mano para comparar con las reglas correctas."
+            )
+        if len(candidates) > 1 and candidates[0][1] >= MIN_FAMILY_CONFIDENCE \
+                and candidates[0][1] - candidates[1][1] < 0.1:
             query.warnings.append(
                 "familia ambigua: " + ", ".join(f"{fid} ({score:.0%})" for fid, score in candidates)
             )

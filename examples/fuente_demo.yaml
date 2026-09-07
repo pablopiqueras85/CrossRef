@@ -1,8 +1,8 @@
 # Fuente de ejemplo: una exportacion del catalogo en CSV.
 # Sirve para probar el sistema y como plantilla para vuestra propia exportacion.
-id: ejemplo_csv
+id: demo
 type: file
-path: data/catalogo_ejemplo.csv
+path: examples/catalogo_demo.csv
 
 # Columnas fijas de la ficha. El resto de columnas se tratan como
 # especificaciones tecnicas y se mapean con los alias de config/families.

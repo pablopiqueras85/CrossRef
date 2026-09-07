@@ -40,7 +40,11 @@ def main(argv: list[str] | None = None) -> int:
         prog="crossref",
         description="Equivalencias de componentes contra el catalogo propio.",
     )
-    parser.add_argument("--families", default=str(DEFAULT_FAMILIES_DIR), help="directorio de familias")
+    parser.add_argument(
+        "--families",
+        default=str(DEFAULT_FAMILIES_DIR),
+        help="directorio de familias (admite varios separados por comas)",
+    )
     parser.add_argument("--db", default=str(DEFAULT_DB_PATH), help="ruta del indice SQLite")
     parser.add_argument("--no-color", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -65,6 +69,13 @@ def main(argv: list[str] | None = None) -> int:
     p_sync.add_argument("--deactivate-missing", action="store_true",
                         help="dar de baja las referencias que ya no aparecen")
     p_sync.add_argument("--json", action="store_true")
+
+    p_xref = sub.add_parser(
+        "crossrefs", help="cargar una tabla de equivalencias de la competencia"
+    )
+    p_xref.add_argument("path", help="CSV con la referencia ajena y la propia")
+    p_xref.add_argument("--source", help="nombre de la lista (queda como procedencia)")
+    p_xref.add_argument("--json", action="store_true")
 
     p_fam = sub.add_parser("families", help="listar familias o ver una")
     p_fam.add_argument("family_id", nargs="?")
@@ -101,6 +112,7 @@ def main(argv: list[str] | None = None) -> int:
         "find": _cmd_find,
         "batch": _cmd_batch,
         "sync": _cmd_sync,
+        "crossrefs": _cmd_crossrefs,
         "families": _cmd_families,
         "stats": _cmd_stats,
         "coverage": _cmd_coverage,
@@ -228,6 +240,19 @@ def _cmd_sync(service: CrossRefService, args: argparse.Namespace, color: bool) -
     return 0 if not report.errors else 1
 
 
+def _cmd_crossrefs(service: CrossRefService, args: argparse.Namespace, color: bool) -> int:
+    try:
+        report = service.load_cross_references(args.path, args.source)
+    except (OSError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(report.as_dict(), ensure_ascii=False, indent=2))
+    else:
+        print("\n".join(report.summary_lines()))
+    return 0
+
+
 def _cmd_families(service: CrossRefService, args: argparse.Namespace, color: bool) -> int:
     if args.family_id:
         try:
@@ -351,12 +376,16 @@ def _cmd_probe(service: CrossRefService, args: argparse.Namespace, color: bool) 
 
 
 def _cmd_serve(args: argparse.Namespace) -> int:
+    import os
+
     import uvicorn
 
-    uvicorn.run(
-        "crossref.api:app" if not args.reload else "crossref.api:app",
-        host=args.host, port=args.port, reload=args.reload,
-    )
+    # La app se crea dentro del proceso de uvicorn (necesario con --reload),
+    # asi que la configuracion viaja por entorno.
+    os.environ["CROSSREF_FAMILIES"] = args.families
+    os.environ["CROSSREF_DB"] = args.db
+    print(f"Familias: {args.families}\nCatalogo: {args.db}\nEscuchando en http://{args.host}:{args.port}")
+    uvicorn.run("crossref.api:app", host=args.host, port=args.port, reload=args.reload)
     return 0
 
 

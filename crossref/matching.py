@@ -60,7 +60,7 @@ def evaluate(family: FamilySpec, query: ComponentQuery, item: CatalogItem) -> Ma
     ]
     matched = [c for c in comparisons if c.status is FieldStatus.MATCH]
 
-    pn_exact = _same_reference(query, item)
+    pn_exact, pn_explanation = _same_reference(query, item)
 
     if blocking:
         verdict = Verdict.REJECTED
@@ -74,7 +74,9 @@ def evaluate(family: FamilySpec, query: ComponentQuery, item: CatalogItem) -> Ma
         # Nada que comparar: no se confirma nada.
         verdict = Verdict.REVIEW
 
-    reasons = _build_reasons(verdict, blocking, missing_required, close, optional_mismatch, matched, pn_exact)
+    reasons = _build_reasons(
+        verdict, blocking, missing_required, close, optional_mismatch, matched, pn_explanation
+    )
 
     return MatchResult(
         item=item,
@@ -100,11 +102,11 @@ def _build_reasons(
     close: list[FieldComparison],
     optional_mismatch: list[FieldComparison],
     matched: list[FieldComparison],
-    pn_exact: bool,
+    pn_explanation: str | None,
 ) -> list[str]:
     reasons: list[str] = []
-    if pn_exact:
-        reasons.append("La referencia coincide con una del catalogo (o con una equivalencia declarada).")
+    if pn_explanation:
+        reasons.append(pn_explanation)
     if verdict is Verdict.EQUIVALENT:
         reasons.append(
             "Equivalencia 1:1: " + ", ".join(c.label for c in matched) + " cumplen la regla estricta."
@@ -121,17 +123,46 @@ def _build_reasons(
     return reasons
 
 
-def _same_reference(query: ComponentQuery, item: CatalogItem) -> bool:
-    """La referencia pedida es la del catalogo o una equivalencia ya declarada."""
+def _same_reference(query: ComponentQuery, item: CatalogItem) -> tuple[bool, str | None]:
+    """La referencia pedida es la del catalogo, o una equivalencia ya declarada.
+
+    Devuelve (coincide, explicacion). La explicacion cita la lista de la que
+    procede la equivalencia, para que se pueda auditar.
+    """
     wanted = normalize_pn(query.part_number or "")
     if not wanted:
-        return False
+        return False, None
     if wanted == normalize_pn(item.reference):
-        return True
+        return True, "La referencia pedida es exactamente esta referencia del catalogo."
+
+    for entry in _declared_cross_references(item):
+        if wanted != normalize_pn(entry.get("reference", "")):
+            continue
+        manufacturer = entry.get("manufacturer")
+        origin = entry.get("source")
+        detail = f"'{entry.get('reference')}'"
+        if manufacturer:
+            detail += f" de {manufacturer}"
+        text = f"Equivalencia ya declarada para {detail}"
+        if origin:
+            text += f" (segun {origin})"
+        note = entry.get("note")
+        return True, text + (f": {note}." if note else ".")
+    return False, None
+
+
+def _declared_cross_references(item: CatalogItem) -> list[dict]:
+    """Normaliza `extra.cross_references`, que admite texto o fichas completas."""
     declared = item.extra.get("cross_references") or []
     if isinstance(declared, str):
         declared = [declared]
-    return any(wanted == normalize_pn(ref) for ref in declared)
+    entries = []
+    for entry in declared:
+        if isinstance(entry, str):
+            entries.append({"reference": entry})
+        elif isinstance(entry, dict) and entry.get("reference"):
+            entries.append(entry)
+    return entries
 
 
 def _score(

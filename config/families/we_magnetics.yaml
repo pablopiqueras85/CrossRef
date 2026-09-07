@@ -1,0 +1,232 @@
+# Componentes inductivos y EMC (linea WE-...).
+- id: power_inductor
+  label: Inductancia de potencia SMD
+  aliases: [inductancia de potencia, power inductor, bobina de potencia, storage inductor,
+            inductancia smd, shielded power inductor, choque de potencia, we-lqs, we-pd,
+            we-mapi, we-xhmi]
+  keywords: [inductancia, inductor, bobina, uh, nh, saturacion, dcr, buck, boost]
+  source_categories: [Power Inductors, Inductancias de potencia, SMT Power Inductors,
+                      Inductors, Power Magnetics]
+  attributes:
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: uH
+      required: true
+      weight: 3
+      aliases: [inductancia, inductance, valor, value, l, l nominal, nominal inductance,
+                induktivitaet]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: tolerance
+      required: true
+      rule: {kind: at_most, alt_ratio: 1.0}
+    - use: rated_current
+      required: true
+    - use: saturation_current
+    - use: dcr
+      required: true
+    - use: srf
+    - id: footprint
+      label: Tamano / footprint
+      type: text
+      required: true
+      weight: 3
+      aliases: [tamano, size, footprint, dimensiones, dimensions, encapsulado, package,
+                case, medidas, abmessungen, l x w x h]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - use: height_max
+    - id: shielding
+      label: Apantallamiento
+      type: enum
+      weight: 1
+      aliases: [apantallado, shielded, apantallamiento, shielding, blindaje, semi-shielded]
+      rule: {kind: enum_equal}
+      values:
+        apantallado: [apantallado, apantallada, shielded, blindado, blindada, geschirmt]
+        no apantallado: [no apantallado, no apantallada, unshielded, sin apantallar,
+                         sin blindaje, ungeschirmt]
+        semiapantallado: [semiapantallado, semiapantallada, semi-shielded, semi shielded]
+    - use: temperature_range
+    - use: rohs
+
+- id: rf_chip_inductor
+  label: Inductancia de chip / RF
+  aliases: [inductancia de chip, chip inductor, multilayer inductor, inductancia multicapa,
+            wire wound inductor, inductancia rf, rf inductor, we-ki, we-mk]
+  keywords: [inductancia, chip, multicapa, rf, factor q, srf]
+  source_categories: [RF Inductors, Chip Inductors, Multilayer Inductors]
+  attributes:
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: nH
+      required: true
+      weight: 3
+      aliases: [inductancia, inductance, valor, value, l]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.02}
+    - use: tolerance
+      required: true
+    - use: package
+      required: true
+    - use: q_factor
+    - use: srf
+    - use: rated_current
+    - use: dcr
+    - use: temperature_range
+    - use: rohs
+
+- id: common_mode_choke
+  label: Choque de modo comun
+  aliases: [choque de modo comun, common mode choke, cmc, filtro de modo comun,
+            common mode filter, bobina de modo comun, we-sl, we-cnsw, we-ucf]
+  keywords: [modo comun, common mode, choke, choque, emc, emi, lineas]
+  source_categories: [Common Mode Chokes, Chokes, EMC Components, Signal Line Chokes]
+  attributes:
+    - id: impedance_at_frequency
+      label: Impedancia
+      type: number
+      dimension: resistance
+      unit: ohm
+      required: true
+      weight: 3
+      aliases: [impedancia, impedance, z, impedancia a, impedance at, z typ,
+                impedancia tipica, impedanz]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
+    - id: test_frequency
+      label: Frecuencia de medida
+      type: number
+      dimension: frequency
+      unit: MHz
+      weight: 2
+      aliases: [frecuencia de medida, test frequency, medido a, measured at,
+                frecuencia de referencia, at frequency, messfrequenz]
+      rule: {kind: numeric_equal, rel_tol: 0.0}
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: uH
+      weight: 2
+      aliases: [inductancia, inductance, l, l typ]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
+    - use: rated_current
+      required: true
+    - use: voltage
+    - use: dcr
+    - id: lines
+      label: Numero de lineas
+      type: number
+      dimension: ratio
+      required: true
+      weight: 3
+      aliases: [lineas, lines, numero de lineas, canales, channels, hilos, vias]
+      rule: {kind: numeric_equal}
+    - use: package
+      required: true
+    - use: temperature_range
+    - use: rohs
+
+- id: ferrite_bead
+  label: Ferrita supresora / EMI
+  aliases: [ferrita, ferritas, ferrite bead, chip bead, emi filter, supresor de emi,
+            perla de ferrita, ferrite, we-cbf, we-mpsb, we-tcf]
+  keywords: [ferrita, ferrite, bead, emi, supresion, impedancia, 100 mhz]
+  source_categories: [Ferrites, EMI Suppression, Chip Beads, Ferrite Beads]
+  attributes:
+    - id: impedance_at_frequency
+      label: Impedancia
+      type: number
+      dimension: resistance
+      unit: ohm
+      required: true
+      weight: 3
+      aliases: [impedancia, impedance, z, impedancia a 100 mhz, impedance at 100mhz,
+                z 100mhz, impedanz]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.25}
+    - id: test_frequency
+      label: Frecuencia de medida
+      type: number
+      dimension: frequency
+      unit: MHz
+      weight: 2
+      aliases: [frecuencia de medida, test frequency, medido a, at frequency,
+                frecuencia de referencia]
+      rule: {kind: numeric_equal, rel_tol: 0.0}
+    - use: rated_current
+      required: true
+    - use: dcr
+      required: true
+    - use: package
+      required: true
+    - use: temperature_range
+    - use: rohs
+
+- id: transformer
+  label: Transformador
+  aliases: [transformador, transformer, trafo, transformador de pulsos, pulse transformer,
+            transformador flyback, gate drive transformer, we-flex, we-pult]
+  keywords: [transformador, transformer, relacion, ratio, aislamiento, primario]
+  source_categories: [Transformers, Transformadores, Gate Drive Transformers]
+  attributes:
+    - id: turns_ratio
+      label: Relacion de transformacion
+      type: text
+      required: true
+      weight: 3
+      aliases: [relacion, ratio, turns ratio, relacion de espiras, relacion de vueltas,
+                np ns, uebersetzung]
+      rule: {kind: text_equal}
+    - id: inductance
+      label: Inductancia del primario
+      type: number
+      dimension: inductance
+      unit: uH
+      weight: 2
+      aliases: [inductancia, inductance, inductancia primario, primary inductance, lp, l]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
+    - use: isolation_voltage
+      required: true
+    - use: rated_current
+    - use: dcr
+    - use: package
+      required: true
+    - use: temperature_range
+    - use: rohs
+
+- id: wireless_power_coil
+  label: Bobina de carga inalambrica
+  aliases: [bobina de carga inalambrica, wireless power coil, wpc coil, qi coil,
+            bobina qi, wireless charging coil, we-wpcc]
+  keywords: [inalambrica, wireless, qi, carga, bobina, coil]
+  source_categories: [Wireless Power Charging Coils, Wireless Power]
+  attributes:
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: uH
+      required: true
+      weight: 3
+      aliases: [inductancia, inductance, l, valor]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: tolerance
+    - use: q_factor
+    - use: rated_current
+      required: true
+    - use: dcr
+    - id: standard
+      label: Estandar
+      type: text
+      weight: 2
+      aliases: [estandar, standard, norma, qi, wpc, compatibilidad]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - id: footprint
+      label: Dimensiones
+      type: text
+      required: true
+      weight: 2
+      aliases: [dimensiones, dimensions, tamano, size, medidas, diametro, diameter]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - use: rohs

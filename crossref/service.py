@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Sequence
 
 from .extract import build_query, describe_query
 from .ingest import IngestReport, field_coverage, ingest_source
@@ -29,10 +29,11 @@ class CrossRefService:
 
     def __init__(
         self,
-        families_dir: str | Path = DEFAULT_FAMILIES_DIR,
+        families_dir: str | Path | Sequence[str | Path] = DEFAULT_FAMILIES_DIR,
         db_path: str | Path = DEFAULT_DB_PATH,
     ) -> None:
-        self.families_dir = Path(families_dir)
+        #: una ruta, varias separadas por comas o una lista de rutas
+        self.families_dir = families_dir
         self.registry: Registry = load_registry(self.families_dir)
         self.store = CatalogStore(db_path)
 
@@ -153,6 +154,14 @@ class CrossRefService:
         return ingest_source(
             self.registry, self.store, source, limit=limit, deactivate_missing=deactivate_missing
         )
+
+    def load_cross_references(self, path: str | Path, source: str | None = None):
+        """Carga una tabla 'referencia de la competencia -> referencia propia'."""
+        from .crossrefs import apply_cross_references, load_cross_reference_file
+
+        origin = source or Path(path).name
+        entries = list(load_cross_reference_file(path, origin))
+        return apply_cross_references(self.store, entries, origin)
 
     def stats(self) -> dict[str, Any]:
         data = self.store.stats()
