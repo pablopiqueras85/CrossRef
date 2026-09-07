@@ -324,7 +324,7 @@ def _cmd_probe(service: CrossRefService, args: argparse.Namespace, color: bool) 
         print("El comando 'probe' es para fuentes de tipo 'web'.", file=sys.stderr)
         return 1
 
-    html = source._get(args.url)  # noqa: SLF001 - uso deliberado para diagnostico
+    html = source.get(args.url)
     if html is None:
         print(f"No se ha podido descargar {args.url}", file=sys.stderr)
         return 1

@@ -173,16 +173,66 @@
       aliases: [frecuencia de medida, test frequency, medido a, at frequency,
                 frecuencia de referencia]
       rule: {kind: numeric_equal, rel_tol: 0.0}
+    - id: max_impedance
+      label: Impedancia maxima
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 2
+      aliases: [zmax, z max, impedancia maxima, maximum impedance, z maximo]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.25}
+    - id: max_impedance_frequency
+      label: Frecuencia de impedancia maxima
+      type: number
+      dimension: frequency
+      unit: MHz
+      weight: 1
+      aliases: [test condition zmax, frecuencia de zmax, frecuencia de impedancia maxima,
+                condicion de medida zmax]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
+    - id: impedance_at_1ghz
+      label: Impedancia a 1 GHz
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 1
+      aliases: [z 1 ghz, z @ 1 ghz, impedance 1 ghz, impedance @ 1 ghz, impedancia a 1 ghz]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.3}
+    - id: impedance_at_10mhz
+      label: Impedancia a 10 MHz
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 1
+      aliases: [z 10 mhz, z @ 10 mhz, impedance 10 mhz, impedancia a 10 mhz]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.3}
+    - id: impedance_at_25mhz
+      label: Impedancia a 25 MHz
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 1
+      aliases: [z 25 mhz, z @ 25 mhz, impedance 25 mhz, impedancia a 25 mhz]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.3}
+    - id: bead_type
+      label: Tipo de ferrita
+      type: text
+      weight: 1
+      aliases: [tipo, type, tipo de ferrita, variante, version]
+      rule: {kind: text_equal, alt_similarity: 0.85}
     - use: rated_current
       required: true
+    - use: current_condition
     - use: dcr
-      required: true
     - use: package
-      required: true
+    - use: length
+    - use: width
+    - use: height_max
     - use: mounting
     - use: tolerance
     - use: aec_q
     - use: series
+    - use: lifecycle
     - use: packaging
     - use: temperature_range
     - use: rohs

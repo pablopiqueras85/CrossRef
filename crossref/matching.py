@@ -53,10 +53,14 @@ def evaluate(family: FamilySpec, query: ComponentQuery, item: CatalogItem) -> Ma
     blocking = [c for c in comparisons if c.required and c.status is FieldStatus.MISMATCH]
     optional_mismatch = [c for c in comparisons if not c.required and c.status is FieldStatus.MISMATCH]
     close = [c for c in comparisons if c.status is FieldStatus.CLOSE]
+    # No se puede confirmar una equivalencia cuando falta un obligatorio, ni
+    # cuando la peticion pide expresamente algo que la ficha no publica: dar
+    # eso por bueno seria afirmar lo que no se sabe.
     missing_required = [
         c
         for c in comparisons
-        if c.required and c.status in (FieldStatus.MISSING_QUERY, FieldStatus.MISSING_CATALOG)
+        if (c.required and c.status in (FieldStatus.MISSING_QUERY, FieldStatus.MISSING_CATALOG))
+        or (c.status is FieldStatus.MISSING_CATALOG and c.query_value is not None)
     ]
     matched = [c for c in comparisons if c.status is FieldStatus.MATCH]
 

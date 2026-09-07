@@ -69,6 +69,10 @@ def load_source(path: str | Path) -> CatalogSource:
         from .web import WebCatalogSource
 
         return WebCatalogSource(config)
+    if kind in ("web_table", "table"):
+        from .web_table import WebTableCatalogSource
+
+        return WebTableCatalogSource(config)
     if kind in ("file", "csv", "json", "xlsx"):
         from .files import FileCatalogSource
 
@@ -77,4 +81,6 @@ def load_source(path: str | Path) -> CatalogSource:
         from .api import ApiCatalogSource
 
         return ApiCatalogSource(config)
-    raise SourceError(f"tipo de fuente no soportado: {kind!r} (usa web, file o api)")
+    raise SourceError(
+        f"tipo de fuente no soportado: {kind!r} (usa web, web_table, file o api)"
+    )

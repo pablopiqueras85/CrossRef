@@ -260,7 +260,7 @@ def test_una_ficha_guardada_en_disco_se_puede_inspeccionar(tmp_path, catalog_reg
             },
         }
     )
-    html = source._get(f"file://{ficha}")  # noqa: SLF001 - igual que hace `crossref probe`
+    html = source.get(f"file://{ficha}")
     product = source.parse_product(html, f"file://{ficha}")
     source.close()
 
@@ -274,3 +274,29 @@ def test_una_ficha_guardada_en_disco_se_puede_inspeccionar(tmp_path, catalog_reg
     assert mapped["impedance_at_frequency"].number == pytest.approx(600.0)
     assert mapped["dcr"].number == pytest.approx(0.35)
     assert mapped["package"].text == "0603"
+
+
+def test_falta_en_el_catalogo_lo_que_se_pide_impide_confirmar(service):
+    """Si la petición pide un dato que la ficha no publica, no hay 1:1 posible.
+
+    Aunque el campo no sea obligatorio para la familia: dar por buena una
+    equivalencia sobre un dato que no se conoce sería afirmar lo que no se sabe.
+    """
+    from crossref.models import Verdict
+
+    response = service.crossref(
+        text="atenuador 3 dB 50 ohm DC-18 GHz 2 W SMA macho/SMA hembra",
+        fields={"vswr": "1.05"},   # el catálogo de ejemplo publica 1.25
+        family="rf_attenuator",
+    )
+    # 1.05 pedido contra 1.25 publicado incumple: se descarta, no se confirma
+    assert all(r["verdict"] != Verdict.EQUIVALENT.value for r in response["results"])
+
+    sin_dato = service.crossref(
+        text="atenuador 3 dB 50 ohm DC-18 GHz 2 W SMA macho/SMA hembra",
+        fields={"accuracy": "0.1 dB"},
+        family="rf_attenuator",
+    )
+    mejor = sin_dato["results"][0] if sin_dato["results"] else None
+    if mejor:
+        assert mejor["verdict"] != Verdict.EQUIVALENT.value

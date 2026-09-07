@@ -1,0 +1,74 @@
+# Catálogo de we-online.com.
+#
+# El catálogo no tiene una página por referencia: tiene una página por línea de
+# producto (serie) con una tabla donde cada fila es una referencia. Se recorre
+# en dos niveles:
+#
+#     categoría  ->  enlaces a las series  ->  tabla de artículos de cada serie
+#
+# Eso son ~11 peticiones por categoría en lugar de una por referencia.
+#
+# Cada celda de la tabla trae el dato ya etiquetado:
+#   <td data-column="Z @ 100 MHz" data-unit="Ω">
+#     <span class="...data--mobile">Impedance @ 100 MHz</span>   <- nombre completo
+#     <span data-sort-value="8">8 Ω</span>                        <- valor limpio
+#
+# ALTERNATIVA MEJOR: la empresa publica una API REST para clientes
+# (we-online.com/en/support/collaboration/api) con datos de artículo,
+# disponibilidad y hojas de datos. Si se consigue acceso, usar type: api en
+# lugar de esto: no se rompe con los rediseños de la web.
+
+id: we_online
+type: web_table
+base_url: https://www.we-online.com
+manufacturer: Würth Elektronik
+
+request:
+  user_agent: "CrossRefBot/0.1 (catalogo interno)"
+  rate_limit_per_sec: 0.5      # una petición cada 2 s: sin prisa, sin molestar
+  timeout: 60
+  respect_robots: true
+  cache_dir: data/cache_we
+
+series:
+  # Los enlaces de serie viven en la rejilla de líneas de producto. Sin acotar
+  # el contenedor se cuelan las migas de pan (que apuntan a la categoría padre).
+  link_selector: ".wec-grid__item a[href]"
+  url_pattern: '^/en/components/products/[A-Za-z0-9][A-Za-z0-9_\-]*$'
+  title_selector: "h1"
+
+table:
+  selector: "table.wecProductTable"
+  row_selector: "tr"
+  cell_selector: "td[data-column]"
+  label_attr: "data-column"
+  label_selector: "span.wecProductTableBody__data--mobile"
+  unit_attr: "data-unit"
+  value_attr: "data-sort-value"
+  reference_columns: ["Order Code"]
+  datasheet_selector: 'a[href$=".pdf"]'
+  # El estado trae detrás el texto del tooltip: se coge solo el estado.
+  value_selectors:
+    Status: ".wecLifecycle__status-wrapper > span"
+  status_column: "Status"
+  active_values: ["active"]
+  only_active: false           # true para indexar solo lo que está en producción
+  ignore_columns:
+    - Datasheet
+    - Simulation
+    - Downloads
+    - Availability
+    - Design Kit
+    - Filter Stick
+    - Filter Bag
+    - Sample
+    - Compare
+
+categories:
+  - url: /en/components/products/am/ferrites_for_pcb_assembly
+    family: ferrite_bead
+    category_path: [Passive Components, EMC Components, Ferrites for PCB Assembly]
+    # La impedancia de esta categoría se publica siempre a 100 MHz: va en el
+    # nombre de la columna ("Z @ 100 MHz"), no como columna aparte.
+    constant_specs:
+      Test frequency: 100 MHz

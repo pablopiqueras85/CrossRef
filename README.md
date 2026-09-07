@@ -322,7 +322,7 @@ crossref/
   store.py       Índice SQLite con FTS, procedencia y fecha
   ingest.py      Normalización de fichas + informe de calidad
   crossrefs.py   Tabla de equivalencias declaradas de la competencia
-  sources/       Conectores: web, ficheros y API
+  sources/       Conectores: tabla web, ficha web, ficheros y API
   service.py     Capa común a API, web y CLI
   api.py         FastAPI + interfaz web
   cli.py         Línea de comandos
@@ -349,22 +349,23 @@ configuración.
 ## Tests
 
 ```bash
-pytest -q     # 150 tests
+pytest -q     # 165 tests
 ```
 
 Cubren la conversión de unidades y formatos, las reglas de equivalencia y sus
 tolerancias, la interpretación de peticiones reales, los veredictos, el índice y sus
 conectores, la tabla de equivalencias, el contrato de la API y la detección e
-interpretación de las 26 familias del catálogo y el tratamiento de los rangos de serie.
+interpretación de las 26 familias del catálogo, el tratamiento de los rangos de
+serie y el conector de tablas de artículos, con un fixture que reproduce el
+marcado real del catálogo.
 
 ## Estado y siguientes pasos
 
 Funciona de punta a punta con un catálogo de ejemplo. Para ponerlo en producción:
 
-1. Conectar el catálogo real (API o exportación si es posible; si no, el conector web,
-   ajustando los selectores con `crossref probe`).
-2. Revisar el informe de `sync` y ajustar familias, alias y categorías a lo que
-   publiquen de verdad las fichas.
+1. Ampliar `categories:` en `config/sources/we_online.yaml` al resto del catálogo
+   (condensadores, inductancias de potencia, conectores, protección…).
+2. Pedir acceso a la API REST de la empresa y migrar a `type: api`.
 3. Cargar las listas históricas de equivalencias con `crossref crossrefs`.
 4. Confirmar con negocio las tolerancias de `alternativa` de cada familia.
 5. Programar la sincronización periódica (`crossref sync --deactivate-missing`).

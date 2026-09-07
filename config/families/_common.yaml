@@ -245,9 +245,12 @@ attributes:
     dimension: current
     unit: A
     weight: 3
-    aliases: [corriente nominal, rated current, ir, i r, i_r, corriente, current,
-              corriente maxima, max current, corriente continua, dc current,
-              nennstrom, corriente de trabajo, rated current ir]
+    # 'IR 2' es la corriente nominal medida con otro incremento de temperatura
+    # (normalmente delta T = 40 K). Se trata como corriente nominal y la
+    # condicion queda a la vista en 'current_condition'.
+    aliases: [corriente nominal, rated current, ir, i r, i_r, ir 2, i r 2, ir2,
+              corriente, current, corriente maxima, max current, corriente continua,
+              dc current, nennstrom, corriente de trabajo, rated current ir]
     rule: {kind: at_least, alt_ratio: 0.9}
 
   saturation_current:
@@ -449,3 +452,41 @@ attributes:
     informative: true
     aliases: [presentacion, packaging, embalaje, suministro, tape and reel, carrete,
               verpackung, formato de entrega]
+
+  lifecycle:
+    id: lifecycle
+    label: Ciclo de vida
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [estado, status, ciclo de vida, lifecycle, life cycle status,
+              product status, disponibilidad, lebenszyklus]
+
+  current_condition:
+    id: current_condition
+    label: Condicion de la corriente nominal
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [test condition ir, test condition ir 2, condicion de medida,
+              condicion de la corriente, delta t, incremento de temperatura]
+
+  length:
+    id: length
+    label: Longitud
+    type: number
+    dimension: length
+    unit: mm
+    weight: 2
+    aliases: [longitud, length, largo, l, laenge]
+    rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+
+  width:
+    id: width
+    label: Anchura
+    type: number
+    dimension: length
+    unit: mm
+    weight: 2
+    aliases: [anchura, ancho, width, w, breite]
+    rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
