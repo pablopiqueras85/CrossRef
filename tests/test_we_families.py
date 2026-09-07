@@ -300,3 +300,78 @@ def test_falta_en_el_catalogo_lo_que_se_pide_impide_confirmar(service):
     mejor = sin_dato["results"][0] if sin_dato["results"] else None
     if mejor:
         assert mejor["verdict"] != Verdict.EQUIVALENT.value
+
+
+# --------------------------------------------------------------------------
+# Atributos universales del catálogo
+# --------------------------------------------------------------------------
+
+
+def test_toda_familia_tiene_los_atributos_universales(catalog_registry):
+    """Estado, serie, montaje y dimensiones los publica cualquier ficha."""
+    universales = {"series", "lifecycle", "mounting", "aec_q", "length", "width",
+                   "height_max", "temperature_range", "rohs"}
+    for family in catalog_registry.families.values():
+        faltan = universales - set(family.attributes)
+        assert not faltan, f"{family.id} no tiene {faltan}"
+
+
+def test_el_atributo_propio_gana_el_alias_compartido(catalog_registry):
+    """La columna 'L' es la inductancia en una bobina y la longitud en una resistencia.
+
+    Los universales se añaden al final de cada familia justamente para que un
+    atributo propio se quede con el alias cuando lo comparten.
+    """
+    assert catalog_registry["power_inductor"].attribute_for("L").id == "inductance"
+    assert catalog_registry["thick_film_resistor"].attribute_for("L").id == "length"
+    assert catalog_registry["thermal_interface"].attribute_for("L").id == "length"
+
+
+@pytest.mark.parametrize(
+    "familia,columna,atributo",
+    [
+        ("power_inductor", "fres", "srf"),
+        ("power_inductor", "IRP,40K", "rated_current"),
+        ("power_inductor", "ISAT,30%", "saturation_current"),
+        ("power_inductor", "RDC typ.", "dcr"),
+        ("power_inductor", "Tol. L", "tolerance"),
+        ("power_inductor", "Status", "lifecycle"),
+        ("power_inductor", "Mount", "mounting"),
+        ("power_inductor", "AEC-Q Product", "aec_q"),
+        ("thick_film_resistor", "PRated", "power_rating"),
+        ("thick_film_resistor", "Tol. R", "tolerance"),
+        ("mlcc", "Ceramic Type", "dielectric"),
+        ("mlcc", "VR", "voltage"),
+        ("crystal_oscillator", "Cload", "load_capacitance"),
+        ("crystal_oscillator", "Tol. f", "frequency_tolerance"),
+        ("esd_tvs", "VClamp max.", "clamping_voltage"),
+        ("esd_tvs", "IPeak", "peak_pulse_current"),
+        ("esd_tvs", "Pins", "lines"),
+        ("varistor", "VRMS", "max_ac_voltage"),
+        ("common_mode_choke", "VT", "isolation_voltage"),
+        ("transformer", "n", "turns_ratio"),
+        ("thermal_interface", "κ", "thermal_conductivity"),
+        ("ferrite_bead", "Z @ 100 MHz", "impedance_at_frequency"),
+        ("ferrite_bead", "R_DC max", "dcr"),
+    ],
+)
+def test_la_notacion_del_catalogo_se_reconoce(catalog_registry, familia, columna, atributo):
+    encontrado = catalog_registry[familia].attribute_for(columna)
+    assert encontrado is not None, f"'{columna}' sin mapear en {familia}"
+    assert encontrado.id == atributo
+
+
+def test_las_series_de_conexion_tienen_familia(catalog_registry):
+    """Cables planos, ZIF/LIF, circulares y terminales de potencia."""
+    casos = {
+        "WR-FFC Flat Flexible Cable - 0.50 mm": "flat_cable",
+        "WR-CAB Ribbon Flat Cable": "flat_cable",
+        "WR-FPC Zero Insertion Force Connectors - 0.50mm": "ffc_fpc_connector",
+        "WR-FPC Low Insertion Force Connectors": "ffc_fpc_connector",
+        "WR-CIRCM12 Cable Assembly": "circular_connector",
+        "WP-THRSH REDCUBE THR with external thread": "press_fit_terminal",
+        "WR-MM MiniModule": "pin_header",
+    }
+    for serie, familia in casos.items():
+        detectada = catalog_registry.detect(serie, top=1)
+        assert detectada and detectada[0][0] == familia, f"{serie} -> {detectada}"

@@ -14,8 +14,8 @@
       unit: V
       required: true
       weight: 3
-      aliases: [vrwm, tension de trabajo, working voltage, standoff voltage, vrm,
-                reverse standoff voltage, tension inversa de trabajo]
+      aliases: [vrwm, vdc, v dc, tension de trabajo, working voltage, standoff voltage,
+                vrm, reverse standoff voltage, tension inversa de trabajo]
       rule: {kind: at_least, alt_ratio: 0.95}
     - id: breakdown_voltage
       label: Tension de ruptura (VBR)
@@ -31,8 +31,8 @@
       dimension: voltage
       unit: V
       weight: 2
-      aliases: [vc, clamping voltage, tension de clampado, tension de recorte,
-                clamping, klemmspannung]
+      aliases: [vc, vclamp, vclamp max, vclamp max., clamping voltage,
+                tension de clampado, tension de recorte, clamping, klemmspannung]
       rule: {kind: at_most, alt_rel_tol: 0.1}
     - id: peak_pulse_current
       label: Corriente de pico (IPP)
@@ -40,7 +40,8 @@
       dimension: current
       unit: A
       weight: 2
-      aliases: [ipp, corriente de pico, peak pulse current, ip, corriente de impulso]
+      aliases: [ipp, ipeak, i peak, corriente de pico, peak pulse current, ip,
+                corriente de impulso]
       rule: {kind: at_least, alt_ratio: 0.9}
     - id: junction_capacitance
       label: Capacidad de union
@@ -58,10 +59,10 @@
       dimension: ratio
       required: true
       weight: 3
-      aliases: [lineas, lines, canales, channels, numero de lineas, vias]
+      aliases: [lineas, lines, pins, canales, channels, numero de lineas, vias,
+                numero de canales]
       rule: {kind: numeric_equal}
     - use: package
-      required: true
     - use: mounting
     - use: aec_q
     - use: series
@@ -83,7 +84,7 @@
       unit: V
       required: true
       weight: 3
-      aliases: [tension de varistor, varistor voltage, vv, v1ma, tension nominal,
+      aliases: [tension de varistor, varistor voltage, vv, v1ma, vbr, tension nominal,
                 varistorspannung]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
     - id: max_ac_voltage
@@ -92,7 +93,8 @@
       dimension: voltage
       unit: V
       weight: 2
-      aliases: [tension maxima ac, max ac voltage, vac, tension de red, mains voltage]
+      aliases: [tension maxima ac, max ac voltage, vac, vrms, v rms, tension de red,
+                mains voltage]
       rule: {kind: at_least, alt_ratio: 0.95}
     - id: surge_current
       label: Corriente de choque
@@ -100,7 +102,7 @@
       dimension: current
       unit: A
       weight: 2
-      aliases: [corriente de choque, surge current, imax, corriente de descarga,
+      aliases: [corriente de choque, surge current, ipeak, i peak, corriente de descarga,
                 peak current, 8/20us]
       rule: {kind: at_least, alt_ratio: 0.9}
     - id: energy_rating
@@ -112,7 +114,6 @@
       aliases: [energia, energy, julios, joules, wmax, absorcion de energia]
       rule: {kind: at_least, alt_ratio: 0.9}
     - use: package
-      required: true
     - use: mounting
     - use: aec_q
     - use: series
@@ -182,10 +183,10 @@
       dimension: angle
       unit: deg
       weight: 1
-      aliases: [angulo de vision, viewing angle, apertura, abstrahlwinkel, angulo]
+      aliases: [angulo de vision, viewing angle, apertura, abstrahlwinkel, angulo,
+                "2θ50% typ.", "2θ50%", 2 50 typ]
       rule: {kind: at_least, alt_ratio: 0.9}
     - use: package
-      required: true
     - use: temperature_range
     - use: rohs
 
@@ -205,8 +206,8 @@
       unit: MHz
       required: true
       weight: 3
-      aliases: [frecuencia, frequency, f nominal, nominal frequency, frecuencia nominal,
-                frequenz]
+      aliases: [frecuencia, frequency, f, f nominal, nominal frequency,
+                frecuencia nominal, frequenz]
       rule: {kind: numeric_equal, rel_tol: 0.0}
     - id: frequency_tolerance
       label: Tolerancia de frecuencia
@@ -215,8 +216,8 @@
       unit: ppm
       required: true
       weight: 2
-      aliases: [tolerancia, tolerance, tolerancia de frecuencia, frequency tolerance,
-                precision, ppm, frequenztoleranz]
+      aliases: [tolerancia, tolerance, tol f, tol. f, tolerancia de frecuencia,
+                frequency tolerance, precision, ppm, frequenztoleranz]
       rule: {kind: at_most, alt_ratio: 1.0}
     - id: frequency_stability
       label: Estabilidad
@@ -233,11 +234,11 @@
       dimension: capacitance
       unit: pF
       weight: 3
-      aliases: [capacidad de carga, load capacitance, cl, carga, lastkapazitaet]
+      aliases: [capacidad de carga, load capacitance, cl, cload, c load, carga,
+                lastkapazitaet]
       rule: {kind: numeric_equal, rel_tol: 0.0}
     - use: esr
     - use: package
-      required: true
     - use: voltage
     - use: temperature_range
     - use: rohs
@@ -258,7 +259,7 @@
       dimension: decibel
       unit: dB
       weight: 2
-      aliases: [ganancia, gain, dbi, peak gain, ganancia maxima]
+      aliases: [ganancia, gain, dbi, gpeak, g peak, peak gain, ganancia maxima]
       rule: {kind: at_least, alt_abs_tol: 0.5}
     - use: impedance
       required: true
@@ -310,7 +311,7 @@
       unit: W/mK
       required: true
       weight: 3
-      aliases: [conductividad, conductividad termica, thermal conductivity, k,
+      aliases: [conductividad, conductividad termica, thermal conductivity, k, "κ",
                 waermeleitfaehigkeit, w/mk]
       rule: {kind: at_least, alt_ratio: 0.9}
     - id: thickness
@@ -362,7 +363,7 @@
       unit: V
       required: true
       weight: 3
-      aliases: [tension de salida, output voltage, vout, salida, ausgangsspannung]
+      aliases: [tension de salida, output voltage, vout, vout1, salida, ausgangsspannung]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.02}
     - id: output_current
       label: Corriente de salida
@@ -371,7 +372,7 @@
       unit: A
       required: true
       weight: 3
-      aliases: [corriente de salida, output current, iout, corriente maxima, i out]
+      aliases: [corriente de salida, output current, iout, iout1, corriente maxima, i out]
       rule: {kind: at_least, alt_ratio: 0.9}
     - id: efficiency
       label: Rendimiento
@@ -382,6 +383,5 @@
       aliases: [rendimiento, eficiencia, efficiency, wirkungsgrad]
       rule: {kind: at_least, alt_ratio: 0.95}
     - use: package
-      required: true
     - use: temperature_range
     - use: rohs

@@ -1,0 +1,164 @@
+# Familias de conexión que aparecen en el catálogo y no estaban cubiertas.
+- id: ffc_fpc_connector
+  label: Conector FFC/FPC (ZIF/LIF)
+  aliases: [conector ffc, conector fpc, ffc fpc, zero insertion force, zif,
+            low insertion force, lif, zero insertion force connectors,
+            low insertion force connectors, conector para cable plano, wr-fpc]
+  keywords: [ffc, fpc, zif, lif, cable plano, insertion force]
+  source_categories: [FFC/FPC Connectors, Connectors]
+  attributes:
+    - use: pitch
+      required: true
+    - use: positions
+      required: true
+    - id: contact_style
+      label: Contacto
+      type: enum
+      weight: 2
+      aliases: [contacto, contact, contact style, tipo de contacto, contact type,
+                lado de contacto, contact side]
+      rule: {kind: enum_equal}
+      values:
+        superior: [top, top contact, superior, arriba]
+        inferior: [bottom, bottom contact, inferior, abajo]
+        doble: [dual, doble, both, ambos]
+    - id: actuation
+      label: Accionamiento
+      type: enum
+      weight: 2
+      aliases: [accionamiento, actuation, mecanismo, tipo, type, cierre, lock]
+      rule: {kind: enum_equal}
+      values:
+        zif: [zif, zero insertion force, palanca, slider, flip lock, back lock]
+        lif: [lif, low insertion force, sin palanca]
+    - use: orientation
+    - use: mounting
+    - use: rated_current
+    - use: voltage
+    - id: contact_resistance
+      label: Resistencia de contacto
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 1
+      aliases: [resistencia de contacto, contact resistance, rc]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
+
+- id: flat_cable
+  label: Cable plano (FFC / cinta)
+  aliases: [cable plano, flat cable, flat flexible cable, ffc, cable flexible plano,
+            ribbon cable, cable de cinta, wr-ffc, wr-cab]
+  keywords: [cable plano, ffc, ribbon, cinta, conductores, flexible]
+  source_categories: [Flat Flexible Cable, Ribbon Flat Cable, Cables]
+  attributes:
+    - use: pitch
+      required: true
+    - id: conductors
+      label: Numero de conductores
+      type: number
+      dimension: ratio
+      required: true
+      weight: 3
+      aliases: [conductores, conductors, numero de conductores, vias, hilos, pins,
+                positions, contactos, leiter]
+      rule: {kind: numeric_equal}
+    - use: length
+      required: true
+    - id: termination_style
+      label: Terminacion
+      type: enum
+      weight: 2
+      aliases: [terminacion, termination, type, tipo, contactos, contact style]
+      rule: {kind: enum_equal}
+      values:
+        mismo lado: [same side, mismo lado, type a, a]
+        lados opuestos: [opposite side, opuesto, lados opuestos, type d, d]
+    - use: rated_current
+    - use: voltage
+
+- id: circular_connector
+  label: Conector circular (M12 / M8)
+  aliases: [conector circular, circular connector, m12, m8, circular m12, wr-circm12,
+            conector industrial circular]
+  keywords: [circular, m12, m8, codificacion, ip67, industrial]
+  source_categories: [Circular Connectors, Connectors]
+  attributes:
+    - id: thread_size
+      label: Rosca
+      type: enum
+      required: true
+      weight: 3
+      aliases: [rosca, thread, tamano, size, thread size, formato]
+      rule: {kind: enum_equal}
+      values:
+        m12: [m12, m 12]
+        m8: [m8, m 8]
+        m5: [m5, m 5]
+    - use: positions
+      required: true
+    - id: coding
+      label: Codificacion
+      type: enum
+      required: true
+      weight: 3
+      aliases: [codificacion, coding, code, codigo, tipo de codificacion]
+      rule: {kind: enum_equal}
+      values:
+        a: [a, a-coded, codificacion a]
+        b: [b, b-coded]
+        d: [d, d-coded]
+        x: [x, x-coded]
+        s: [s, s-coded]
+        t: [t, t-coded]
+    - use: gender
+      required: true
+    - use: rated_current
+    - use: voltage
+    - id: protection_rating
+      label: Grado de proteccion
+      type: text
+      weight: 2
+      aliases: [proteccion, ip, grado de proteccion, protection, ingress protection,
+                schutzart]
+      rule: {kind: text_equal}
+    - use: orientation
+    - use: mounting
+
+- id: press_fit_terminal
+  label: Terminal de potencia / press-fit
+  aliases: [terminal de potencia, power terminal, redcube, press fit, press-fit,
+            terminal press fit, thr, wp-thrsh, screw terminal redcube, busbar]
+  keywords: [redcube, press fit, terminal, potencia, thr, tornillo]
+  source_categories: [REDCUBE Terminals, REDCUBE PRESS FIT Terminals, Power Elements]
+  attributes:
+    - use: rated_current
+      required: true
+    - id: thread_size
+      label: Rosca
+      type: text
+      required: true
+      weight: 3
+      aliases: [rosca, thread, thread size, tamano de rosca, m, gewinde]
+      rule: {kind: text_equal}
+    - id: mounting_style
+      label: Tipo de montaje
+      type: enum
+      required: true
+      weight: 2
+      aliases: [tipo de montaje, mounting style, montaje, mount, tecnica]
+      rule: {kind: enum_equal}
+      values:
+        press-fit: [press fit, press-fit, einpress, a presion]
+        thr: [thr, through hole reflow, reflow]
+        soldar: [solder, soldar, tht]
+        atornillar: [screw, atornillar, roscado]
+    - id: contact_resistance
+      label: Resistencia de contacto
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 2
+      aliases: [resistencia de contacto, contact resistance, rc]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
+    - use: length
+    - use: height_max

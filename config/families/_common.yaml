@@ -1,3 +1,24 @@
+# Atributos que se anaden automaticamente a TODAS las familias, porque toda
+# ficha del catalogo los publica. Van al final de cada familia, de modo que un
+# atributo propio gana el alias cuando lo comparten (la columna "L" es la
+# inductancia en una bobina y la longitud en una resistencia).
+always:
+  - series
+  - test_frequency
+  - core_material
+  - application
+  - variant
+  - measurement_condition
+  - lifecycle
+  - mounting
+  - aec_q
+  - packaging
+  - length
+  - width
+  - height_max
+  - temperature_range
+  - rohs
+
 # Atributos reutilizables por varias familias.
 # Una familia los incorpora con `- use: impedance` y puede sobrescribir
 # cualquier campo (por ejemplo `required: true` o una tolerancia distinta).
@@ -180,7 +201,8 @@ attributes:
     dimension: percent
     unit: "%"
     weight: 2
-    aliases: [tolerancia, tolerance, tol, precision]
+    aliases: [tolerancia, tolerance, tol, precision,
+              tol, tol., tol l, tol r, tol c, tol f, tol z, tol. l, tol. r, tol. c, tol. f]
     # Una tolerancia mas estrecha siempre sirve; mas ancha no es 1:1.
     rule: {kind: at_most, alt_ratio: 1.0}
 
@@ -192,7 +214,8 @@ attributes:
     unit: V
     weight: 2
     aliases: [tension, tension nominal, voltage, rated voltage, working voltage,
-              tension de trabajo, vdc, tension maxima, max voltage]
+              tension de trabajo, vdc, tension maxima, max voltage,
+              vr, v r, vdc, vrms, ve, vsupply, v supply, working voltage, vr dc, vr ac]
     rule: {kind: at_least, alt_ratio: 0.9}
 
   current:
@@ -250,7 +273,8 @@ attributes:
     # condicion queda a la vista en 'current_condition'.
     aliases: [corriente nominal, rated current, ir, i r, i_r, ir 2, i r 2, ir2,
               corriente, current, corriente maxima, max current, corriente continua,
-              dc current, nennstrom, corriente de trabajo, rated current ir]
+              dc current, nennstrom, corriente de trabajo, rated current ir,
+              irp 40k, irp40k, irated, i rated, imax, i max, ir dc1, ir dc]
     rule: {kind: at_least, alt_ratio: 0.9}
 
   saturation_current:
@@ -261,7 +285,8 @@ attributes:
     unit: A
     weight: 2
     aliases: [corriente de saturacion, saturation current, isat, i sat, i_sat,
-              corriente saturacion, saettigungsstrom]
+              corriente saturacion, saettigungsstrom,
+              isat, i sat 10, isat 10, isat 20, isat 30, isat 40]
     rule: {kind: at_least, alt_ratio: 0.9}
 
   dcr:
@@ -273,7 +298,8 @@ attributes:
     weight: 2
     aliases: [dcr, rdc, r dc, r_dc, rdc max, r dc max, r_dc max, dcr max, dcr maximo,
               resistencia dc, dc resistance, resistencia en continua, resistencia ohmica,
-              gleichstromwiderstand, dc resistance rdc max]
+              gleichstromwiderstand, dc resistance rdc max,
+              rdc typ, rdc typ., rdc1 typ, rdc2 typ, rdc min]
     # Mas resistencia que la pedida empeora el rendimiento: es un maximo.
     rule: {kind: at_most, alt_ratio: 1.1}
 
@@ -285,7 +311,8 @@ attributes:
     unit: MHz
     weight: 1
     aliases: [srf, autorresonancia, self resonant frequency, self-resonant frequency,
-              frecuencia de resonancia propia, resonanzfrequenz]
+              frecuencia de resonancia propia, resonanzfrequenz,
+              fres, f res, self resonance]
     rule: {kind: at_least, alt_ratio: 0.9}
 
   q_factor:
@@ -294,7 +321,8 @@ attributes:
     type: number
     dimension: ratio
     weight: 1
-    aliases: [q, factor q, q factor, quality factor, factor de calidad]
+    aliases: [q, factor q, q factor, quality factor, factor de calidad,
+              qmin, qmin., q min, q typ, q min.]
     rule: {kind: at_least, alt_ratio: 0.9}
 
   esr:
@@ -305,7 +333,8 @@ attributes:
     unit: ohm
     weight: 2
     aliases: [esr, resistencia serie equivalente, equivalent series resistance,
-              esr max, resistencia serie]
+              esr max, resistencia serie,
+              resr, resr dc, resr ac]
     rule: {kind: at_most, alt_ratio: 1.1}
 
   ripple_current:
@@ -394,7 +423,8 @@ attributes:
     unit: V
     weight: 2
     aliases: [aislamiento, isolation, isolation voltage, tension de aislamiento,
-              rigidez dielectrica, dielectric strength, hipot, vdc aislamiento]
+              rigidez dielectrica, dielectric strength, hipot, vdc aislamiento,
+              vt, v t, vt ac, viso, withstanding voltage, vt dc]
     rule: {kind: at_least, alt_ratio: 0.95}
 
   lifetime_hours:
@@ -441,7 +471,8 @@ attributes:
     unit: mA
     weight: 2
     aliases: [corriente de fuga, leakage current, fuga, leakage, ableitstrom,
-              corriente de derivacion]
+              corriente de derivacion,
+              ileak, i leak]
     rule: {kind: at_most, alt_rel_tol: 0.1}
 
   packaging:
@@ -490,3 +521,58 @@ attributes:
     weight: 2
     aliases: [anchura, ancho, width, w, breite]
     rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+
+  application:
+    id: application
+    label: Aplicacion
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [aplicacion, application, uso, anwendung, recommended use]
+
+  variant:
+    id: variant
+    label: Variante
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [variante, version, variant, ausfuehrung, ejecucion]
+
+  measurement_condition:
+    id: measurement_condition
+    label: Condiciones de medida
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [condiciones de medida, test condition, test condition l, test condition q,
+              test condition c, test condition r, test conditions, messbedingung]
+
+  test_frequency:
+    id: test_frequency
+    label: Frecuencia de medida
+    type: number
+    dimension: frequency
+    unit: MHz
+    weight: 2
+    aliases: [frecuencia de medida, test frequency, medido a, measured at, at frequency,
+              frecuencia de referencia, messfrequenz]
+    rule: {kind: numeric_equal, rel_tol: 0.0}
+
+  core_material:
+    id: core_material
+    label: Material del nucleo
+    type: text
+    weight: 1
+    informative: true
+    aliases: [material, material del nucleo, core material, mix, werkstoff, base material]
+
+  power_rating:
+    id: power_rating
+    label: Potencia
+    type: number
+    dimension: power
+    unit: W
+    weight: 2
+    aliases: [potencia, power, power rating, prated, p rated, potencia nominal, vatios,
+              pdiss, p diss, disipacion, nennleistung]
+    rule: {kind: at_least, alt_ratio: 0.9}

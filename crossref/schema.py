@@ -306,7 +306,11 @@ def _build_attribute(raw: dict[str, Any], common: dict[str, dict[str, Any]]) -> 
     )
 
 
-def _build_family(data: dict[str, Any], common: dict[str, dict[str, Any]]) -> FamilySpec:
+def _build_family(
+    data: dict[str, Any],
+    common: dict[str, dict[str, Any]],
+    always: list[str] | None = None,
+) -> FamilySpec:
     family_id = data.get("id")
     if not family_id:
         raise SchemaError("familia sin 'id'")
@@ -316,6 +320,14 @@ def _build_family(data: dict[str, Any], common: dict[str, dict[str, Any]]) -> Fa
         if spec.id in attributes:
             raise SchemaError(f"atributo duplicado '{spec.id}' en familia '{family_id}'")
         attributes[spec.id] = spec
+
+    # Atributos que tiene toda ficha del catalogo (estado, serie, montaje,
+    # dimensiones...). Se anaden AL FINAL para que un atributo propio de la
+    # familia gane el alias cuando lo comparten: en una inductancia la columna
+    # "L" es la inductancia, en una resistencia es la longitud.
+    for attr_id in always or []:
+        if attr_id not in attributes:
+            attributes[attr_id] = _build_attribute({"use": attr_id}, common)
     return FamilySpec(
         id=str(family_id),
         label=str(data.get("label", family_id)),
@@ -338,11 +350,18 @@ def load_registry(path: str | Path | Sequence[str | Path]) -> Registry:
     directories = _as_directories(path)
 
     common: dict[str, dict[str, Any]] = {}
+    always: list[str] = []
     for directory in directories:
         common_file = directory / "_common.yaml"
         if common_file.exists():
             loaded = yaml.safe_load(common_file.read_text(encoding="utf-8")) or {}
             common.update(loaded.get("attributes", {}) or {})
+            for attr_id in loaded.get("always", []) or []:
+                if attr_id not in always:
+                    always.append(str(attr_id))
+    for attr_id in always:
+        if attr_id not in common:
+            raise SchemaError(f"'always' referencia un atributo comun inexistente: {attr_id}")
 
     families: dict[str, FamilySpec] = {}
     for directory in directories:
@@ -351,7 +370,7 @@ def load_registry(path: str | Path | Sequence[str | Path]) -> Registry:
                 continue
             data = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
             for entry in data if isinstance(data, list) else [data]:
-                family = _build_family(entry, common)
+                family = _build_family(entry, common, always)
                 if family.id in families:
                     raise SchemaError(
                         f"familia duplicada '{family.id}' (segunda vez en {yaml_file})"

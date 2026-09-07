@@ -2,7 +2,8 @@
 - id: pin_header
   label: Tira de pines / zocalo
   aliases: [tira de pines, pin header, header, conector de pines, zocalo, socket header,
-            box header, conector ffc, board to board, wr-phd, wr-bhd, wr-mpc]
+            box header, board to board, board-to-board, btb, minimodule, mini module,
+            conector placa a placa, wr-phd, wr-bhd, wr-mpc, wr-mm]
   keywords: [pines, header, paso, pitch, contactos, tira, zocalo]
   source_categories: [Pin Headers, Board-to-Board Connectors, Headers and Sockets,
                       Conectores placa a placa]

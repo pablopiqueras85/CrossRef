@@ -91,6 +91,24 @@
                 diametro de cable, innendurchmesser, paso de cable]
       # El cable tiene que caber: el agujero no puede ser menor que el pedido.
       rule: {kind: at_least, alt_rel_tol: 0.02}
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: uH
+      weight: 2
+      aliases: [inductancia, inductance, l]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
+    - id: outer_diameter
+      label: Diametro exterior
+      type: number
+      dimension: length
+      unit: mm
+      weight: 1
+      aliases: [diametro exterior, outer diameter, od, "ø od", aussendurchmesser]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: rated_current
+    - use: dcr
     - id: material
       label: Material
       type: enum
@@ -150,7 +168,6 @@
       aliases: [balance de fase, phase balance, desequilibrio de fase, desfase]
       rule: {kind: at_most, alt_abs_tol: 3.0}
     - use: package
-      required: true
     - use: series
     - use: temperature_range
     - use: rohs

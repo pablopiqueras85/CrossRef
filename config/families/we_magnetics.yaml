@@ -20,7 +20,6 @@
                 induktivitaet]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
     - use: tolerance
-      required: true
       rule: {kind: at_most, alt_ratio: 1.0}
     - use: rated_current
       required: true
@@ -31,7 +30,6 @@
     - id: footprint
       label: Tamano / footprint
       type: text
-      required: true
       weight: 3
       aliases: [tamano, size, footprint, dimensiones, dimensions, encapsulado, package,
                 case, medidas, abmessungen, l x w x h]
@@ -77,9 +75,7 @@
       aliases: [inductancia, inductance, valor, value, l]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.02}
     - use: tolerance
-      required: true
     - use: package
-      required: true
     - use: q_factor
     - use: srf
     - use: rated_current
@@ -130,6 +126,7 @@
     - use: rated_current
       required: true
     - use: voltage
+    - use: isolation_voltage
     - use: dcr
     - id: lines
       label: Numero de lineas
@@ -137,10 +134,9 @@
       dimension: ratio
       required: true
       weight: 3
-      aliases: [lineas, lines, numero de lineas, canales, channels, hilos, vias]
+      aliases: [lineas, lines, pins, numero de lineas, canales, channels, hilos, vias]
       rule: {kind: numeric_equal}
     - use: package
-      required: true
     - use: mounting
     - use: aec_q
     - use: series
@@ -252,8 +248,8 @@
       type: text
       required: true
       weight: 3
-      aliases: [relacion, ratio, turns ratio, relacion de espiras, relacion de vueltas,
-                np ns, uebersetzung]
+      aliases: [relacion, ratio, n, turns ratio, relacion de espiras,
+                relacion de vueltas, np ns, uebersetzung]
       rule: {kind: text_equal}
     - id: inductance
       label: Inductancia del primario
@@ -268,7 +264,6 @@
     - use: rated_current
     - use: dcr
     - use: package
-      required: true
     - use: temperature_range
     - use: rohs
 

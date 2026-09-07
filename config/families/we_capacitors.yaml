@@ -20,7 +20,6 @@
     - use: tolerance
       required: true
     - use: package
-      required: true
     - use: aec_q
     - use: series
     - id: dielectric
@@ -28,8 +27,9 @@
       type: enum
       required: true
       weight: 3
-      aliases: [dielectrico, dielectric, material, temperature characteristic,
-                caracteristica de temperatura, clase, class, dielektrikum]
+      aliases: [dielectrico, dielectric, material, ceramic type, tipo ceramico,
+                temperature characteristic, caracteristica de temperatura, clase, class,
+                dielektrikum]
       rule: {kind: enum_equal}
       values:
         c0g: [c0g, np0, cog, clase 1, class 1]

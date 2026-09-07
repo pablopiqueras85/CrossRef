@@ -19,18 +19,10 @@
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.01}
     - use: tolerance
       required: true
-    - id: power_rating
-      label: Potencia
-      type: number
-      dimension: power
-      unit: W
+    - use: power_rating
       required: true
       weight: 3
-      aliases: [potencia, power, power rating, potencia nominal, vatios, p max,
-                nennleistung]
-      rule: {kind: at_least, alt_ratio: 0.9}
     - use: package
-      required: true
     - id: tcr
       label: Coeficiente de temperatura (TCR)
       type: number
@@ -64,17 +56,10 @@
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.01}
     - use: tolerance
       required: true
-    - id: power_rating
-      label: Potencia
-      type: number
-      dimension: power
-      unit: W
+    - use: power_rating
       required: true
       weight: 3
-      aliases: [potencia, power, power rating, potencia nominal, vatios]
-      rule: {kind: at_least, alt_ratio: 0.9}
     - use: package
-      required: true
     - use: voltage
     - id: tcr
       label: Coeficiente de temperatura (TCR)
