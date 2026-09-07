@@ -179,7 +179,17 @@ DIMENSIONS: dict[str, Dimension] = {
         prefixable=["s", "sec", "seg"],
     ),
     "angle": _d("angle", "deg", {"deg": 1.0, "°": 1.0, "º": 1.0, "grados": 1.0, "rad": 180.0 / math.pi}),
-    "percent": _d("percent", "%", {"%": 1.0, "pct": 1.0, "percent": 1.0, "por ciento": 1.0, "ppm": 1e-4}),
+    # Nota: ppm/K (coeficiente de temperatura) se trata aqui como ppm. No es la
+    # misma magnitud fisica, pero permite comparar dos TCR entre si, que es lo
+    # unico que se necesita, sin inventar una dimension por cada coeficiente.
+    "percent": _d(
+        "percent",
+        "%",
+        {
+            "%": 1.0, "pct": 1.0, "percent": 1.0, "por ciento": 1.0,
+            "ppm": 1e-4, "ppm/k": 1e-4, "ppm/c": 1e-4, "ppm/°c": 1e-4, "ppmk": 1e-4,
+        },
+    ),
     "torque": _d("torque", "Nm", {"nm": 1.0, "n.m": 1.0, "n-m": 1.0, "in-lb": 0.112984829, "inlb": 0.112984829}),
     "luminous_intensity": _d(
         "luminous_intensity",
@@ -566,6 +576,25 @@ def format_quantity(q: Quantity, digits: int = 4) -> str:
         if magnitude >= factor:
             return f"{_trim(value / factor, digits)} {prefix}{dim.base_unit}".strip()
     return f"{_trim(value, digits)} {dim.base_unit}".strip()
+
+
+#: dos numeros unidos por un separador de rango ("10 to 2700 Ohm", "0.009 to 0.03")
+_RANGE_TEXT_RE = re.compile(
+    r"\d[\d.,]*\s*[a-zA-ZΩωµμ°º%]{0,8}\s*"
+    r"(?:\.{2,}|…|–|—|~|-{1,2}|\bto\b|\bhasta\b|\ba\b|\by\b)"
+    r"\s*[+-]?\d",
+    re.IGNORECASE,
+)
+
+
+def looks_like_range(text: str) -> bool:
+    """True si el texto contiene dos valores unidos por un separador de rango.
+
+    Los catalogos publican a menudo el rango de una serie ("Z 10 to 2700 Ohm")
+    en un campo que el esquema declara como numerico; conviene detectarlo en
+    lugar de descartar el dato.
+    """
+    return bool(_RANGE_TEXT_RE.search(str(text or "")))
 
 
 def _trim(value: float, digits: int) -> str:

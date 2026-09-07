@@ -4,7 +4,8 @@
   aliases: [tvs, diodo tvs, tvs diode, supresor esd, esd suppressor, esd protection,
             proteccion esd, transil, diodo de proteccion, we-tvs]
   keywords: [tvs, esd, proteccion, clamping, supresor, transitorio]
-  source_categories: [ESD Protection, TVS Diodes, Circuit Protection, Proteccion]
+  source_categories: [ESD Protection, EMC Components, TVS Diodes, Circuit Protection,
+                      WE-TVS TVS Diode, WE-VE ESD Suppressor, Proteccion]
   attributes:
     - id: standoff_voltage
       label: Tension de trabajo (VRWM)
@@ -61,6 +62,9 @@
       rule: {kind: numeric_equal}
     - use: package
       required: true
+    - use: mounting
+    - use: aec_q
+    - use: series
     - use: temperature_range
     - use: rohs
 
@@ -69,7 +73,8 @@
   aliases: [varistor, varistores, mov, metal oxide varistor, varistor de oxido metalico,
             we-vd, we-ve]
   keywords: [varistor, mov, sobretension, surge, energia]
-  source_categories: [Varistors, Varistores, Surge Protection]
+  source_categories: [Surge Protection, EMC Components, Varistors, WE-VS SMT Varistor,
+                      WE-VD Disk Varistor, WE-TVSP Power TVS Diode, Varistores]
   attributes:
     - id: varistor_voltage
       label: Tension de varistor
@@ -109,6 +114,8 @@
     - use: package
       required: true
     - use: mounting
+    - use: aec_q
+    - use: series
     - use: temperature_range
     - use: rohs
 
@@ -187,7 +194,9 @@
   aliases: [cristal, cristal de cuarzo, crystal, quartz crystal, oscilador, oscillator,
             tcxo, xo, resonador, resonator, we-xtal]
   keywords: [cristal, cuarzo, oscilador, mhz, ppm, carga]
-  source_categories: [Quartz Crystals, Oscillators, Frequency Control, Cristales]
+  source_categories: [Quartz Crystals & Oscillators, WE-XTAL Quartz Crystal,
+                      WE-XTAL Watch Crystals, WE-SPXO Simple Packaged Quartz Oscillator,
+                      Quartz Crystals, Oscillators, Frequency Control, Cristales]
   attributes:
     - id: frequency
       label: Frecuencia
@@ -238,7 +247,8 @@
   aliases: [antena, antenna, antena embebida, embedded antenna, antena chip,
             chip antenna, antena externa, we-mca]
   keywords: [antena, antenna, ganancia, banda, wifi, lte, bluetooth, gnss]
-  source_categories: [Antennas, Antenas, Wireless Connectivity]
+  source_categories: [WE-MCA Antennas, Signal & Communications, Antennas, Antenas,
+                      Wireless Connectivity]
   attributes:
     - use: frequency_range
       required: true

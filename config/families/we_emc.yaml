@@ -1,0 +1,214 @@
+# Resto de la linea EMC: filtros de red, ferritas de cable, baluns y apantallamiento.
+- id: line_filter
+  label: Filtro de red
+  aliases: [filtro de red, line filter, filtro de linea, mains filter, filtro emi de red,
+            filtro de entrada, we-clfs, power line filter, filtro monofasico]
+  keywords: [filtro, red, linea, mains, fuga, leakage, etapas]
+  source_categories: [WE-CLFS Line Filter, Line Filter, EMC Components, Mains Filters]
+  attributes:
+    - use: rated_current
+      required: true
+    - id: rated_voltage
+      label: Tension nominal
+      type: number
+      dimension: voltage
+      unit: V
+      required: true
+      weight: 3
+      aliases: [tension nominal, rated voltage, tension de red, mains voltage, vac,
+                tension de trabajo, nennspannung]
+      rule: {kind: at_least, alt_ratio: 0.95}
+    - use: leakage_current
+    - id: stages
+      label: Numero de etapas
+      type: number
+      dimension: ratio
+      required: true
+      weight: 3
+      aliases: [etapas, stages, numero de etapas, stage, etapa, stufen]
+      rule: {kind: numeric_equal}
+    - id: attenuation_at_frequency
+      label: Atenuacion
+      type: number
+      dimension: decibel
+      unit: dB
+      weight: 2
+      aliases: [atenuacion, attenuation, insertion loss, perdida de insercion,
+                atenuacion de insercion, daempfung]
+      rule: {kind: at_least, alt_abs_tol: 3.0}
+    - use: mounting
+    - id: connection_type
+      label: Tipo de conexion
+      type: enum
+      weight: 2
+      aliases: [tipo de conexion, connection, conexion, terminacion, anschluss]
+      rule: {kind: enum_equal}
+      values:
+        faston: [faston, terminal faston, quick connect, lengueta]
+        tornillo: [tornillo, screw, screw terminal]
+        cable: [cable, con cable, wire leads, latiguillo]
+        pcb: [pcb, pines, pins, para circuito impreso]
+    - use: series
+    - use: temperature_range
+    - use: rohs
+
+- id: cable_ferrite
+  label: Ferrita para cable
+  aliases: [ferrita de cable, cable ferrite, snap ferrite, ferrita de clip, nucleo de ferrita,
+            ferrite core, toroide, toroid, nucleo nanocristalino, nanocrystalline core,
+            ferrita partida, clip on ferrite]
+  keywords: [ferrita, cable, clip, snap, nucleo, toroide, diametro]
+  source_categories: [Ferrites for Cable Assembly, Snap Ferrites for Cable Assembly,
+                      Ferrite Cores for Cable Assembly, Nanocrystalline Cores,
+                      EMC Components]
+  attributes:
+    - id: impedance_at_frequency
+      label: Impedancia
+      type: number
+      dimension: resistance
+      unit: ohm
+      required: true
+      weight: 3
+      aliases: [impedancia, impedance, z, z 100 mhz, z at 100 mhz, z @ 100 mhz,
+                impedancia a 100 mhz, impedanz]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.25}
+    - id: test_frequency
+      label: Frecuencia de medida
+      type: number
+      dimension: frequency
+      unit: MHz
+      weight: 2
+      aliases: [frecuencia de medida, test frequency, medido a, at frequency]
+      rule: {kind: numeric_equal, rel_tol: 0.0}
+    - id: inner_diameter
+      label: Diametro interior
+      type: number
+      dimension: length
+      unit: mm
+      required: true
+      weight: 3
+      aliases: [diametro interior, inner diameter, id, diametro interno, cable diameter,
+                diametro de cable, innendurchmesser, paso de cable]
+      # El cable tiene que caber: el agujero no puede ser menor que el pedido.
+      rule: {kind: at_least, alt_rel_tol: 0.02}
+    - id: material
+      label: Material
+      type: enum
+      weight: 2
+      aliases: [material, mix, ferrite material, tipo de ferrita, werkstoff]
+      rule: {kind: enum_equal}
+      values:
+        mnzn: [mnzn, manganeso zinc, mn-zn, manganese zinc]
+        nizn: [nizn, niquel zinc, ni-zn, nickel zinc]
+        nanocristalino: [nanocristalino, nanocrystalline, nanokristallin]
+    - id: form
+      label: Formato
+      type: enum
+      weight: 2
+      aliases: [formato, form, tipo, type, forma, bauform]
+      rule: {kind: enum_equal}
+      values:
+        clip: [clip, snap, snap-on, clip-on, partida, abatible, con carcasa]
+        toroide: [toroide, toroid, anillo, ring core, cerrado]
+        tubo: [tubo, sleeve, cilindro, bead]
+    - use: series
+    - use: temperature_range
+    - use: rohs
+
+- id: balun
+  label: Balun
+  aliases: [balun, baluns, transformador de simetria, multilayer chip balun, we-bal,
+            balun de chip]
+  keywords: [balun, simetria, balanceado, impedancia, rf]
+  source_categories: [WE-BAL Multilayer Chip Balun, Signal & Communications, Baluns]
+  attributes:
+    - use: frequency_range
+      required: true
+    - id: impedance_ratio
+      label: Relacion de impedancias
+      type: text
+      required: true
+      weight: 3
+      aliases: [relacion de impedancias, impedance ratio, impedancia, impedance,
+                relacion, ratio, zin zout, unbalanced balanced]
+      rule: {kind: text_equal}
+    - use: insertion_loss
+    - id: amplitude_balance
+      label: Balance de amplitud
+      type: number
+      dimension: decibel
+      unit: dB
+      weight: 1
+      aliases: [balance de amplitud, amplitude balance, desequilibrio de amplitud]
+      rule: {kind: at_most, alt_abs_tol: 0.3}
+    - id: phase_balance
+      label: Balance de fase
+      type: number
+      dimension: angle
+      unit: deg
+      weight: 1
+      aliases: [balance de fase, phase balance, desequilibrio de fase, desfase]
+      rule: {kind: at_most, alt_abs_tol: 3.0}
+    - use: package
+      required: true
+    - use: series
+    - use: temperature_range
+    - use: rohs
+
+- id: emc_shielding
+  label: Apantallamiento EMC
+  aliases: [apantallamiento, shielding, blindaje, emc shielding, board level shielding,
+            junta emc, emc gasket, cinta emc, emc tape, caja de apantallamiento,
+            pantalla, apantallamiento magnetico, magnetic shielding]
+  keywords: [apantallamiento, shielding, blindaje, junta, cinta, pantalla]
+  source_categories: [EMC Shielding, Board Level Shielding, EMC Tapes, EMC Gaskets,
+                      Magnetic Shielding, Grounding, EMC Components]
+  attributes:
+    - id: shielding_form
+      label: Tipo
+      type: enum
+      required: true
+      weight: 3
+      aliases: [tipo, type, formato, form, producto, categoria]
+      rule: {kind: enum_equal}
+      values:
+        caja de apantallamiento: [board level shielding, caja, shielding can, cover,
+                                  marco, frame, tapa]
+        junta: [junta, gasket, emc gasket, dedo de contacto, contact finger, malla]
+        cinta: [cinta, tape, emc tape, adhesivo, foil]
+        lamina magnetica: [lamina magnetica, magnetic shielding, absorbente, absorber]
+        puesta a tierra: [puesta a tierra, grounding, masa, bonding]
+    - id: shielding_effectiveness
+      label: Eficacia de apantallamiento
+      type: number
+      dimension: decibel
+      unit: dB
+      weight: 2
+      aliases: [eficacia, shielding effectiveness, atenuacion, attenuation, se,
+                schirmdaempfung]
+      rule: {kind: at_least, alt_abs_tol: 3.0}
+    - id: footprint
+      label: Dimensiones
+      type: text
+      required: true
+      weight: 3
+      aliases: [dimensiones, dimensions, tamano, size, medidas, formato, l x w x h,
+                abmessungen]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - id: material
+      label: Material
+      type: text
+      weight: 2
+      aliases: [material, aleacion, alloy, acabado, werkstoff]
+      rule: {kind: text_equal, alt_similarity: 0.85}
+    - id: thickness
+      label: Espesor
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [espesor, thickness, grosor, dicke]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - use: series
+    - use: temperature_range
+    - use: rohs

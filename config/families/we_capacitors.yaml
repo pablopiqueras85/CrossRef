@@ -4,7 +4,7 @@
   aliases: [condensador ceramico, ceramic capacitor, mlcc, condensador multicapa,
             multilayer ceramic capacitor, ceramico, wcap-csgp, wcap-csrf]
   keywords: [ceramico, mlcc, x7r, x5r, c0g, np0, condensador]
-  source_categories: [Ceramic Capacitors, MLCC, Condensadores ceramicos]
+  source_categories: [Ceramic Capacitors, Capacitors, MLCC, Condensadores ceramicos]
   attributes:
     - id: capacitance
       label: Capacidad
@@ -21,6 +21,8 @@
       required: true
     - use: package
       required: true
+    - use: aec_q
+    - use: series
     - id: dielectric
       label: Dielectrico
       type: enum
@@ -46,7 +48,8 @@
             electrolytic capacitor, condensador de aluminio, polymer capacitor,
             condensador de polimero, wcap-atg5, wcap-atli, wcap-pslp]
   keywords: [electrolitico, aluminio, polimero, esr, rizado, ripple, condensador]
-  source_categories: [Aluminum Electrolytic Capacitors, Polymer Capacitors,
+  source_categories: [Aluminum Electrolytic Capacitors, Aluminum Polymer Capacitors,
+                      Aluminum Hybrid Polymer Capacitors, Capacitors, Polymer Capacitors,
                       Condensadores electroliticos]
   attributes:
     - id: capacitance
@@ -74,6 +77,8 @@
       rule: {kind: text_equal, alt_similarity: 0.9}
     - use: mounting
       required: true
+    - use: aec_q
+    - use: series
     - use: temperature_range
     - use: rohs
 
@@ -83,7 +88,9 @@
             polypropylene capacitor, condensador de polipropileno, mkt, mkp,
             condensador de supresion, x2 capacitor]
   keywords: [pelicula, film, poliester, polipropileno, mkt, mkp, x2, y2]
-  source_categories: [Film Capacitors, Condensadores de pelicula]
+  source_categories: [Interference Suppression Capacitor, Film Capacitors, Capacitors,
+                      WCAP-FTX2 Film Capacitors, WCAP-FTXX Film Capacitors,
+                      Condensadores de pelicula]
   attributes:
     - id: capacitance
       label: Capacidad
@@ -121,7 +128,7 @@
   aliases: [supercondensador, supercapacitor, edlc, ultracapacitor, ultracondensador,
             double layer capacitor, wcap-stsc]
   keywords: [supercondensador, supercapacitor, edlc, faradios, backup]
-  source_categories: [Supercapacitors, Supercondensadores, EDLC]
+  source_categories: [Supercapacitors, Capacitors, Supercondensadores, EDLC]
   attributes:
     - id: capacitance
       label: Capacidad

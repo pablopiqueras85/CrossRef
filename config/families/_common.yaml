@@ -157,7 +157,7 @@ attributes:
     type: enum
     weight: 2
     aliases: [encapsulado, package, case, caja, footprint, tamano, size, carcasa,
-              case size, formato]
+              case size, formato, tamano de caja, dimensiones de caja]
     rule: {kind: enum_equal}
     values:
       "0201": ["0201", "0603 metric"]
@@ -245,9 +245,9 @@ attributes:
     dimension: current
     unit: A
     weight: 3
-    aliases: [corriente nominal, rated current, ir, i r, corriente, current,
+    aliases: [corriente nominal, rated current, ir, i r, i_r, corriente, current,
               corriente maxima, max current, corriente continua, dc current,
-              nennstrom, corriente de trabajo]
+              nennstrom, corriente de trabajo, rated current ir]
     rule: {kind: at_least, alt_ratio: 0.9}
 
   saturation_current:
@@ -268,8 +268,9 @@ attributes:
     dimension: resistance
     unit: ohm
     weight: 2
-    aliases: [dcr, rdc, r dc, resistencia dc, dc resistance, resistencia en continua,
-              resistencia ohmica, gleichstromwiderstand]
+    aliases: [dcr, rdc, r dc, r_dc, rdc max, r dc max, r_dc max, dcr max, dcr maximo,
+              resistencia dc, dc resistance, resistencia en continua, resistencia ohmica,
+              gleichstromwiderstand, dc resistance rdc max]
     # Mas resistencia que la pedida empeora el rendimiento: es un maximo.
     rule: {kind: at_most, alt_ratio: 1.1}
 
@@ -403,3 +404,39 @@ attributes:
     aliases: [vida util, lifetime, load life, horas, endurance, useful life,
               lebensdauer]
     rule: {kind: at_least, alt_ratio: 0.8}
+
+  # ---------------------------------------------------------------------
+  # Identificacion y cualificacion (aparecen como filtro en el catalogo)
+  # ---------------------------------------------------------------------
+
+  series:
+    id: series
+    label: Serie
+    type: text
+    weight: 1
+    informative: true
+    aliases: [serie, series, product series, familia de producto, product family,
+              gama, linea de producto, baureihe]
+
+  aec_q:
+    id: aec_q
+    label: Cualificacion AEC-Q
+    type: bool
+    weight: 2
+    aliases: [aec-q, aecq, aec q, aec-q200, aecq200, aec-q101, aecq101, aec-q product,
+              aecq product, automocion, automotive, automotive grade, grado automocion,
+              cualificacion automocion, calificacion aec-q, qualified]
+    # Si el cliente exige AEC-Q, una referencia sin cualificar NO es equivalente.
+    # Si no lo exige, que la referencia lo cumpla no penaliza.
+    rule: {kind: bool_equal}
+
+  leakage_current:
+    id: leakage_current
+    label: Corriente de fuga
+    type: number
+    dimension: current
+    unit: mA
+    weight: 2
+    aliases: [corriente de fuga, leakage current, fuga, leakage, ableitstrom,
+              corriente de derivacion]
+    rule: {kind: at_most, alt_rel_tol: 0.1}

@@ -12,7 +12,7 @@ from typing import Iterable
 from .models import AttributeValue, ComponentQuery
 from .normalize import normalize_pn, normalize_text, slug, tokens
 from .schema import AttributeSpec, FamilySpec, Registry
-from .units import UnitError, parse_interval, parse_quantity
+from .units import UnitError, looks_like_range, parse_interval, parse_quantity
 
 __all__ = ["coerce_value", "map_fields", "extract_from_text", "build_query"]
 
@@ -52,8 +52,16 @@ def coerce_value(spec: AttributeSpec, raw: str, source_field: str | None = None)
 
     try:
         if spec.type == "number":
-            q = parse_quantity(cleaned, spec.dimension or "ratio", spec.unit)
-            value.number = q.value
+            if looks_like_range(cleaned):
+                # "10 to 2700 Ohm": el catalogo publica el rango de una serie,
+                # no el valor de una referencia concreta.
+                iv = parse_interval(cleaned, spec.dimension or "ratio", spec.unit)
+                value.kind = "range"
+                value.interval = (iv.low, iv.high)
+                value.note = "el catalogo publica un rango, no un valor concreto"
+            else:
+                q = parse_quantity(cleaned, spec.dimension or "ratio", spec.unit)
+                value.number = q.value
         elif spec.type == "range":
             iv = parse_interval(cleaned, spec.dimension or "ratio", spec.unit)
             value.interval = (iv.low, iv.high)

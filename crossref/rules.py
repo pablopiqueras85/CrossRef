@@ -255,6 +255,39 @@ _RULES: dict[str, Callable[[RuleSpec, AttributeValue, AttributeValue, str | None
 # --------------------------------------------------------------------------
 
 
+def _compare_against_published_range(
+    query: AttributeValue, catalog: AttributeValue, dimension: str | None
+) -> dict:
+    """El catalogo publica un rango (el de una serie) donde se pedia un valor.
+
+    Que el valor pedido caiga dentro del rango de la serie NO demuestra que
+    exista una referencia con ese valor exacto: como mucho es un candidato.
+    """
+    assert query.number is not None and catalog.interval is not None
+    low, high = catalog.interval
+    span = _fmt_range(catalog.interval, dimension)
+    value = _fmt(query.number, dimension)
+    if low <= query.number <= high:
+        # Un rango estrecho alrededor del valor pedido es una senal mucho mas
+        # fuerte que uno amplisimo: se guarda para poder ordenar por ello.
+        relative_span = (high - low) / max(abs(query.number), EPS)
+        specificity = 1.0 / (1.0 + relative_span)
+        return {
+            "status": FieldStatus.CLOSE,
+            "reason": (
+                f"{value} cae dentro del rango publicado ({span}), pero el catalogo no "
+                "detalla el valor de cada referencia: hay que confirmar la referencia concreta"
+            ),
+            "deviation": f"rango de serie, ajuste {specificity:.0%}",
+            "specificity": round(specificity, 4),
+        }
+    return {
+        "status": FieldStatus.MISMATCH,
+        "reason": f"{value} queda fuera del rango publicado ({span})",
+        "deviation": "fuera del rango de serie",
+    }
+
+
 def compare_attribute(
     spec: AttributeSpec,
     query: AttributeValue | None,
@@ -286,6 +319,9 @@ def compare_attribute(
     if catalog is None or catalog.is_empty():
         return FieldComparison(status=FieldStatus.MISSING_CATALOG,
                                reason="la ficha del catalogo no publica este valor", **base)
+
+    if query.kind == "number" and catalog.kind == "range" and catalog.interval:
+        return FieldComparison(**base, **_compare_against_published_range(query, catalog, spec.dimension))
 
     if query.kind != catalog.kind:
         return FieldComparison(status=FieldStatus.MISSING_CATALOG,

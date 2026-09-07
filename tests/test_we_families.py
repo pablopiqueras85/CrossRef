@@ -146,3 +146,68 @@ def test_peticion_irreconocible_no_elige_familia_al_azar(catalog_registry):
     query = extract_from_text(catalog_registry, "un cacharro raro de 3 unidades")
     assert query.family == "generic"
     assert any("no se reconoce" in w for w in query.warnings)
+
+
+# --------------------------------------------------------------------------
+# El catalogo publica rangos de serie donde el esquema espera un valor
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture
+def series_service(tmp_path):
+    """Servicio cargado con el indice de SERIES (rangos), no de referencias."""
+    from crossref.ingest import ingest_products
+    from crossref.service import CrossRefService
+    from crossref.sources.files import FileCatalogSource
+    from tests.conftest import ROOT
+
+    service = CrossRefService(CATALOG_FAMILIES_DIR, tmp_path / "series.db")
+    source = FileCatalogSource(
+        {
+            "id": "series",
+            "type": "file",
+            "path": str(ROOT / "data" / "series_ferritas_pcb.csv"),
+            "columns": {"reference": "Referencia", "description": "Descripcion",
+                        "category_path": "Categoria"},
+            "family_by_category": {"Ferrites for PCB Assembly": "ferrite_bead"},
+        }
+    )
+    ingest_products(service.registry, service.store, source.fetch(), source_id="series")
+    return service
+
+
+def test_un_rango_del_catalogo_se_guarda_como_rango(series_service):
+    item = series_service.store.by_reference("WE-CBF")[0]
+    valor = item.attributes["impedance_at_frequency"]
+    assert valor.kind == "range"
+    assert valor.interval == (10.0, 2700.0)
+    assert "rango" in valor.note
+
+
+def test_caer_en_el_rango_de_una_serie_nunca_es_un_1_a_1(series_service):
+    """Que el valor pedido este dentro del rango no prueba que exista la pieza."""
+    from crossref.models import Verdict
+
+    response = series_service.crossref(
+        text="ferrita 600 ohm a 100 MHz 2 A", limit=5
+    )
+    assert response["results"]
+    assert all(r["verdict"] != Verdict.EQUIVALENT.value for r in response["results"])
+    mejor = response["results"][0]
+    assert any("confirmar la referencia concreta" in r for r in mejor["reasons"])
+
+
+def test_fuera_del_rango_de_la_serie_se_descarta(series_service):
+    response = series_service.crossref(
+        text="ferrita 5000 ohm a 100 MHz", limit=5, include_rejected=True
+    )
+    descartadas = {r["reference"] for r in response["rejected"]}
+    assert "WE-CBF" in descartadas  # su rango llega hasta 2700 ohm
+    motivos = " ".join(r["reasons"][0] for r in response["rejected"] if r["reasons"])
+    assert "fuera del rango" in motivos
+
+
+def test_la_serie_mas_ajustada_puntua_mas_alto(series_service):
+    """Pedir 500 ohm y 8,7 A deberia acercar a WE-SUKW (416-580 ohm, 8,5-9 A)."""
+    response = series_service.crossref(text="ferrita 500 ohm a 100 MHz 8,7 A", limit=3)
+    assert response["results"][0]["reference"] == "WE-SUKW"

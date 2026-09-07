@@ -5,8 +5,9 @@
             inductancia smd, shielded power inductor, choque de potencia, we-lqs, we-pd,
             we-mapi, we-xhmi]
   keywords: [inductancia, inductor, bobina, uh, nh, saturacion, dcr, buck, boost]
-  source_categories: [Power Inductors, Inductancias de potencia, SMT Power Inductors,
-                      Inductors, Power Magnetics]
+  source_categories: [Power Magnetics, Shielded Power Inductors, Unshielded Power Inductors,
+                      High Current Inductors, High Voltage Power Inductors,
+                      Coupled Power Inductors, Power Inductors, SMT Power Inductors]
   attributes:
     - id: inductance
       label: Inductancia
@@ -36,6 +37,14 @@
                 case, medidas, abmessungen, l x w x h]
       rule: {kind: text_equal, alt_similarity: 0.9}
     - use: height_max
+    - id: windings
+      label: Numero de devanados
+      type: number
+      dimension: ratio
+      weight: 2
+      aliases: [devanados, windings, bobinados, numero de devanados, acoplado, coupled,
+                canales, phases, fases]
+      rule: {kind: numeric_equal}
     - id: shielding
       label: Apantallamiento
       type: enum
@@ -55,7 +64,8 @@
   aliases: [inductancia de chip, chip inductor, multilayer inductor, inductancia multicapa,
             wire wound inductor, inductancia rf, rf inductor, we-ki, we-mk]
   keywords: [inductancia, chip, multicapa, rf, factor q, srf]
-  source_categories: [RF Inductors, Chip Inductors, Multilayer Inductors]
+  source_categories: [RF Inductors, Signal & Communications, Chip Inductors,
+                      Multilayer Inductors, WE-MI SMT Multilayer Inductor]
   attributes:
     - id: inductance
       label: Inductancia
@@ -74,6 +84,8 @@
     - use: srf
     - use: rated_current
     - use: dcr
+    - use: aec_q
+    - use: series
     - use: temperature_range
     - use: rohs
 
@@ -82,7 +94,9 @@
   aliases: [choque de modo comun, common mode choke, cmc, filtro de modo comun,
             common mode filter, bobina de modo comun, we-sl, we-cnsw, we-ucf]
   keywords: [modo comun, common mode, choke, choque, emc, emi, lineas]
-  source_categories: [Common Mode Chokes, Chokes, EMC Components, Signal Line Chokes]
+  source_categories: [Common Mode Chokes for Extra-low Voltage and Data Lines,
+                      Common Mode Chokes for Mains Power Lines, EMC Components,
+                      Common Mode Chokes, Signal Line Chokes]
   attributes:
     - id: impedance_at_frequency
       label: Impedancia
@@ -125,6 +139,9 @@
       rule: {kind: numeric_equal}
     - use: package
       required: true
+    - use: mounting
+    - use: aec_q
+    - use: series
     - use: temperature_range
     - use: rohs
 
@@ -133,7 +150,8 @@
   aliases: [ferrita, ferritas, ferrite bead, chip bead, emi filter, supresor de emi,
             perla de ferrita, ferrite, we-cbf, we-mpsb, we-tcf]
   keywords: [ferrita, ferrite, bead, emi, supresion, impedancia, 100 mhz]
-  source_categories: [Ferrites, EMI Suppression, Chip Beads, Ferrite Beads]
+  source_categories: [Ferrites for PCB Assembly, EMC Components, Ferrites,
+                      EMI Suppression, Chip Beads, Ferrite Beads]
   attributes:
     - id: impedance_at_frequency
       label: Impedancia
@@ -142,8 +160,9 @@
       unit: ohm
       required: true
       weight: 3
-      aliases: [impedancia, impedance, z, impedancia a 100 mhz, impedance at 100mhz,
-                z 100mhz, impedanz]
+      aliases: [impedancia, impedance, z, z 100 mhz, z at 100 mhz, z @ 100 mhz,
+                impedancia a 100 mhz, impedance at 100mhz, impedance 100 mhz,
+                z 100mhz, z typ, impedanz]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.25}
     - id: test_frequency
       label: Frecuencia de medida
@@ -160,6 +179,9 @@
       required: true
     - use: package
       required: true
+    - use: mounting
+    - use: aec_q
+    - use: series
     - use: temperature_range
     - use: rohs
 
@@ -168,7 +190,8 @@
   aliases: [transformador, transformer, trafo, transformador de pulsos, pulse transformer,
             transformador flyback, gate drive transformer, we-flex, we-pult]
   keywords: [transformador, transformer, relacion, ratio, aislamiento, primario]
-  source_categories: [Transformers, Transformadores, Gate Drive Transformers]
+  source_categories: [Signal Transformer, Transformers, Signal & Communications,
+                      Gate Drive Transformers, Transformadores]
   attributes:
     - id: turns_ratio
       label: Relacion de transformacion
@@ -200,7 +223,7 @@
   aliases: [bobina de carga inalambrica, wireless power coil, wpc coil, qi coil,
             bobina qi, wireless charging coil, we-wpcc]
   keywords: [inalambrica, wireless, qi, carga, bobina, coil]
-  source_categories: [Wireless Power Charging Coils, Wireless Power]
+  source_categories: [Wireless Power Charging Coils, Wireless Power, Power Magnetics]
   attributes:
     - id: inductance
       label: Inductancia

@@ -177,7 +177,11 @@ def _score(
         if c.status is FieldStatus.NOT_APPLICABLE:
             continue
         total += c.weight
-        weighted += c.weight * _STATUS_SCORE.get(c.status, 0.0)
+        if c.specificity is not None:
+            # Encaje contra un rango publicado: cuanto mas ajustado, mejor senal.
+            weighted += c.weight * (0.45 + 0.35 * c.specificity)
+        else:
+            weighted += c.weight * _STATUS_SCORE.get(c.status, 0.0)
     base = weighted / total if total else 0.0
 
     # Desempate por parecido textual de la descripcion.

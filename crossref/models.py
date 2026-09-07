@@ -156,6 +156,9 @@ class FieldComparison:
     catalog_value: str | None = None
     deviation: str | None = None
     weight: float = 1.0
+    #: 0..1, solo cuando la ficha publica un rango en vez de un valor: mide lo
+    #: ajustado que es ese rango al valor pedido (1 = clavado, 0 = rango enorme)
+    specificity: float | None = None
 
     @property
     def blocking(self) -> bool:

@@ -155,16 +155,25 @@ curl -X POST localhost:8000/api/v1/families/reload
 
 ## Familias incluidas
 
-`config/families/` contiene 20 familias orientadas a las líneas del catálogo, más una
+`config/families/` contiene 26 familias que siguen la taxonomía real del catálogo, más una
 familia `generic` de reserva que solo compara lo que coincide por nombre y nunca
 confirma un 1:1 por sí sola:
 
 | Fichero | Familias |
 | --- | --- |
-| `we_magnetics.yaml` | Inductancias de potencia, inductancias de chip/RF, choques de modo común, ferritas EMI, transformadores, bobinas de carga inalámbrica |
-| `we_capacitors.yaml` | MLCC, electrolíticos de aluminio/polímero, película, supercondensadores |
+| `we_magnetics.yaml` | Inductancias de potencia (*Power Magnetics*), inductancias de chip/RF, choques de modo común, ferritas para PCB, transformadores de señal, bobinas de carga inalámbrica |
+| `we_emc.yaml` | Filtros de red (*WE-CLFS*), ferritas para cable (*snap*, toroides, nanocristalinos), baluns (*WE-BAL*), apantallamiento EMC |
+| `we_capacitors.yaml` | MLCC, electrolíticos de aluminio/polímero/híbridos, película y supresión de interferencias (X/Y), supercondensadores |
+| `we_resistors.yaml` | Resistencias de placa metálica (shunt) y de capa gruesa |
 | `we_connectors.yaml` | Tiras de pines y zócalos, borneros, conectores de E/S (USB, RJ45, jack) |
-| `we_protection_opto.yaml` | TVS/ESD, varistores, LEDs, cristales y osciladores, antenas, interfaz térmica, módulos de alimentación |
+| `we_protection_opto.yaml` | ESD/TVS, protección contra sobretensiones (varistores), LEDs, cristales y osciladores, antenas *WE-MCA*, interfaz térmica, módulos de alimentación |
+
+Los nombres de parámetro son los que usa el propio catálogo en sus filtros, así que
+las columnas se mapean solas: `Z @ 100 MHz`, `I_R`, `R_DC max`, `Size`, `Mount` y
+`AEC-Q Product` se reconocen sin configurar nada.
+
+**AEC-Q**: si la petición exige cualificación de automoción, una referencia sin
+cualificar **no** es equivalente. Si no la exige, que la referencia la tenga no penaliza.
 
 Cada familia lleva los parámetros que de verdad deciden una sustitución. Por ejemplo,
 en una inductancia de potencia el DCR se compara como **máximo** (más resistencia
@@ -177,6 +186,30 @@ informe de `sync` dirá qué campos publican de verdad las fichas y qué hay que
 
 `examples/families/` contiene familias de demostración (RF coaxial y pasivos
 genéricos) que solo usa el catálogo de ejemplo y los tests. No se cargan en producción.
+
+## Rangos de serie
+
+El catálogo publica en sus listados el **rango de cada serie** (`WE-CBF: Z @ 100 MHz
+10 a 2700 Ω, I_R 450 a 12000 mA`), no el valor de cada referencia. CrossRef lo detecta
+y lo trata con honestidad: que el valor pedido caiga dentro del rango de una serie
+**nunca** se da por equivalencia 1:1, porque no demuestra que exista una referencia
+con ese valor exacto.
+
+```
+$ crossref find "ferrita 500 ohm a 100 MHz 8,7 A"
+
+[ALTERNATIVA] WE-SUKW  afinidad 74%
+    ~ Impedancia   500 ohm   416 ohm - 580 ohm   cae dentro del rango publicado,
+      pero el catálogo no detalla el valor de cada referencia: hay que confirmar
+      la referencia concreta
+```
+
+Entre varias series que contengan el valor, gana la que lo ciñe más: WE-SUKW
+(416–580 Ω) por delante de WE-CBF (10–2700 Ω).
+
+Esto permite usar la herramienta **antes** de tener el catálogo sincronizado a nivel
+de referencia: `config/sources/series_ferritas_pcb.yaml` carga un índice de series de
+ejemplo. Cuando esté el catálogo real, esa fuente sobra.
 
 ## Equivalencias ya declaradas
 
@@ -316,13 +349,13 @@ configuración.
 ## Tests
 
 ```bash
-pytest -q     # 146 tests
+pytest -q     # 150 tests
 ```
 
 Cubren la conversión de unidades y formatos, las reglas de equivalencia y sus
 tolerancias, la interpretación de peticiones reales, los veredictos, el índice y sus
 conectores, la tabla de equivalencias, el contrato de la API y la detección e
-interpretación de las 20 familias del catálogo.
+interpretación de las 26 familias del catálogo y el tratamiento de los rangos de serie.
 
 ## Estado y siguientes pasos
 
