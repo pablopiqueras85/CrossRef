@@ -1,0 +1,69 @@
+# Plantilla para conectar VUESTRO catálogo web.
+#
+# Cópiala a config/sources/catalogo_web.yaml y ajusta los selectores CSS.
+# Para afinarlos, usa una ficha real:
+#
+#     crossref probe config/sources/catalogo_web.yaml https://catalogo.example/producto/xxx
+#
+# Ese comando te dice qué ha entendido de la página y qué campos quedan sin mapear.
+#
+# NOTA IMPORTANTE: si el catálogo tiene API o exportación (CSV/ERP/PIM), úsala en
+# lugar de esto. El rastreo web es la última opción: se rompe con cada rediseño.
+
+id: catalogo_web
+type: web
+base_url: https://catalogo.example
+
+# --- Cómo encontrar las fichas de producto -------------------------------
+# Opción A (preferida): el sitemap del catálogo.
+sitemap: https://catalogo.example/sitemap.xml
+
+# Opción B: recorrer los listados de cada categoría.
+# start_urls:
+#   - https://catalogo.example/categoria/atenuadores
+#   - https://catalogo.example/categoria/cargas
+# listing:
+#   item_link_selector: "a.product-card"      # enlace a cada ficha
+#   next_page_selector: "a.pagination-next"   # enlace a la página siguiente
+#   # page_param: page                        # alternativa: ?page=N
+#   max_pages: 200
+
+# --- Qué extraer de cada ficha -------------------------------------------
+product:
+  match_url: "/producto/"        # solo estas URLs se consideran fichas
+  # exclude_url: "/blog/"
+
+  # Cada campo admite {selector, attr, regex, default}.
+  # attr: "text" (por defecto), "href", "content", o cualquier atributo HTML.
+  reference:
+    selector: "span.sku"
+    regex: 'Ref\.\s*(.+)'        # opcional: quedarse con el grupo 1
+  manufacturer: ".product-brand"
+  description: "h1.product-title"
+  category_path:
+    selector: "nav.breadcrumb a"
+    skip: 1                      # saltar "Inicio"
+  datasheet:
+    selector: "a.datasheet-link"
+    attr: href
+
+  # Las especificaciones técnicas: se admiten tres formatos habituales.
+  specs:
+    table_rows: "table.specifications tr"
+    key_selector: "th"
+    value_selector: "td"
+    # definition_list: "dl.specs"
+    # pair_selector: "li.spec-item"
+    # pair_key_selector: ".spec-name"
+    # pair_value_selector: ".spec-value"
+
+# --- Cómo comportarse al descargar ---------------------------------------
+request:
+  user_agent: "CrossRefBot/0.1 (catálogo interno; contacto: it@empresa.example)"
+  rate_limit_per_sec: 1          # 1 petición por segundo: no tumbes vuestra web
+  timeout: 20
+  max_pages: 5000
+  respect_robots: true           # déjalo en true salvo autorización expresa
+  cache_dir: data/cache_web      # evita volver a descargar lo mismo
+  # headers:
+  #   Cookie: "sesion=..."       # si el catálogo exige estar identificado

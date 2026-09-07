@@ -1,0 +1,234 @@
+# Atributos reutilizables por varias familias.
+# Una familia los incorpora con `- use: impedance` y puede sobrescribir
+# cualquier campo (por ejemplo `required: true` o una tolerancia distinta).
+attributes:
+
+  impedance:
+    id: impedance
+    label: Impedancia
+    type: number
+    dimension: resistance
+    unit: ohm
+    weight: 3
+    aliases: [impedancia, impedance, z, zo, z0, impedancia caracteristica,
+              characteristic impedance, imped]
+    rule: {kind: numeric_equal, rel_tol: 0.0}
+
+  frequency_range:
+    id: frequency_range
+    label: Rango de frecuencia
+    type: range
+    dimension: frequency
+    unit: MHz
+    weight: 3
+    aliases: [frecuencia, frequency, rango de frecuencia, frequency range,
+              banda, band, bandwidth, ancho de banda, freq, frecuencia de trabajo,
+              operating frequency, frecuencia min, frecuencia max, frecuencia minima,
+              frecuencia maxima, min frequency, max frequency]
+    # El catalogo debe cubrir TODO el rango pedido para ser 1:1.
+    # alt_margin: fraccion del rango pedido que puede quedar fuera en una alternativa.
+    rule: {kind: range_covers, alt_margin: 0.05}
+
+  power:
+    id: power
+    label: Potencia media
+    type: number
+    dimension: power
+    unit: W
+    weight: 2
+    aliases: [potencia, power, potencia media, average power, potencia nominal,
+              rated power, power handling, manejo de potencia, potencia maxima,
+              max power, cw power, potencia cw]
+    # Basta con que el catalogo aguante lo pedido; por debajo del 100% no es 1:1.
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  peak_power:
+    id: peak_power
+    label: Potencia de pico
+    type: number
+    dimension: power
+    unit: W
+    weight: 1
+    aliases: [potencia de pico, peak power, pico, potencia pico]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  vswr:
+    id: vswr
+    label: VSWR / ROE
+    type: number
+    dimension: ratio
+    weight: 1
+    aliases: [vswr, roe, swr, relacion de onda estacionaria, standing wave ratio]
+    # Menos es mejor: el catalogo no puede empeorar lo pedido.
+    rule: {kind: at_most, alt_abs_tol: 0.1}
+
+  insertion_loss:
+    id: insertion_loss
+    label: Perdida de insercion
+    type: number
+    dimension: decibel
+    unit: dB
+    weight: 1
+    aliases: [perdida de insercion, insertion loss, il, perdidas, perdida]
+    rule: {kind: at_most, alt_abs_tol: 0.2}
+
+  return_loss:
+    id: return_loss
+    label: Perdida de retorno
+    type: number
+    dimension: decibel
+    unit: dB
+    weight: 1
+    aliases: [perdida de retorno, return loss, rl]
+    rule: {kind: at_least, alt_abs_tol: 1.0}
+
+  connector_a:
+    id: connector_a
+    label: Conector 1 (entrada)
+    type: enum
+    weight: 2
+    aliases: [conector, conector 1, conector a, conector entrada, conector de entrada,
+              connector, connector 1, connector a, input connector, in, entrada,
+              interfaz, interface, conectores]
+    rule: {kind: enum_equal}
+    values: &connector_values
+      sma macho: [sma male, sma m, sma-m, sma plug, sma macho, sma (m), male sma]
+      sma hembra: [sma female, sma f, sma-f, sma jack, sma hembra, sma (f), female sma]
+      n macho: [n male, n-m, n type male, tipo n macho, n plug, n (m)]
+      n hembra: [n female, n-f, n type female, tipo n hembra, n jack, n (f)]
+      bnc macho: [bnc male, bnc-m, bnc plug, bnc (m)]
+      bnc hembra: [bnc female, bnc-f, bnc jack, bnc (f)]
+      tnc macho: [tnc male, tnc-m, tnc plug]
+      tnc hembra: [tnc female, tnc-f, tnc jack]
+      7-16 din macho: [7/16 male, 7-16 din male, din male, 7/16 din macho, l29 male]
+      7-16 din hembra: [7/16 female, 7-16 din female, din female, 7/16 din hembra, l29 female]
+      4.3-10 macho: [4.3-10 male, 4310 male, 4.3/10 male]
+      4.3-10 hembra: [4.3-10 female, 4310 female, 4.3/10 female]
+      2.92mm macho: [2.92 male, k male, 2.92 mm male, k connector male, 2,92 mm macho]
+      2.92mm hembra: [2.92 female, k female, 2.92 mm female, k connector female, 2,92 mm hembra]
+      2.4mm macho: [2.4 male, 2.4 mm male, 2,4 mm macho]
+      2.4mm hembra: [2.4 female, 2.4 mm female, 2,4 mm hembra]
+      1.85mm macho: [1.85 male, v male, 1.85 mm male]
+      1.85mm hembra: [1.85 female, v female, 1.85 mm female]
+      3.5mm macho: [3.5 male, 3.5 mm male]
+      3.5mm hembra: [3.5 female, 3.5 mm female]
+      smb macho: [smb male, smb plug]
+      smb hembra: [smb female, smb jack]
+      mcx macho: [mcx male, mcx plug]
+      mcx hembra: [mcx female, mcx jack]
+      mmcx macho: [mmcx male, mmcx plug]
+      mmcx hembra: [mmcx female, mmcx jack]
+      qma macho: [qma male]
+      qma hembra: [qma female]
+      f macho: [f male, f-m, f type male, conector f macho]
+      f hembra: [f female, f-f, f type female, conector f hembra]
+      sma-h montaje panel: [sma bulkhead female, sma panel hembra, sma bulkhead]
+      sin conector: [solder, soldadura, pigtail, sin conector, no connector, terminales]
+
+  connector_b:
+    id: connector_b
+    label: Conector 2 (salida)
+    type: enum
+    weight: 2
+    aliases: [conector 2, conector b, conector salida, conector de salida,
+              connector 2, connector b, output connector, out, salida]
+    rule: {kind: enum_equal}
+    values: *connector_values
+
+  mounting:
+    id: mounting
+    label: Montaje
+    type: enum
+    weight: 1
+    aliases: [montaje, mounting, tipo de montaje, mount, instalacion, formato]
+    rule: {kind: enum_equal}
+    values:
+      en linea: [in-line, inline, en linea, entre conectores, in line]
+      panel: [bulkhead, panel, montaje en panel, panel mount, chasis, chassis]
+      brida: [flange, flange mount, brida, con brida]
+      smd: [smd, smt, superficie, surface mount]
+      through hole: [tht, through hole, pasante, orificio pasante]
+      rack: [rack, 19 pulgadas, 19", rack mount]
+
+  package:
+    id: package
+    label: Encapsulado
+    type: enum
+    weight: 2
+    aliases: [encapsulado, package, case, caja, footprint, tamano, size, carcasa,
+              case size, formato]
+    rule: {kind: enum_equal}
+    values:
+      "0201": ["0201", "0603 metric"]
+      "0402": ["0402", "1005 metric"]
+      "0603": ["0603", "1608 metric"]
+      "0805": ["0805", "2012 metric"]
+      "1206": ["1206", "3216 metric"]
+      "1210": ["1210"]
+      "2010": ["2010"]
+      "2512": ["2512"]
+      do-214: [do-214, smb diodo, do214]
+      sot-23: [sot-23, sot23]
+      axial: [axial, through hole axial]
+      radial: [radial]
+
+  tolerance:
+    id: tolerance
+    label: Tolerancia
+    type: number
+    dimension: percent
+    unit: "%"
+    weight: 2
+    aliases: [tolerancia, tolerance, tol, precision]
+    # Una tolerancia mas estrecha siempre sirve; mas ancha no es 1:1.
+    rule: {kind: at_most, alt_ratio: 1.0}
+
+  voltage:
+    id: voltage
+    label: Tension nominal
+    type: number
+    dimension: voltage
+    unit: V
+    weight: 2
+    aliases: [tension, tension nominal, voltage, rated voltage, working voltage,
+              tension de trabajo, vdc, tension maxima, max voltage]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  current:
+    id: current
+    label: Corriente nominal
+    type: number
+    dimension: current
+    unit: A
+    weight: 2
+    aliases: [corriente, corriente nominal, current, rated current, intensidad,
+              amperaje, max current]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  temperature_range:
+    id: temperature_range
+    label: Rango de temperatura
+    type: range
+    dimension: temperature
+    unit: degC
+    weight: 1
+    aliases: [temperatura, temperature, rango de temperatura, temperature range,
+              operating temperature, temperatura de trabajo]
+    rule: {kind: range_covers, alt_margin: 0.1}
+
+  rohs:
+    id: rohs
+    label: RoHS
+    type: bool
+    weight: 0.5
+    informative: true
+    aliases: [rohs, rohs compliant, cumple rohs, directiva rohs]
+
+  manufacturer_ref:
+    id: manufacturer_ref
+    label: Referencia equivalente declarada
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [equivalencia, cross reference, cross-ref, referencia equivalente,
+              equivalente, sustituto, replaces]

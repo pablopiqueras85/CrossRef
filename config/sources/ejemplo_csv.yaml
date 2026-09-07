@@ -1,0 +1,25 @@
+# Fuente de ejemplo: una exportacion del catalogo en CSV.
+# Sirve para probar el sistema y como plantilla para vuestra propia exportacion.
+id: ejemplo_csv
+type: file
+path: data/catalogo_ejemplo.csv
+
+# Columnas fijas de la ficha. El resto de columnas se tratan como
+# especificaciones tecnicas y se mapean con los alias de config/families.
+columns:
+  reference: Referencia
+  manufacturer: Fabricante
+  description: Descripcion
+  url: URL
+  category_path: Categoria
+
+# Categoria del catalogo -> familia de CrossRef.
+family_by_category:
+  Atenuadores: rf_attenuator
+  Cargas: rf_load
+  Divisores: rf_power_divider
+  Acopladores: rf_coupler
+  Filtros: rf_filter
+  Adaptadores: rf_adapter
+  Resistencias: resistor
+  Condensadores: capacitor

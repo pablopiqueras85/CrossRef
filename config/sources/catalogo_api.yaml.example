@@ -1,0 +1,35 @@
+# Plantilla para un catálogo con API JSON (la opción preferida).
+id: catalogo_api
+type: api
+url: https://catalogo.example/api/v1/products
+
+request:
+  method: GET
+  timeout: 30
+  rate_limit_per_sec: 5
+  headers:
+    Authorization: "Bearer PON_AQUI_EL_TOKEN"
+
+pagination:
+  page_param: page
+  size_param: per_page
+  page_size: 100
+  start_page: 1
+  max_pages: 1000
+  # next_field: links.next     # si la API devuelve la URL de la página siguiente
+
+records_path: data             # dónde está la lista dentro de la respuesta
+
+# Ruta de cada campo dentro de un registro ("attributes.sku" navega anidados).
+fields:
+  reference: sku
+  manufacturer: brand.name
+  description: name
+  url: permalink
+  category_path: category_path
+  datasheet_url: datasheet
+
+# Especificaciones: un objeto {nombre: valor} o una lista de {name, value}.
+specs_path: specifications
+specs_key_field: name
+specs_value_field: value

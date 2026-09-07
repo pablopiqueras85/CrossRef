@@ -1,174 +1,288 @@
 # CrossRef
 
-Herramienta para encontrar la equivalencia exacta de un componente electrónico en nuestro catálogo web a partir de la información que se recibe de un proveedor, cliente o compañero.
+Sistema para encontrar la equivalencia de un componente en el catálogo propio a partir
+de la información que llega de un cliente, un proveedor o un compañero: la referencia
+exacta **1:1** cuando existe, y la alternativa más cercana cuando no, diciendo siempre
+qué campos coinciden, cuáles no y por qué.
 
-## Problema
-
-La información de un componente puede llegar en formatos poco uniformes: una referencia parcial, una descripción libre o una lista de valores técnicos como impedancia, atenuación, frecuencia, potencia y encapsulado. Buscar manualmente una pieza equivalente en el catálogo consume tiempo y puede provocar sustituciones incorrectas.
-
-CrossRef convierte esos datos en una búsqueda estructurada y devuelve únicamente componentes del catálogo que cumplan la equivalencia definida.
-
-## Objetivo
-
-Permitir que una persona:
-
-1. Introduzca un componente y sus valores técnicos.
-2. Seleccione o confirme el tipo de componente y las unidades.
-3. Consulte una equivalencia **1:1** en el catálogo web.
-4. Vea qué valores coinciden, cuáles faltan y por qué una referencia ha sido aceptada o descartada.
-
-La herramienta no debe proponer una sustitución aproximada sin indicarlo explícitamente. Una coincidencia 1:1 significa que todos los campos obligatorios del tipo de componente cumplen las reglas de equivalencia configuradas.
-
-## Alcance del MVP
-
-- Formulario para introducir una referencia, descripción y parámetros técnicos.
-- Normalización de unidades, separadores decimales, mayúsculas y nombres habituales de campos.
-- Catálogo interno sincronizado desde el catálogo web mediante API, exportación o conector.
-- Búsqueda por tipo de componente y atributos normalizados.
-- Resultado con estado `equivalente`, `no encontrado` o `requiere revisión`.
-- Comparación lado a lado de los valores de entrada y los de la referencia encontrada.
-- Registro de la fuente y de la fecha de actualización del dato del catálogo.
-
-Quedan fuera del primer MVP las recomendaciones basadas en similitud, las sustituciones con tolerancias no aprobadas y la compra automática.
-
-## Flujo previsto
-
-```text
-Entrada libre o formulario
-	|
-	v
-Identificación del tipo de componente
-	|
-	v
-Normalización de nombres, unidades y valores
-	|
-	v
-Aplicación de reglas de equivalencia
-	|
-	v
-Búsqueda en el catálogo
-	|
-	v
-Comparación explicable y resultado 1:1
+```
+Petición del cliente ──► Identificar familia ──► Normalizar unidades y nombres
+                                                          │
+                                       Reglas de equivalencia por familia
+                                                          │
+                          Catálogo indexado ──► Comparación campo a campo
+                                                          │
+                             equivalente · alternativa · requiere revisión · descartado
 ```
 
-## Datos de entrada
+## Qué resuelve
 
-Los campos dependen del tipo de componente. Como punto de partida, CrossRef debe poder trabajar con:
+Un cliente pide *"atenuador 3 dB, 50 ohm, DC-18 GHz, 2 W, SMA macho/hembra"* y hay que
+saber si en el catálogo hay algo que valga. La misma pieza puede llegar escrita como
+`3dB`, `3,0 dB`, `DC-18000 MHz`, `SMA-M/SMA-F` o `SMA (M) / SMA (F)`. CrossRef lo
+normaliza todo a una unidad canónica, aplica las reglas de la familia y devuelve un
+veredicto justificado en lugar de una puntuación opaca.
 
-- Referencia o part number recibido.
-- Fabricante, si se conoce.
-- Tipo de componente.
-- Descripción original.
-- Impedancia.
-- Atenuación.
-- Frecuencia mínima y máxima.
-- Potencia nominal.
-- Tensión o corriente nominal.
-- Tolerancia.
-- Encapsulado, montaje y conectores.
-- Cualquier valor adicional relevante para esa familia.
+Regla de oro: **con datos incompletos nunca se confirma una equivalencia.** Si falta un
+campo obligatorio, el resultado es `requiere revisión`, no un 1:1 optimista.
 
-Los campos obligatorios y las reglas de comparación deben definirse por familia de producto. Por ejemplo, un valor numérico puede requerir igualdad exacta, mientras que un rango de frecuencia puede requerir que el componente del catálogo cubra todo el rango solicitado.
+## Instalación
 
-## Resultado esperado
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
-Cada resultado debe incluir:
+## Puesta en marcha en 3 minutos
 
-- Referencia del catálogo.
-- Fabricante y descripción.
-- Enlace a la ficha del catálogo web.
-- Valores de entrada y valores del catálogo normalizados.
-- Estado de cada atributo: `coincide`, `no coincide`, `no informado` o `no aplicable`.
-- Regla aplicada y motivo del resultado.
-- Fecha y fuente de la información.
+```bash
+# 1. Cargar el catálogo de ejemplo (51 referencias) en el índice local
+crossref sync config/sources/ejemplo_csv.yaml
 
-Ejemplo de respuesta conceptual:
+# 2. Buscar una equivalencia desde la terminal
+crossref find "atenuador 3 dB 50 ohm DC-18 GHz 2 W SMA macho/hembra"
+
+# 3. Levantar la interfaz web y la API
+crossref serve          # http://127.0.0.1:8000
+```
+
+Salida de `find`:
+
+```
+Familia: Atenuador fijo (75%)
+Entendido: Rango de frecuencia=0 Hz - 18 GHz, Atenuacion=3 dB, Impedancia=50 ohm, ...
+
+[EQUIVALENTE] AT-3SM-2W-18  afinidad 86%
+    Atenuador coaxial fijo 3 dB, SMA macho/SMA hembra, DC-18 GHz
+    https://catalogo.example/producto/at-3sm-2w-18
+    · Equivalencia 1:1: Impedancia, Atenuacion, Rango de frecuencia, Potencia media,
+      Conector 1, Conector 2 cumplen la regla estricta.
+      = Impedancia            50 ohm          50 ohm          50 ohm coincide con 50 ohm
+      = Atenuacion            3 dB            3 dB            3 dB coincide con 3 dB
+      = Rango de frecuencia   0 Hz - 18 GHz   0 Hz - 18 GHz   cubre el rango pedido
+      = Potencia media        2 W             2 W             cubre el minimo pedido
+```
+
+## Conectar vuestro catálogo real
+
+El catálogo es una **dependencia intercambiable**. Hay tres conectores, en este orden
+de preferencia:
+
+| Fuente | Cuándo usarla | Plantilla |
+| --- | --- | --- |
+| **API JSON** | El catálogo web expone API | `config/sources/catalogo_api.yaml.example` |
+| **Fichero** | Exportación CSV / XLSX / JSON del ERP o PIM | `config/sources/ejemplo_csv.yaml` |
+| **Web** | No hay más remedio que leer las fichas | `config/sources/catalogo_web.yaml.example` |
+
+Para el caso web, el conector se configura con selectores CSS, sin escribir código.
+Además aprovecha los datos estructurados JSON-LD (`Product`) si la ficha los publica,
+que es lo más estable. Respeta `robots.txt`, limita el ritmo de peticiones y cachea
+las descargas.
+
+Para ajustar los selectores contra una ficha real:
+
+```bash
+cp config/sources/catalogo_web.yaml.example config/sources/catalogo_web.yaml
+# editar selectores...
+crossref probe config/sources/catalogo_web.yaml https://vuestro-catalogo/producto/xxx
+```
+
+`probe` descarga **una** página y muestra qué ha entendido, a qué familia la asigna,
+qué especificaciones ha mapeado y cuáles se quedan fuera. Se itera sobre el YAML hasta
+que no queda nada sin mapear. Después:
+
+```bash
+crossref sync config/sources/catalogo_web.yaml --limit 20   # prueba
+crossref sync config/sources/catalogo_web.yaml --deactivate-missing
+```
+
+## Definir las familias y sus reglas
+
+Las familias viven en `config/families/*.yaml`. **Añadir una familia nueva no requiere
+tocar el código.** Un atributo declara su tipo, su unidad canónica, si es obligatorio,
+con qué regla se compara y qué alias puede tener en el catálogo o en la petición:
+
+```yaml
+- id: attenuation
+  label: Atenuacion
+  type: number
+  dimension: decibel
+  unit: dB
+  required: true
+  weight: 3
+  aliases: [atenuacion, attenuation, att, valor de atenuacion]
+  rule: {kind: numeric_equal, abs_tol: 0.0, alt_abs_tol: 0.5}
+```
+
+`abs_tol`/`rel_tol` definen el **1:1**; `alt_abs_tol`/`alt_rel_tol` definen hasta dónde
+se acepta una **alternativa**. En el ejemplo: 3 dB exacto es equivalente, 3,3 dB es
+alternativa, 6 dB se descarta.
+
+Reglas disponibles:
+
+| Regla | Significado |
+| --- | --- |
+| `numeric_equal` | Igual tras convertir a la unidad base |
+| `at_least` | El catálogo debe igualar o superar lo pedido (potencia, tensión) |
+| `at_most` | El catálogo no puede empeorar lo pedido (VSWR, pérdidas, tolerancia) |
+| `range_covers` | El rango del catálogo cubre todo el rango pedido |
+| `range_within` / `range_overlaps` | Variantes para rangos |
+| `enum_equal` / `enum_in` | Valores de lista con sinónimos (conectores, encapsulados) |
+| `text_equal` | Texto igual tras normalizar |
+| `list_contains` / `list_equal` | Conjuntos de valores |
+| `bool_equal` | Sí/no |
+| `informative` | Se muestra, pero nunca decide |
+
+Un atributo puede declarar `assume:` con el valor que se da por supuesto cuando la
+petición no lo indica (por ejemplo `50 ohm` en RF). Nunca es silencioso: el valor sale
+marcado como *asumido* y se avisa para que se confirme con el cliente.
+
+Los atributos comunes a varias familias se definen una vez en
+`config/families/_common.yaml` y se reutilizan con `- use: impedance`.
+
+Tras editar los YAML:
+
+```bash
+crossref check                     # valida la configuración
+curl -X POST localhost:8000/api/v1/families/reload
+```
+
+## Familias incluidas de serie
+
+RF/microondas: atenuadores, cargas, divisores/combinadores, acopladores, filtros,
+adaptadores, latiguillos y conectores. Pasivos: resistencias, condensadores y bobinas.
+Más una familia `generic` de reserva que solo compara lo que coincide por nombre y
+nunca confirma un 1:1 por sí sola.
+
+Son un punto de partida: lo normal es ajustarlas a las familias reales del catálogo,
+usando el informe de `sync` como guía.
+
+## Interfaz web
+
+`crossref serve` publica en `http://127.0.0.1:8000`:
+
+- **Buscar** — se pega la petición tal cual llega; el sistema muestra *lo que ha
+  entendido* en campos editables (por si hay que corregir algo) y devuelve los
+  candidatos con la comparación campo a campo, el enlace a la ficha, la fuente del dato
+  y su fecha.
+- **Lote / RFQ** — una petición por línea, resultado en tabla y descarga en CSV.
+- **Catálogo** — referencias indexadas, cobertura de datos por atributo (si un campo
+  obligatorio tiene poca cobertura, esa familia no podrá resolverse 1:1) y
+  sincronización.
+
+## API
+
+| Método | Ruta | Para qué |
+| --- | --- | --- |
+| `POST` | `/api/v1/crossref` | Buscar equivalencia |
+| `POST` | `/api/v1/parse` | Ver cómo se interpreta una petición, sin buscar |
+| `POST` | `/api/v1/crossref/batch` | Lista de peticiones (JSON) |
+| `POST` | `/api/v1/crossref/batch/csv` | Lista de peticiones (CSV) → CSV |
+| `GET` | `/api/v1/families` · `/api/v1/families/{id}` | Esquema y reglas vigentes |
+| `GET` | `/api/v1/catalog/stats` | Estado del índice |
+| `GET` | `/api/v1/catalog/coverage/{familia}` | Cobertura de datos por atributo |
+| `POST` | `/api/v1/catalog/sync` | Sincronizar desde una fuente |
+
+Documentación interactiva en `/docs`. Ejemplo:
+
+```bash
+curl -s localhost:8000/api/v1/crossref -H 'Content-Type: application/json' -d '{
+  "text": "atenuador 3 dB 50 ohm DC-18 GHz 2 W SMA macho/hembra",
+  "limit": 3, "include_rejected": true
+}' | jq '.results[0] | {reference, verdict, score, reasons}'
+```
+
+Respuesta (recortada):
 
 ```json
 {
-  "status": "equivalente",
-  "catalog_reference": "CAT-000123",
-  "source_reference": "REF-EXTERNA-01",
-  "matched_fields": ["impedancia", "atenuacion", "frecuencia"],
-  "differences": [],
-  "catalog_url": "https://catalogo.example/componentes/CAT-000123"
+  "reference": "AT-3SM-2W-18",
+  "verdict": "equivalente",
+  "score": 0.8613,
+  "reasons": ["Equivalencia 1:1: Impedancia, Atenuacion, Rango de frecuencia, ..."]
 }
 ```
 
-## Reglas de equivalencia
+Cada resultado incluye además `comparisons[]` con, para cada campo: valor pedido, valor
+del catálogo, estado (`coincide`, `aproximado`, `no coincide`, `no informado`), regla
+aplicada y motivo en lenguaje llano.
 
-Las reglas deben ser explícitas, versionadas y revisables. Una posible configuración por atributo es:
+Las operaciones que modifican el catálogo (`sync`, `reload`) se pueden proteger
+poniendo la variable de entorno `CROSSREF_ADMIN_TOKEN`; entonces exigen la cabecera
+`X-Admin-Token`.
 
-| Tipo de dato | Regla inicial |
-| --- | --- |
-| Texto normalizado | Igualdad después de normalizar |
-| Valor con unidad | Igualdad tras convertir a una unidad base |
-| Rango | El rango del catálogo cubre el rango solicitado |
-| Tolerancia | Cumple el límite definido para la familia |
-| Lista de valores | Coincidencia exacta de los valores requeridos |
-| Campo desconocido | No confirmar equivalencia; requiere revisión |
+## Los cuatro veredictos
 
-Cuando falte un dato obligatorio o exista una discrepancia, el sistema debe explicar el motivo en lugar de ocultarlo tras una puntuación.
+| Veredicto | Cuándo | Qué hacer |
+| --- | --- | --- |
+| `equivalente` | Todos los campos obligatorios cumplen la regla estricta | Se puede ofrecer como 1:1 |
+| `alternativa` | Cumple, pero algún campo entró por tolerancia | Ofrecer indicando la desviación |
+| `requiere revisión` | Falta un dato obligatorio en la petición o en la ficha | Pedir el dato que falta |
+| `descartado` | Incumple un campo obligatorio | Se muestra el motivo, no se oculta |
 
-## Arquitectura propuesta
+## Línea de comandos
 
-```text
-Interfaz de usuario
-	|
-API de CrossRef
-   |         |
-Normalizador  Motor de reglas
-	|         |
-	+--- Índice o base de datos del catálogo
-			 |
-		 Conector del catálogo web
+```bash
+crossref find "TEXTO" [--family X] [--strict] [--rejected] [--json]
+crossref batch peticiones.csv --column peticion --out resultados.csv
+crossref sync FUENTE.yaml [--limit N] [--deactivate-missing]
+crossref probe FUENTE.yaml URL          # ajustar el conector web
+crossref families [ID]                  # esquema y reglas vigentes
+crossref coverage FAMILIA               # cobertura de datos del catálogo
+crossref stats · crossref check · crossref serve
 ```
 
-La fuente del catálogo debe tratarse como una dependencia intercambiable. Se prioriza una API o exportación oficial; el scraping solo debe utilizarse si está permitido y si no existe una alternativa estable.
+## Cómo está construido
 
-## Plan de desarrollo
+```
+crossref/
+  units.py       Magnitudes y rangos -> unidad canónica (1,5 GHz = 1500 MHz)
+  normalize.py   Texto, sinónimos y part numbers comparables
+  schema.py      Familias y atributos cargados desde YAML
+  rules.py       Motor de reglas: una comparación explicada por campo
+  extract.py     De texto libre o formulario a valores normalizados
+  matching.py    Veredicto y ordenación de candidatos
+  store.py       Índice SQLite con FTS, procedencia y fecha
+  ingest.py      Normalización de fichas + informe de calidad
+  sources/       Conectores: web, ficheros y API
+  service.py     Capa común a API, web y CLI
+  api.py         FastAPI + interfaz web
+  cli.py         Línea de comandos
+config/families/ Familias y reglas (lo que se toca a menudo)
+config/sources/  Configuración de las fuentes de catálogo
+```
 
-### Fase 1: definición y datos
+El motor es **determinista**: mismas entradas, mismo resultado, sin modelos
+estadísticos de por medio. Todo lo que el sistema no entiende se devuelve en
+`unparsed` y en los avisos, en lugar de adivinarse en silencio.
 
-- Confirmar las familias de componentes prioritarias.
-- Definir el esquema de atributos y las unidades canónicas.
-- Obtener una muestra real del catálogo y de consultas recibidas.
-- Documentar las reglas que determinan una equivalencia 1:1.
+## Calidad de los datos
 
-### Fase 2: MVP funcional
+`crossref sync` no solo carga: informa. Al terminar dice cuántas fichas hay por familia,
+cuáles no ha sabido clasificar, qué campos del catálogo no encajan en ningún atributo
+(con ejemplos, para añadirlos como `aliases`) y qué fichas no traen todos los campos
+obligatorios de su familia. Ese informe es la lista de tareas para ir afinando la
+configuración.
 
-- Implementar el modelo de datos del catálogo.
-- Construir la normalización de entradas.
-- Implementar un primer motor de reglas determinista.
-- Añadir la búsqueda y la comparación explicable.
-- Probar con casos positivos, negativos y datos incompletos.
+## Tests
 
-### Fase 3: operación
+```bash
+pytest -q     # 109 tests
+```
 
-- Automatizar la sincronización del catálogo.
-- Añadir historial de reglas y resultados.
-- Medir búsquedas sin resultado y revisiones manuales.
-- Incorporar nuevas familias de componentes sin modificar el núcleo.
+Cubren la conversión de unidades y formatos, las reglas de equivalencia y sus
+tolerancias, la interpretación de peticiones reales, los veredictos, el índice y sus
+conectores, y el contrato de la API.
 
-## Criterios de aceptación del MVP
+## Estado y siguientes pasos
 
-- Una entrada con unidades equivalentes produce el mismo resultado aunque cambie el formato recibido.
-- Una discrepancia en un campo obligatorio impide marcar el componente como equivalente.
-- Un componente con datos incompletos aparece como `requiere revisión` o `no encontrado`, nunca como coincidencia confirmada.
-- Cada resultado muestra los campos comparados y la regla aplicada.
-- La referencia resultante enlaza con la ficha correspondiente del catálogo.
-- La sincronización conserva la fuente y la fecha de cada registro.
+Funciona de punta a punta con un catálogo de ejemplo. Para ponerlo en producción:
 
-## Preguntas abiertas
+1. Conectar el catálogo real (API o exportación si es posible; si no, el conector web).
+2. Revisar el informe de `sync` y ajustar familias, alias y categorías.
+3. Confirmar con negocio las tolerancias de `alternativa` de cada familia.
+4. Programar la sincronización periódica (`crossref sync --deactivate-missing`).
+5. Decidir si hace falta autenticación y trazabilidad por usuario.
 
-- ¿Qué familias de componentes y atributos son prioritarios?
-- ¿El catálogo web dispone de API, exportación periódica o solo interfaz web?
-- ¿Qué campos son obligatorios para cada familia?
-- ¿Qué tolerancias comerciales o técnicas están autorizadas?
-- ¿Debe haber revisión y aprobación humana antes de confirmar una equivalencia?
-- ¿Se necesita autenticación, multiusuario o trazabilidad por usuario?
-
-## Estado
-
-En definición. Este repositorio contiene actualmente la especificación inicial del producto.
+Fuera del alcance actual: sustituciones aproximadas sin tolerancia aprobada, compra
+automática y aprendizaje a partir del histórico de decisiones.

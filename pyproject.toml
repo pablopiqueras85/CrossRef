@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crossref"
+version = "0.1.0"
+description = "Cross-reference de componentes: encuentra la equivalencia 1:1 (o la alternativa mas cercana) en el catalogo propio"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "httpx>=0.26",
+    "selectolax>=0.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+crossref = "crossref.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["crossref*"]
+
+[tool.setuptools.package-data]
+crossref = ["web/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

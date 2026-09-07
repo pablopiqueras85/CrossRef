@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrossRef · equivalencias de componentes</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f6feb'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white'%3E%E2%87%84%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">⇄</span>
+    <div>
+      <h1>CrossRef</h1>
+      <p class="tagline">Equivalencia 1:1 en el catálogo propio, explicada campo a campo</p>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="buscar" role="tab">Buscar</button>
+    <button class="tab" data-view="lote" role="tab">Lote / RFQ</button>
+    <button class="tab" data-view="catalogo" role="tab">Catálogo</button>
+  </nav>
+  <div id="catalog-badge" class="badge-catalog" title="Referencias indexadas">—</div>
+</header>
+
+<main>
+  <!-- ------------------------------------------------------------ BUSCAR -->
+  <section id="view-buscar" class="view active">
+    <div class="layout">
+      <div class="panel">
+        <h2>1. Petición del cliente</h2>
+        <p class="hint">Pega la petición tal y como llega: texto libre, una línea de un correo o una referencia.</p>
+        <textarea id="query-text" rows="5" placeholder="Ej.: atenuador coaxial 3 dB, 50 ohm, DC-18 GHz, 2 W, SMA macho/hembra"></textarea>
+        <div class="row">
+          <label class="field">
+            <span>Familia</span>
+            <select id="family-select"><option value="">Detectar automáticamente</option></select>
+          </label>
+          <label class="field small">
+            <span>Referencia recibida</span>
+            <input id="query-pn" type="text" placeholder="opcional">
+          </label>
+          <label class="field small">
+            <span>Fabricante</span>
+            <input id="query-mfr" type="text" placeholder="opcional">
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btn-analyze" class="primary">Analizar petición</button>
+          <label class="check"><input type="checkbox" id="opt-rejected"> Mostrar descartados y por qué</label>
+          <label class="check"><input type="checkbox" id="opt-strict"> Solo equivalencias 1:1</label>
+        </div>
+        <div id="query-warnings" class="warnings"></div>
+
+        <div id="understood" class="understood hidden">
+          <h2>2. Lo que he entendido</h2>
+          <p class="hint">Corrige cualquier valor y vuelve a buscar. Los campos obligatorios de la familia van marcados.</p>
+          <div id="understood-fields" class="fields"></div>
+          <div id="unparsed" class="unparsed"></div>
+          <div class="actions">
+            <button id="btn-search" class="primary">Buscar equivalencia</button>
+            <button id="btn-reset" class="ghost">Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel results-panel">
+        <div class="results-header">
+          <h2>3. Resultados</h2>
+          <div id="counts" class="counts"></div>
+        </div>
+        <div id="results" class="results">
+          <p class="empty">Introduce una petición para empezar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------------- LOTE -->
+  <section id="view-lote" class="view">
+    <div class="panel">
+      <h2>Procesar una lista de peticiones</h2>
+      <p class="hint">Una petición por línea. Ideal para una RFQ o una lista de un cliente.</p>
+      <textarea id="batch-text" rows="10" placeholder="atenuador 3 dB SMA DC-18GHz 2W&#10;carga 50 ohm N hembra DC-4GHz 25W&#10;divisor 4 vías 698-2700 MHz N hembra 200W"></textarea>
+      <div class="actions">
+        <button id="btn-batch" class="primary">Procesar lote</button>
+        <button id="btn-batch-csv" class="ghost">Descargar CSV</button>
+      </div>
+      <div id="batch-results" class="batch-results"></div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- CATALOGO -->
+  <section id="view-catalogo" class="view">
+    <div class="panel">
+      <h2>Estado del catálogo</h2>
+      <div id="catalog-stats" class="stats"></div>
+      <h2>Cobertura de datos por familia</h2>
+      <p class="hint">Si un campo obligatorio tiene poca cobertura, esa familia no podrá resolverse 1:1.</p>
+      <label class="field">
+        <span>Familia</span>
+        <select id="coverage-family"></select>
+      </label>
+      <div id="coverage" class="coverage"></div>
+      <h2>Sincronizar</h2>
+      <p class="hint">Ruta al YAML de la fuente (por ejemplo <code>config/sources/ejemplo_csv.yaml</code>).</p>
+      <div class="row">
+        <input id="sync-source" type="text" value="config/sources/ejemplo_csv.yaml">
+        <button id="btn-sync" class="primary">Sincronizar</button>
+      </div>
+      <pre id="sync-output" class="sync-output"></pre>
+    </div>
+  </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

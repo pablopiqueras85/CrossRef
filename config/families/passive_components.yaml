@@ -1,0 +1,117 @@
+# Componentes pasivos discretos.
+- id: resistor
+  label: Resistencia
+  aliases: [resistencia, resistencias, resistor, resistors, chip resistor]
+  keywords: [resistencia, resistor, ohm, ohmios]
+  source_categories: [Resistencias, Resistors]
+  attributes:
+    - id: resistance
+      label: Valor
+      type: number
+      dimension: resistance
+      unit: ohm
+      required: true
+      weight: 3
+      aliases: [valor, value, resistencia, resistance, ohm, ohmios, r]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.01}
+    - use: tolerance
+      required: true
+    - id: power_rating
+      label: Potencia
+      type: number
+      dimension: power
+      unit: W
+      required: true
+      weight: 2
+      aliases: [potencia, power, power rating, potencia nominal, vatios, w]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - use: package
+      required: true
+    - use: voltage
+    - id: tcr
+      label: Coeficiente de temperatura
+      type: number
+      dimension: percent
+      unit: ppm
+      aliases: [tcr, coeficiente de temperatura, temperature coefficient, ppm]
+      rule: {kind: at_most, alt_ratio: 1.0}
+    - use: temperature_range
+    - use: rohs
+
+- id: capacitor
+  label: Condensador
+  aliases: [condensador, condensadores, capacitor, capacitors, capacidad, cap]
+  keywords: [condensador, capacitor, faradios, farad, uf, nf, pf]
+  source_categories: [Condensadores, Capacitors]
+  attributes:
+    - id: capacitance
+      label: Capacidad
+      type: number
+      dimension: capacitance
+      unit: F
+      required: true
+      weight: 3
+      aliases: [capacidad, capacitance, valor, value, c, uf, nf, pf]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: voltage
+      required: true
+    - use: tolerance
+      required: true
+    - use: package
+      required: true
+    - id: dielectric
+      label: Dielectrico
+      type: enum
+      required: true
+      weight: 2
+      aliases: [dielectrico, dielectric, material, tipo, temperature characteristic]
+      rule: {kind: enum_equal}
+      values:
+        c0g: [c0g, np0, cog]
+        x7r: [x7r]
+        x5r: [x5r]
+        y5v: [y5v]
+        electrolitico: [electrolitico, electrolytic, aluminio, aluminum]
+        tantalo: [tantalo, tantalum]
+        ceramico: [ceramico, ceramic, mlcc]
+        pelicula: [film, pelicula, poliester, polipropileno]
+    - use: temperature_range
+    - use: rohs
+
+- id: inductor
+  label: Bobina / inductancia
+  aliases: [bobina, bobinas, inductancia, inductancias, inductor, inductors, choke]
+  keywords: [bobina, inductor, inductancia, henrios, nh, uh]
+  source_categories: [Inductancias, Bobinas, Inductors]
+  attributes:
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: H
+      required: true
+      weight: 3
+      aliases: [inductancia, inductance, valor, value, l, nh, uh, mh]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: tolerance
+      required: true
+    - use: current
+      required: true
+    - use: package
+      required: true
+    - id: dcr
+      label: Resistencia DC
+      type: number
+      dimension: resistance
+      unit: ohm
+      aliases: [dcr, resistencia dc, dc resistance, rdc]
+      rule: {kind: at_most, alt_ratio: 1.2}
+    - id: srf
+      label: Frecuencia de autorresonancia
+      type: number
+      dimension: frequency
+      unit: MHz
+      aliases: [srf, autorresonancia, self resonant frequency, frecuencia de resonancia]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - use: temperature_range
+    - use: rohs
