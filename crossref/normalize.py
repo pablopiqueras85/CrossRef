@@ -135,7 +135,14 @@ def find_word(text: str, needle: str) -> int | None:
     if not text or not needle:
         return None
     izquierda = r"(?<![0-9a-z])" if needle[:1].isalnum() else ""
-    derecha = r"(?![0-9a-z])" if needle[-1:].isalnum() else ""
+    # El plural cuenta como la misma palabra: el catalogo titula sus series
+    # "Thick Film Resistors" y "Aluminum Electrolytic Capacitors", en plural,
+    # y el alias esta en singular. Sin esto, 1.500 fichas caian en la familia
+    # equivocada. "screwless" sigue sin encajar en "screw": 'less' no es
+    # plural.
+    derecha = r"(?:e?s)?(?![0-9a-z])" if needle[-1:].isalpha() else (
+        r"(?![0-9a-z])" if needle[-1:].isdigit() else ""
+    )
     match = re.search(izquierda + re.escape(needle) + derecha, text)
     return match.start() if match else None
 

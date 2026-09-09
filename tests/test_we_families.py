@@ -515,3 +515,33 @@ def test_la_unidad_decide_que_significa_L(catalog_registry, familia, valor, atri
     mapped, _ = map_fields(catalog_registry[familia], {"L": valor})
     assert atributo in mapped, f"'L'={valor} en {familia} no fue a {atributo}: {list(mapped)}"
     assert not mapped[atributo].is_empty()
+
+
+@pytest.mark.parametrize(
+    "serie, familia",
+    [
+        # El catálogo titula sus series en plural y los alias van en singular.
+        # Sin admitir el plural, 963 electrolíticos entraban como MLCC y las
+        # 568 resistencias de capa gruesa como resistencias de placa metálica,
+        # dejando esa familia entera vacía.
+        ("WCAP-ATLL Aluminum Electrolytic Capacitors", "aluminum_capacitor"),
+        ("WCAP-CSGP MLCCs 50 V(DC)", "mlcc"),
+        ("WRIS-RSKS Thick Film Resistors", "thick_film_resistor"),
+        ("WRIS-PSMB Metal Plate Resistors", "metal_plate_resistor"),
+        ("WCAP-PSLP Aluminum Polymer Capacitors", "aluminum_capacitor"),
+    ],
+)
+def test_el_plural_del_catalogo_encuentra_la_familia(catalog_registry, serie, familia):
+    detectadas = catalog_registry.detect(serie, top=1)
+    assert detectadas, f"'{serie}' no detecta ninguna familia"
+    assert detectadas[0][0] == familia, f"'{serie}' -> {detectadas}"
+
+
+def test_admitir_el_plural_no_reabre_los_falsos_positivos(catalog_registry):
+    """El plural no puede colar 'screw' dentro de 'screwless' ni 'led' en 'coupled'."""
+    from crossref.normalize import find_word
+
+    assert find_word("screwless push in", "screw") is None
+    assert find_word("coupled inductor", "led") is None
+    assert find_word("thick film resistors", "thick film resistor") == 0
+    assert find_word("condensadores ceramicos", "condensador") == 0
