@@ -7,6 +7,12 @@ setlocal
 cd /d "%~dp0.."
 title CrossRef - no cierres esta ventana
 
+REM Este script tiene que vivir dentro de la carpeta scripts\ del proyecto:
+REM se orienta por su propia ubicacion. Suelto en Descargas se pone a buscar
+REM el proyecto en la carpeta de usuario y falla con un error de pip que no
+REM dice nada de esto.
+if not exist "pyproject.toml" goto :fuera_de_sitio
+
 REM Que interprete usar, en orden:
 REM   1. el que digas en python.txt (una linea con la ruta completa)
 REM   2. el lanzador oficial de Windows, 'py'
@@ -73,6 +79,24 @@ echo   Para cerrar la herramienta: cierra esta ventana, o pulsa Ctrl+C.
 echo.
 ".venv\Scripts\crossref.exe" serve
 exit /b 0
+
+:fuera_de_sitio
+echo.
+echo   Este lanzador no esta en su sitio.
+echo.
+echo   Tiene que estar dentro de la carpeta scripts\ del proyecto, porque se
+echo   orienta por donde esta el. Ahora mismo esta buscando el proyecto aqui:
+echo.
+echo       %CD%
+echo.
+echo   y ahi no hay ningun pyproject.toml. Mueve este fichero a:
+echo.
+echo       ...\CrossRef\scripts\crossref.cmd
+echo.
+echo   y haz doble clic sobre el desde ahi.
+echo.
+pause
+exit /b 1
 
 :sin_python
 echo.
