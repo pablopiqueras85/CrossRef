@@ -9,9 +9,34 @@ instalarla y para actualizar el catálogo.
 
 ---
 
-## Paso 1 — Instalar Python
+## Paso 1 — Python
 
-Solo la primera vez. Necesitas **Python 3.10 o superior**.
+Necesitas **Python 3.10 o superior**. Antes de instalar nada, comprueba si ya
+está: mucho software de ingeniería lo trae de propina (Altium, KiCad, Anaconda,
+herramientas de Autodesk o National Instruments). Abre `cmd` (`Windows + R` →
+`cmd`) y prueba:
+
+```
+python --version
+py --version
+where python
+```
+
+Si alguna responde `3.10` o superior, **sáltate el resto de este paso**.
+
+Si Python está en la máquina pero no en el PATH (típico cuando viene dentro de
+otro programa), crea un fichero llamado `python.txt` en la carpeta del
+proyecto, con la ruta completa del ejecutable en una sola línea:
+
+```
+C:\Program Files\LoQueSea\python.exe
+```
+
+El lanzador lo usará en lugar de buscar en el PATH.
+
+### Si hay que instalarlo
+
+Solo la primera vez.
 
 1. Entra en <https://www.python.org/downloads/> y pulsa el botón amarillo
    *Download Python*.
@@ -200,7 +225,9 @@ interno, no en tu portátil.
 
 | Lo que ves | Qué pasa |
 | --- | --- |
-| `No se encuentra Python` | La casilla `Add python.exe to PATH` no quedó marcada. Reinstala Python marcándola. |
+| `No se encuentra Python` | No está en el PATH. Si sabes dónde está, apúntalo en `python.txt` (ver paso 1). Si no está instalado, la casilla `Add python.exe to PATH` no quedó marcada al instalarlo. |
+| `El Python que hay es demasiado antiguo` | Hace falta 3.10+. Busca otra instalación en la máquina y apúntala en `python.txt`. |
+| `Este Python no trae el modulo venv` | Es un Python recortado, de los que vienen dentro de otro programa. Busca otro y apúntalo en `python.txt`. |
 | `Falta el catalogo indexado` | `catalog.db` no está en `C:\CrossRef\data\`. Repasa el paso 3. |
 | `Ha fallado la instalacion de dependencias` | Sin salida a internet, o el proxy de la empresa bloquea `pypi.org`. Habla con IT. |
 | La ventana negra se abre y se cierra de golpe | Windows está bloqueando el script. Clic derecho → `Propiedades` → `Desbloquear`. |
