@@ -9,11 +9,9 @@
                       Conectores placa a placa]
   attributes:
     - use: pitch
-      required: true
     - use: positions
       required: true
     - use: rows
-      required: true
     - use: gender
     # En las tiras de pines la columna se llama "Type" y vale
     # Straight / Right Angled / Vertical: es la orientacion.
@@ -68,11 +66,9 @@
                 salida, angulo, angle, ausrichtung]
     - use: mounting
     - use: rated_current
-      required: true
       aliases: [corriente nominal, rated current, ir, i r, "ir culus", "ir vde",
                 "ir[culus]", "ir[vde]", corriente, current]
     - use: voltage
-      required: true
       aliases: [tension, tension nominal, voltage, working voltage,
                 "working voltage culus", vr, rated voltage]
     - id: wire_size
@@ -107,7 +103,6 @@
     - id: interface
       label: Interfaz
       type: enum
-      required: true
       weight: 3
       aliases: [interfaz, interface, tipo, type, conector, estandar, norma]
       rule: {kind: enum_equal}
@@ -124,9 +119,7 @@
         micro sd: [micro sd, microsd, tarjeta micro sd]
         sd: [sd, tarjeta sd, sd card]
     - use: gender
-      required: true
     - use: orientation
-      required: true
     - use: mounting
       required: true
     - use: rated_current

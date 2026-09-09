@@ -66,7 +66,6 @@
       type: number
       dimension: resistance
       unit: ohm
-      required: true
       weight: 3
       aliases: [impedancia, impedance, z, z 100 mhz, z at 100 mhz, z @ 100 mhz,
                 impedancia a 100 mhz, impedanz]
@@ -202,9 +201,9 @@
                 schirmdaempfung]
       rule: {kind: at_least, alt_abs_tol: 3.0}
     - id: footprint
+      required: true
       label: Dimensiones
       type: text
-      required: true
       weight: 3
       aliases: [dimensiones, dimensions, tamano, size, medidas, formato, l x w x h,
                 abmessungen]

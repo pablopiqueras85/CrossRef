@@ -77,11 +77,11 @@
                       WE-VD Disk Varistor, WE-TVSP Power TVS Diode, Varistores]
   attributes:
     - id: varistor_voltage
+      required: true
       label: Tension de varistor
       type: number
       dimension: voltage
       unit: V
-      required: true
       weight: 3
       aliases: [tension de varistor, varistor voltage, vv, v1ma, vbr, tension nominal,
                 varistorspannung]
@@ -431,7 +431,6 @@
       type: number
       dimension: current
       unit: A
-      required: true
       weight: 3
       aliases: [corriente de salida, output current, iout, iout1, corriente maxima, i out]
       rule: {kind: at_least, alt_ratio: 0.9}

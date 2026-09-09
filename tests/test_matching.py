@@ -42,12 +42,34 @@ def test_tolerancia_produce_alternativa_no_equivalencia(service):
     assert any("tolerancia" in r for r in mejor["reasons"])
 
 
-def test_datos_incompletos_no_confirman_equivalencia(service):
-    # Sin conector: es obligatorio en atenuadores, asi que no puede ser 1:1.
-    response = buscar(service, "atenuador 3 dB 50 ohm DC-18 GHz 2 W")
-    assert response["results"]
-    assert all(r["verdict"] != Verdict.EQUIVALENT.value for r in response["results"])
-    assert response["results"][0]["verdict"] == Verdict.REVIEW.value
+def test_lo_que_no_se_pregunta_se_saca_a_confirmar_pero_no_bloquea(service):
+    """La petición calla sobre el conector, que es obligatorio en atenuadores.
+
+    Exigir que el usuario nombre TODOS los campos obligatorios para poder
+    confirmar un 1:1 obligaba a escribir la ficha entera, y era la causa de
+    que casi nada saliera como equivalente. Lo que sí impide confirmar es no
+    poder comprobar un dato, no que nadie haya preguntado por él: el valor
+    que trae el catálogo se saca aparte, para verificarlo a ojo.
+    """
+    mejor = buscar(service, "atenuador 3 dB 50 ohm DC-18 GHz 2 W")["results"][0]
+    assert mejor["verdict"] == Verdict.EQUIVALENT.value
+    assert any("Confirma que te vale" in r for r in mejor["reasons"])
+
+
+def test_lo_que_se_pide_y_no_publica_el_catalogo_si_bloquea(service):
+    """El límite que no se mueve: no se afirma lo que no se puede ver."""
+    from crossref.models import CatalogItem, utcnow
+
+    service.store.upsert([CatalogItem(
+        id="prueba:sin-conector", reference="SIN-CONECTOR", family="attenuator",
+        description="Atenuador sin datos de conector",
+        specs={"Atenuacion": "3 dB", "Impedancia": "50 ohm"},
+        attributes={}, source="prueba", fetched_at=utcnow(),
+    )])
+    respuesta = buscar(service, "atenuador 3 dB 50 ohm SMA macho/SMA hembra")
+    fichas = {r["reference"]: r for r in respuesta["results"]}
+    if "SIN-CONECTOR" in fichas:
+        assert fichas["SIN-CONECTOR"]["verdict"] != Verdict.EQUIVALENT.value
 
 
 def test_el_catalogo_puede_superar_lo_pedido(service):

@@ -18,14 +18,12 @@
     - use: voltage
       required: true
     - use: tolerance
-      required: true
     - use: package
     - use: aec_q
     - use: series
     - id: dielectric
       label: Dielectrico
       type: enum
-      required: true
       weight: 3
       aliases: [dielectrico, dielectric, material, ceramic type, tipo ceramico,
                 temperature characteristic, caracteristica de temperatura, clase, class,
@@ -75,7 +73,6 @@
                 diametro, diameter, d x l, carcasa]
       rule: {kind: text_equal, alt_similarity: 0.9}
     - use: mounting
-      required: true
     - use: aec_q
     - use: series
     - use: temperature_range

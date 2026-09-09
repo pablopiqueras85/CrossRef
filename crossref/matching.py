@@ -57,14 +57,23 @@ def evaluate(family: FamilySpec, query: ComponentQuery, item: CatalogItem) -> Ma
     blocking = [c for c in comparisons if c.required and c.status is FieldStatus.MISMATCH]
     optional_mismatch = [c for c in comparisons if not c.required and c.status is FieldStatus.MISMATCH]
     close = [c for c in comparisons if c.status is FieldStatus.CLOSE]
-    # No se puede confirmar una equivalencia cuando falta un obligatorio, ni
-    # cuando la peticion pide expresamente algo que la ficha no publica: dar
-    # eso por bueno seria afirmar lo que no se sabe.
+    # Lo que impide confirmar una equivalencia es no PODER comprobar algo: el
+    # dato no esta en la ficha del catalogo, y hace falta (porque es
+    # obligatorio de la familia, o porque la peticion lo pide expresamente).
+    #
+    # Que la peticion calle sobre un obligatorio no es lo mismo. Antes tambien
+    # bloqueaba, y eso obligaba a escribir la ficha entera para obtener un 1:1:
+    # pedir "bornero paso 5,08 mm 2 contactos" nunca confirmaba nada porque no
+    # se habia dicho el tipo de conexion. Ahora esos campos se listan aparte,
+    # con el valor que publica el catalogo, para que se verifiquen a ojo.
     missing_required = [
         c
         for c in comparisons
-        if (c.required and c.status in (FieldStatus.MISSING_QUERY, FieldStatus.MISSING_CATALOG))
-        or (c.status is FieldStatus.MISSING_CATALOG and c.query_value is not None)
+        if c.status is FieldStatus.MISSING_CATALOG
+        and (c.required or c.query_value is not None)
+    ]
+    to_confirm = [
+        c for c in comparisons if c.required and c.status is FieldStatus.MISSING_QUERY
     ]
     matched = [c for c in comparisons if c.status is FieldStatus.MATCH]
 
@@ -83,7 +92,8 @@ def evaluate(family: FamilySpec, query: ComponentQuery, item: CatalogItem) -> Ma
         verdict = Verdict.REVIEW
 
     reasons = _build_reasons(
-        verdict, blocking, missing_required, close, optional_mismatch, matched, pn_explanation
+        verdict, blocking, missing_required, close, optional_mismatch, matched,
+        to_confirm, pn_explanation
     )
 
     return MatchResult(
@@ -110,6 +120,7 @@ def _build_reasons(
     close: list[FieldComparison],
     optional_mismatch: list[FieldComparison],
     matched: list[FieldComparison],
+    to_confirm: list[FieldComparison],
     pn_explanation: str | None,
 ) -> list[str]:
     reasons: list[str] = []
@@ -128,6 +139,12 @@ def _build_reasons(
         reasons.append(f"{c.label} aceptado por tolerancia: {c.reason}.")
     for c in optional_mismatch:
         reasons.append(f"{c.label} difiere (campo no obligatorio): {c.reason}.")
+    if to_confirm:
+        reasons.append(
+            "Confirma que te vale lo que trae la ficha: "
+            + ", ".join(f"{c.label} = {c.catalog_value}" for c in to_confirm)
+            + "."
+        )
     return reasons
 
 

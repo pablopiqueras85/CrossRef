@@ -15,7 +15,7 @@ from typing import Any, Iterable, Sequence
 
 import yaml
 
-from .normalize import SynonymTable, normalize_text, slug, tokens
+from .normalize import SynonymTable, find_word, normalize_text, slug, tokens
 
 __all__ = ["RuleSpec", "AttributeSpec", "FamilySpec", "Registry", "load_registry", "SchemaError"]
 
@@ -40,21 +40,6 @@ VALID_RULES = {
 
 class SchemaError(ValueError):
     pass
-
-
-def _find_word(text: str, needle: str) -> int | None:
-    """Posicion de `needle` en `text` exigiendo que sea palabra completa.
-
-    Sin este limite, el alias "led" se encontraba dentro de "Coupled" y los
-    195 inductores acoplados del catalogo acababan clasificados como diodos
-    emisores. La frontera se comprueba solo si el extremo del alias es
-    alfanumerico: asi "0805" o "m12" siguen siendo palabra, pero un alias que
-    empieza por simbolo ("+-3 db") no exige nada raro delante.
-    """
-    izquierda = r"(?<![0-9a-z])" if needle[:1].isalnum() else ""
-    derecha = r"(?![0-9a-z])" if needle[-1:].isalnum() else ""
-    match = re.search(izquierda + re.escape(needle) + derecha, text)
-    return match.start() if match else None
 
 
 @dataclass(frozen=True)
@@ -157,7 +142,7 @@ class FamilySpec:
                 continue
             if alias_norm == norm:
                 return 1.0
-            found = _find_word(norm, alias_norm)
+            found = find_word(norm, alias_norm)
             if found is not None:
                 position = found
                 # alias mas largo => senal mas especifica;

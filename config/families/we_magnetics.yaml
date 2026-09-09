@@ -101,7 +101,6 @@
       type: number
       dimension: resistance
       unit: ohm
-      required: true
       weight: 3
       aliases: [impedancia, impedance, z, impedancia a, impedance at, z typ,
                 impedancia tipica, impedanz]
@@ -116,6 +115,7 @@
                 frecuencia de referencia, at frequency, messfrequenz]
       rule: {kind: numeric_equal, rel_tol: 0.0}
     - id: inductance
+      required: true
       label: Inductancia
       type: number
       dimension: inductance
@@ -124,7 +124,6 @@
       aliases: [inductancia, inductance, l, l typ]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
     - use: rated_current
-      required: true
     - use: voltage
     - use: isolation_voltage
     - use: dcr

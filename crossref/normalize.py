@@ -123,6 +123,23 @@ def _key(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", strip_accents(str(value)).lower())
 
 
+def find_word(text: str, needle: str) -> int | None:
+    """Posicion de `needle` en `text` exigiendo que sea palabra completa.
+
+    Sin esta frontera, "screw" encaja dentro de "screwless" y un bornero sin
+    tornillo acaba clasificado como de tornillo, que es justo lo contrario.
+    La frontera solo se exige si el extremo del alias es alfanumerico: asi
+    "0805" o "m12" siguen siendo palabra y un alias que empieza por simbolo no
+    pide nada raro delante.
+    """
+    if not text or not needle:
+        return None
+    izquierda = r"(?<![0-9a-z])" if needle[:1].isalnum() else ""
+    derecha = r"(?![0-9a-z])" if needle[-1:].isalnum() else ""
+    match = re.search(izquierda + re.escape(needle) + derecha, text)
+    return match.start() if match else None
+
+
 def similarity(a: str, b: str) -> float:
     """Similitud 0..1 entre dos textos (Dice sobre trigramas + bonus por igualdad)."""
     na, nb = normalize_text(a), normalize_text(b)

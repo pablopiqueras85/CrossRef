@@ -10,7 +10,7 @@ import re
 from typing import Iterable
 
 from .models import AttributeValue, ComponentQuery
-from .normalize import normalize_pn, normalize_text, slug, tokens
+from .normalize import find_word, normalize_pn, normalize_text, slug, tokens
 from .schema import AttributeSpec, FamilySpec, Registry
 from .units import UnitError, looks_like_range, parse_interval, parse_quantity
 
@@ -98,7 +98,8 @@ def _resolve_enum(spec: AttributeSpec, raw: str) -> str | None:
     best: tuple[int, str] | None = None
     for canonical in spec.values.known():
         for candidate in _alias_variants(spec, canonical):
-            if candidate and candidate in haystack:
+            # Palabra completa: "screw" no puede encajar dentro de "screwless".
+            if candidate and find_word(haystack, candidate) is not None:
                 score = len(candidate)
                 if best is None or score > best[0]:
                     best = (score, canonical)
@@ -106,11 +107,16 @@ def _resolve_enum(spec: AttributeSpec, raw: str) -> str | None:
 
 
 def _alias_variants(spec: AttributeSpec, canonical: str) -> list[str]:
+    """Alias tal y como se escribieron, normalizados. El mas largo primero.
+
+    Antes se leian del indice interno, cuyas claves van sin separadores
+    ("pushin"), y por eso no encajaban nunca contra un texto con espacios
+    ("screwless push in"): solo acertaban los alias de una sola palabra.
+    """
     variants = {normalize_text(canonical)}
-    for alias, target in spec.values._index.items():  # noqa: SLF001 - tabla interna propia
-        if target == canonical:
-            variants.add(alias)
-    return sorted(variants, key=len, reverse=True)
+    for alias in spec.values.aliases_of(canonical):
+        variants.add(normalize_text(alias))
+    return sorted((v for v in variants if v), key=len, reverse=True)
 
 
 # --------------------------------------------------------------------------
