@@ -11,10 +11,21 @@ actualizar el catálogo.
 "Add python.exe to PATH"** en la primera pantalla del instalador. Sin esa
 casilla no funciona nada de lo demás.
 
-**2. Descargar el proyecto.** En GitHub, botón verde `Code` → `Download ZIP`, y
-lo descomprimes donde quieras tenerlo (por ejemplo `C:\CrossRef`). No lo dejes
-dentro de una carpeta sincronizada con OneDrive: la base de datos cambia
-constantemente y la sincronización se pelea con ella.
+**2. Descargar el proyecto.** **Ojo con esto**: el botón `Code` → `Download ZIP`
+de la portada del repositorio baja la rama por defecto, que solo tiene el
+README. Mientras el trabajo siga en una rama sin fusionar, usa este enlace
+directo:
+
+```
+https://github.com/pablopiqueras85/CrossRef/archive/refs/heads/claude/component-cross-reference-system-apv4yn.zip
+```
+
+Descomprímelo donde quieras tenerlo (por ejemplo `C:\CrossRef`). Comprueba que
+dentro hay carpetas `crossref`, `config` y `scripts`; si solo ves el README, te
+has bajado la rama equivocada.
+
+No lo dejes dentro de una carpeta sincronizada con OneDrive: la base de datos
+cambia constantemente y la sincronización se pelea con ella.
 
 **3. Construir el índice** (una vez, y luego cuando quieras refrescarlo).
 Doble clic en:
@@ -53,7 +64,7 @@ cd CrossRef
 ## Si alguien te pasa el índice ya hecho
 
 El índice es un único fichero, `data/catalog.db`. Copiarlo ahí dentro te ahorra
-las dos horas de descarga. Comprueba que ha entrado bien:
+las dos horas de descarga y te puedes saltar el paso 3. Comprueba que ha entrado bien:
 
 ```
 .venv\Scripts\crossref stats
