@@ -1,117 +1,221 @@
 # Instalar CrossRef en tu PC
 
+Paso a paso, sin dar nada por sabido. Al final tendrás un icono en el
+escritorio que abre la herramienta en el navegador.
+
 La herramienta corre entera en tu ordenador: el índice del catálogo es un
 fichero local y las búsquedas no salen a internet. Solo hace falta red para
-actualizar el catálogo.
+instalarla y para actualizar el catálogo.
 
-## Windows
+---
 
-**1. Instalar Python** (una vez). Descárgalo de
-[python.org/downloads](https://www.python.org/downloads/) y **marca la casilla
-"Add python.exe to PATH"** en la primera pantalla del instalador. Sin esa
-casilla no funciona nada de lo demás.
+## Paso 1 — Instalar Python
 
-**2. Descargar el proyecto.** **Ojo con esto**: el botón `Code` → `Download ZIP`
-de la portada del repositorio baja la rama por defecto, que solo tiene el
-README. Mientras el trabajo siga en una rama sin fusionar, usa este enlace
-directo:
+Solo la primera vez. Necesitas **Python 3.10 o superior**.
+
+1. Entra en <https://www.python.org/downloads/> y pulsa el botón amarillo
+   *Download Python*.
+2. Ejecuta el instalador que se descarga.
+3. **En la primera pantalla, marca la casilla `Add python.exe to PATH`**,
+   abajo del todo, antes de pulsar nada más. Es pequeña y es fácil pasarla por
+   alto; sin ella, el resto no funciona.
+4. Pulsa *Install Now* y espera.
+
+**Comprobar que ha ido bien:** pulsa `Windows + R`, escribe `cmd`, Enter, y en
+la ventana negra escribe:
+
+```
+python --version
+```
+
+Debe responder algo como `Python 3.13.1`. Si dice *"no se reconoce como un
+comando interno o externo"*, la casilla del PATH no quedó marcada: vuelve a
+pasar el instalador, elige `Modify` y márcala.
+
+---
+
+## Paso 2 — Descargar el proyecto
+
+**No uses el botón `Code` → `Download ZIP` de la portada del repositorio.** Ese
+baja la rama por defecto, que de momento solo tiene el README. Usa este enlace:
 
 ```
 https://github.com/pablopiqueras85/CrossRef/archive/refs/heads/claude/component-cross-reference-system-apv4yn.zip
 ```
 
-Descomprímelo donde quieras tenerlo (por ejemplo `C:\CrossRef`). Comprueba que
-dentro hay carpetas `crossref`, `config` y `scripts`; si solo ves el README, te
-has bajado la rama equivocada.
+Se descarga un fichero llamado
+`CrossRef-claude-component-cross-reference-system-apv4yn.zip`.
 
-No lo dejes dentro de una carpeta sincronizada con OneDrive: la base de datos
-cambia constantemente y la sincronización se pelea con ella.
+**Al descomprimirlo, dentro hay una carpeta con ese mismo nombre largo**, no una
+llamada `CrossRef`. Sácala del ZIP, **renómbrala a `CrossRef`** y déjala en la
+raíz del disco. El resultado debe ser:
 
-**3. Construir el índice** (una vez, y luego cuando quieras refrescarlo).
+```
+C:\CrossRef\
+    README.md
+    config\
+    crossref\
+    data\
+    docs\
+    examples\
+    pyproject.toml
+    scripts\
+    tests\
+    tools\
+```
+
+**Dos avisos:**
+
+- Si dentro solo ves `README.md`, te has bajado la rama equivocada. Vuelve al
+  enlace de arriba.
+- **No lo dejes dentro de OneDrive, Dropbox ni ninguna carpeta sincronizada.**
+  El índice es un fichero de 100 MB que cambia al usarlo, y la sincronización
+  se pelea con él. `C:\CrossRef` o `C:\Users\TU_USUARIO\CrossRef` van bien.
+
+**Si Windows bloquea los scripts:** al venir de un ZIP descargado, Windows
+puede marcarlos como "de origen externo". Si al hacer doble clic en el paso 4
+no pasa nada o sale un aviso de seguridad, haz clic derecho sobre el fichero →
+`Propiedades` → abajo del todo marca `Desbloquear` → `Aceptar`.
+
+---
+
+## Paso 3 — Poner el índice del catálogo
+
+El índice es un único fichero: `catalog.db`. Son 20.290 referencias de
+we-online.com ya descargadas y normalizadas.
+
+Si te han pasado el ZIP con el índice:
+
+1. Descomprímelo. Sale un fichero `catalog.db` de unos 100 MB.
+2. Cópialo dentro de la carpeta `data` del proyecto. Debe quedar exactamente
+   aquí:
+
+```
+C:\CrossRef\data\catalog.db
+```
+
+La carpeta `data` ya existe y tiene algún fichero dentro; no la borres, solo
+añade `catalog.db`.
+
+**Si no te lo han pasado**, doble clic en `scripts\actualizar-catalogo.cmd` y
+espera. Descarga el catálogo entero a media petición por segundo para no
+cargar el servidor, así que **la primera vez tarda un par de horas**. Déjalo
+por la noche. Al terminar te dice cuántas referencias ha indexado.
+
+---
+
+## Paso 4 — Arrancar
+
 Doble clic en:
 
 ```
-scripts\actualizar-catalogo.cmd
+C:\CrossRef\scripts\crossref.cmd
 ```
 
-Va a media petición por segundo para no cargar el servidor, así que la primera
-vez tarda **un par de horas**. Déjalo por la noche. Al terminar imprime cuántas
-referencias ha indexado y qué le ha chirriado.
+**Qué vas a ver:**
 
-**4. Abrir la herramienta.** Doble clic en:
+1. Se abre una ventana negra. **La primera vez** dice `Primera vez: preparando
+   el entorno` y se queda un par de minutos instalando. Es normal, no la
+   cierres.
+2. Después aparece `CrossRef arrancando en http://127.0.0.1:8000`.
+3. A los cinco segundos se abre el navegador solo con la herramienta.
 
-```
-scripts\crossref.cmd
-```
+**La ventana negra tiene que quedarse abierta mientras uses la herramienta**:
+es el servidor. Si la cierras, la página deja de responder.
 
-La primera vez prepara el entorno (un par de minutos). Después abre el
-navegador en `http://127.0.0.1:8000` y ya está. Para cerrarla, cierra la
-ventana negra.
+**Para cerrar:** cierra la ventana negra, o pulsa `Ctrl+C` dentro de ella.
 
-**Acceso directo en el escritorio:** botón derecho sobre `crossref.cmd` →
-`Enviar a` → `Escritorio (crear acceso directo)`. Si quieres que no aparezca la
-ventana negra, en las propiedades del acceso directo pon `Ejecutar: Minimizada`.
+**Arranques siguientes:** ya no instala nada, tarda unos segundos.
 
-## macOS y Linux
+---
 
-```bash
-git clone https://github.com/pablopiqueras85/CrossRef.git
-cd CrossRef
-./scripts/crossref.sh --sync     # construir el índice (un par de horas)
-./scripts/crossref.sh            # abrir la herramienta
-```
+## Paso 5 — El acceso directo en el escritorio
 
-## Si alguien te pasa el índice ya hecho
+1. Clic derecho sobre `C:\CrossRef\scripts\crossref.cmd`.
+2. `Mostrar más opciones` → `Enviar a` → `Escritorio (crear acceso directo)`.
+3. En el escritorio, renombra el acceso directo a `CrossRef`.
 
-El índice es un único fichero, `data/catalog.db`. Copiarlo ahí dentro te ahorra
-las dos horas de descarga y te puedes saltar el paso 3. Comprueba que ha entrado bien:
+Opcional, para que la ventana negra no moleste: clic derecho sobre el acceso
+directo → `Propiedades` → `Ejecutar: Minimizada`.
 
-```
-.venv\Scripts\crossref stats
-```
+---
 
-Debe decir unas 20.000 referencias activas. Si dice 0, el fichero no está donde
-toca.
+## Cómo se usa la interfaz
+
+La pantalla tiene tres columnas y el flujo son **dos clics**, no uno:
+
+**1. Petición del cliente.** Pega el texto tal y como te llega. Puedes forzar
+la familia si la detección falla, y rellenar la referencia y el fabricante que
+te han dado (por ahora son informativos).
+
+**2. Lo que he entendido.** Al pulsar `Analizar petición` aparece esta columna
+con cada valor en su campo. **Míralo siempre**: si algo cayó en el campo
+equivocado, se ve aquí, y los campos son editables. Corriges y sigues.
+
+**3. Resultados.** Al pulsar `Buscar equivalencia` sale la lista, cada
+referencia con su veredicto y una tabla campo a campo: qué pediste, qué
+publica el catálogo, si coincide y por qué. Cada resultado enlaza a su ficha
+en we-online.com.
+
+Las otras dos pestañas de arriba: **Lote / RFQ** procesa una lista entera de
+peticiones de golpe, y **Catálogo** enseña qué hay indexado y con cuánto
+detalle por familia.
+
+Cómo redactar la petición para que acierte: [como-preguntar.md](como-preguntar.md).
+
+---
 
 ## Usarla desde la línea de comandos
 
-La ventana negra que abre `crossref.cmd` sirve la interfaz web. Para lanzar
-consultas sueltas sin abrir el navegador, abre un `cmd` en la carpeta del
-proyecto:
+La ventana negra sirve la interfaz web. Para consultas sueltas sin navegador,
+abre otro `cmd`, ve a la carpeta y usa:
 
 ```
+cd C:\CrossRef
 .venv\Scripts\crossref find "bornero paso 5,08 mm 2 contactos base de placa"
+.venv\Scripts\crossref find "LED verde 0805" --rejected
 .venv\Scripts\crossref batch peticiones.csv --out resultados.csv
 .venv\Scripts\crossref stats
 ```
 
-Cómo redactar la consulta está en [como-preguntar.md](como-preguntar.md).
+---
 
 ## Compartirla con el equipo
 
-`crossref serve` escucha solo en tu máquina. Para que la abran otros desde su
-navegador, arráncala con:
+Por defecto solo escucha en tu máquina. Para que entren otros desde su
+navegador:
 
 ```
 .venv\Scripts\crossref serve --host 0.0.0.0
 ```
 
-y diles que entren a `http://TU-IP:8000`. Antes de hacerlo, dos avisos: no lleva
-ningún control de acceso, y en una red corporativa esto suele necesitar el visto
-bueno de IT. Para uso compartido de verdad, lo razonable es desplegarla en un
-servidor interno, no en tu portátil.
+y que abran `http://TU-IP:8000`. Antes, dos avisos: **no lleva ningún control
+de acceso**, y en una red corporativa esto suele necesitar el visto bueno de
+IT. Para uso compartido de verdad lo razonable es desplegarla en un servidor
+interno, no en tu portátil.
 
-## Problemas frecuentes
+---
 
-**"No se encuentra Python"** — no marcaste "Add python.exe to PATH". Vuelve a
-pasar el instalador y elige `Modify`, o reinstala marcando la casilla.
+## Si algo falla
 
-**El antivirus corporativo bloquea el script** — es un `.cmd` que arranca
-Python. Si no puedes desbloquearlo, abre un `cmd` en la carpeta y ejecuta a mano
-las tres líneas que hay dentro del fichero.
+| Lo que ves | Qué pasa |
+| --- | --- |
+| `No se encuentra Python` | La casilla `Add python.exe to PATH` no quedó marcada. Reinstala Python marcándola. |
+| `Falta el catalogo indexado` | `catalog.db` no está en `C:\CrossRef\data\`. Repasa el paso 3. |
+| `Ha fallado la instalacion de dependencias` | Sin salida a internet, o el proxy de la empresa bloquea `pypi.org`. Habla con IT. |
+| La ventana negra se abre y se cierra de golpe | Windows está bloqueando el script. Clic derecho → `Propiedades` → `Desbloquear`. |
+| El navegador dice "no se puede conectar" | Llegaste antes que el servidor. Espera cinco segundos y recarga. |
+| `crossref stats` dice 0 referencias | El fichero `catalog.db` no está donde toca o se copió a medias. |
+| El antivirus bloquea el `.cmd` | Es un script que arranca Python. Si no puedes desbloquearlo, abre un `cmd` en la carpeta y ejecuta a mano las líneas de dentro del fichero. |
+| La descarga del catálogo se corta a mitad | Vuelve a lanzarla: lo ya descargado queda en caché y no se vuelve a pedir. |
 
-**La descarga del catálogo falla a mitad** — se puede repetir sin perder nada:
-lo ya descargado queda en caché y no se vuelve a pedir.
+---
 
-**"No hay catalogo indexado todavia"** — falta el paso 3, o el fichero
-`data/catalog.db` no está donde debe.
+## Actualizar más adelante
+
+**El catálogo:** doble clic en `scripts\actualizar-catalogo.cmd`. Reaprovecha
+lo descargado, así que tarda mucho menos que la primera vez.
+
+**La herramienta:** bájate el ZIP otra vez y sustituye todo **menos la carpeta
+`data`**, que es donde vive tu índice. Luego arranca normal; si hay
+dependencias nuevas, las instala solo.
