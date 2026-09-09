@@ -484,3 +484,61 @@ def test_el_encapsulado_se_hereda_de_la_tabla_de_variantes():
         ("150060GS75000", "0603"),
         ("150080GS75000", "0805"),
     ]
+
+
+SERIE_CON_PASO_EN_EL_NOMBRE = """
+<html><body>
+  <h1>WR-TBL Series 2545 - 5.08 mm Horizontal Cable Entry Rising Cage</h1>
+  <table class="wecProductTable">
+    <tr><th data-column="Order Code">Order Code</th><th data-column="Poles">Poles</th></tr>
+    <tr><td data-column="Order Code">691254510002</td><td data-column="Poles">2</td></tr>
+  </table>
+</body></html>
+"""
+
+PASO = [
+    {"column": "Pitch", "from": "title", "pattern": r"(\d+[.,]\d+|\d+)\s*mm", "value": "{1} mm"},
+    {"column": "Pitch", "from": "url", "pattern": r"(?i)TBL_(\d+)_(\d+)_", "value": "{1}.{2} mm"},
+]
+
+
+def test_el_paso_se_saca_del_nombre_de_la_serie(source):
+    """No hay columna "Pitch": el paso vive en el título de la serie."""
+    items = list(source.parse_table(
+        SERIE_CON_PASO_EN_EL_NOMBRE,
+        "https://catalogo.example/en/components/products/TBL_5_08_2545_HORIZONTAL",
+        {"derived_specs": PASO},
+    ))
+    assert items[0].specs["Pitch"] == "5.08 mm"
+
+
+def test_si_el_nombre_no_lo_dice_se_saca_de_la_url(source):
+    sin_paso = SERIE_CON_PASO_EN_EL_NOMBRE.replace("- 5.08 mm Horizontal", "- Horizontal")
+    items = list(source.parse_table(
+        sin_paso,
+        "https://catalogo.example/en/components/products/TBL_5_08_2545_HORIZONTAL",
+        {"derived_specs": PASO},
+    ))
+    assert items[0].specs["Pitch"] == "5.08 mm"
+
+
+def test_una_columna_real_manda_sobre_el_dato_deducido(source):
+    con_columna = SERIE_CON_PASO_EN_EL_NOMBRE.replace(
+        '<th data-column="Poles">Poles</th>', '<th data-column="Pitch">Pitch</th>'
+    ).replace('<td data-column="Poles">2</td>', '<td data-column="Pitch">3.81 mm</td>')
+    items = list(source.parse_table(
+        con_columna,
+        "https://catalogo.example/en/components/products/TBL_5_08_2545_HORIZONTAL",
+        {"derived_specs": PASO},
+    ))
+    assert items[0].specs["Pitch"] == "3.81 mm"
+
+
+def test_una_plantilla_que_no_encaja_con_el_patron_avisa(source):
+    with pytest.raises(SourceError, match="derived_specs"):
+        list(source.parse_table(
+            SERIE_CON_PASO_EN_EL_NOMBRE,
+            "https://catalogo.example/x",
+            {"derived_specs": [{"column": "Pitch", "from": "title",
+                                "pattern": r"(\d+[.,]\d+)\s*mm", "value": "{1}.{2} mm"}]},
+        ))

@@ -34,10 +34,14 @@ VERDICT_ORDER = {
 }
 
 #: Peso de cada estado al calcular la puntuacion de ordenacion.
+#:
+#: MISSING_QUERY no aparece: que la ficha publique un dato por el que nadie ha
+#: preguntado no puede restar. Puntuandolo a 0,5 ganaba siempre la ficha mas
+#: pobre; un LED verde 0805 monocolor quedaba por debajo de un bicolor solo
+#: porque el bicolor publica cinco parametros menos.
 _STATUS_SCORE = {
     FieldStatus.MATCH: 1.0,
     FieldStatus.CLOSE: 0.6,
-    FieldStatus.MISSING_QUERY: 0.5,
     FieldStatus.MISSING_CATALOG: 0.25,
     FieldStatus.MISMATCH: 0.0,
 }
@@ -176,9 +180,15 @@ def _score(
     pn_exact: bool,
 ) -> float:
     """Puntuacion 0..1 solo para ordenar. El veredicto no depende de ella."""
-    total = weighted = 0.0
+    total = weighted = extra = 0.0
     for c in comparisons:
         if c.status is FieldStatus.NOT_APPLICABLE:
+            continue
+        if c.status is FieldStatus.MISSING_QUERY:
+            # Fuera de la nota: no se ha preguntado por este campo. Se guarda
+            # aparte para premiar, a igualdad de encaje, a la ficha que mas
+            # publica, que es la que se puede verificar.
+            extra += c.weight
             continue
         total += c.weight
         if c.specificity is not None:
@@ -187,13 +197,14 @@ def _score(
         else:
             weighted += c.weight * _STATUS_SCORE.get(c.status, 0.0)
     base = weighted / total if total else 0.0
+    detalle = extra / (extra + total) if extra + total else 0.0
 
     # Desempate por parecido textual de la descripcion.
     text_hint = similarity(
         " ".join(filter(None, [query.description or query.raw_text or "", query.manufacturer or ""])),
         " ".join(filter(None, [item.description or "", item.manufacturer or "", item.reference])),
     )
-    score = 0.9 * base + 0.1 * text_hint
+    score = 0.85 * base + 0.1 * text_hint + 0.05 * detalle
     if pn_exact:
         score = min(1.0, score + 0.25)
     return round(score, 4)

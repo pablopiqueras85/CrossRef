@@ -226,6 +226,7 @@ class WebTableCatalogSource:
         series_name = self._series_name(tree, url)
         category_path = [str(c) for c in category.get("category_path", []) if c]
         grupos = self._row_groups(tree)
+        derivados = self._derived_specs(category, url, series_name)
         extraidos = 0
 
         for row in table.css(self.row_selector):
@@ -267,6 +268,11 @@ class WebTableCatalogSource:
             for key, value in (category.get("constant_specs") or {}).items():
                 if str(value).strip():
                     specs.setdefault(str(key), str(value))
+            # Datos que solo estan en el nombre o la URL de la serie
+            # ("WR-TBL Series 2545 - 5.08 mm Horizontal"). Van los ultimos:
+            # cualquier columna real de la tabla manda sobre ellos.
+            for key, value in derivados.items():
+                specs.setdefault(key, value)
 
             yield RawProduct(
                 reference=reference,
@@ -286,6 +292,42 @@ class WebTableCatalogSource:
         declarados = self._declared_total(tree)
         if declarados is not None:
             self.coverage.append((url, declarados, extraidos))
+
+    def _derived_specs(
+        self, category: dict[str, Any], url: str, series_name: str | None
+    ) -> dict[str, str]:
+        """Datos que la tabla no publica pero el nombre o la URL de la serie si.
+
+        El paso de un bornero es el ejemplo claro: no hay columna "Pitch", pero
+        la serie se llama "WR-TBL Series 2545 - 5.08 mm Horizontal" y su URL es
+        TBL_5_08_2545. Sin esto, pedir un bornero de paso 5,08 no confirma
+        nada en 2.273 de las 2.297 fichas.
+        """
+        reglas = category.get("derived_specs") or []
+        salida: dict[str, str] = {}
+        for regla in reglas:
+            columna = str(regla.get("column") or "").strip()
+            if not columna or columna in salida:
+                continue
+            origen = str(regla.get("from", "title")).lower()
+            texto = (series_name or "") if origen == "title" else urldefrag(url)[0]
+            patron = regla.get("pattern")
+            if not (texto and patron):
+                continue
+            match = re.search(str(patron), texto)
+            if match is None:
+                continue
+            plantilla = str(regla.get("value", "{1}"))
+            try:
+                valor = plantilla.format("", *match.groups(), **match.groupdict())
+            except (IndexError, KeyError) as exc:
+                raise SourceError(
+                    f"derived_specs de '{columna}': la plantilla {plantilla!r} no "
+                    f"encaja con los grupos de {patron!r} ({exc})"
+                ) from exc
+            if valor.strip():
+                salida[columna] = valor.strip()
+        return salida
 
     def _row_groups(self, tree: HTMLParser) -> dict[str, str]:
         """Empareja el id de subcategoria de una fila con su etiqueta.

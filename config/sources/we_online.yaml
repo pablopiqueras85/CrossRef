@@ -37,7 +37,7 @@ series:
   # En las mismas rejillas hay kits de diseño, bolsas de filtros, manuales y
   # placas de evaluación. No son componentes que se puedan ofrecer como
   # equivalencia, así que se dejan fuera.
-  exclude_pattern: '(?i)/(DESIGN_?KIT|DEMOBOARD|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
+  exclude_pattern: '(?i)/(DESIGN_?KIT|DEMOBOARD|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_PLIER[^/]*|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
   url_pattern: '^/en/components/products/[A-Za-z0-9][A-Za-z0-9_\-]*$'
   title_selector: "h1"
 
@@ -149,52 +149,25 @@ categories:
     category_path: [Optoelectronic Components, Ultraviolet]
 
   # --- Conectores y electromecánica ---------------------------------------
-  # Los conectores tienen subcategorías de tercer y cuarto nivel que la rejilla
-  # de /em/connectors no enlaza directamente. Los bloques enchufables (la
-  # familia equivalente a las MSTB de Phoenix Contact) viven aquí, con una
-  # subcategoría por paso.
-  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl_pitch_2_50mm
+  # Los borneros cuelgan de subcategorías de tercer y cuarto nivel; el
+  # recorrido baja solo hasta ellas. Va antes que /em/connectors porque, a
+  # igualdad de referencia, manda la primera categoría que la encuentra.
+  - url: /en/components/products/em/connectors/terminal_blocks
     family: terminal_block
-    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
-                    Pluggable Connector CONTBL3, Pitch 2.50 mm]
-    # El paso es la propia subcategoría: no aparece como columna de la tabla.
-    constant_specs:
-      Pitch: 2.50 mm
-  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_3_50mm
-    family: terminal_block
-    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
-                    Pluggable Connector CONTBL3, Pitch 3.50 mm]
-    # El paso es la propia subcategoría: no aparece como columna de la tabla.
-    constant_specs:
-      Pitch: 3.50 mm
-  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_3_81mm
-    family: terminal_block
-    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
-                    Pluggable Connector CONTBL3, Pitch 3.81 mm]
-    # El paso es la propia subcategoría: no aparece como columna de la tabla.
-    constant_specs:
-      Pitch: 3.81 mm
-  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_5_00mm
-    family: terminal_block
-    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
-                    Pluggable Connector CONTBL3, Pitch 5.00 mm]
-    # El paso es la propia subcategoría: no aparece como columna de la tabla.
-    constant_specs:
-      Pitch: 5.00 mm
-  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_5_08mm
-    family: terminal_block
-    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
-                    Pluggable Connector CONTBL3, Pitch 5.08 mm]
-    # El paso es la propia subcategoría: no aparece como columna de la tabla.
-    constant_specs:
-      Pitch: 5.08 mm
-  - url: /en/components/products/em/connectors/terminal_blocks/pluggable_connector_contbl3/pluggable_connector_contbl3_pitch_7_62mm
-    family: terminal_block
-    category_path: [Electromechanic Components, Connectors, Terminal Blocks,
-                    Pluggable Connector CONTBL3, Pitch 7.62 mm]
-    # El paso es la propia subcategoría: no aparece como columna de la tabla.
-    constant_specs:
-      Pitch: 7.62 mm
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks]
+    # El paso no es una columna de la tabla: está en el nombre de la serie
+    # ("WR-TBL Series 2545 - 5.08 mm Horizontal Cable Entry") y, cuando ahí no
+    # aparece, en la URL (TBL_5_08_2545_...). Sin esto no se puede confirmar
+    # el paso en 2.273 de las 2.297 fichas de bornero.
+    derived_specs:
+      - column: Pitch
+        from: title
+        pattern: '(\d+[.,]\d+|\d+)\s*mm'
+        value: '{1} mm'
+      - column: Pitch
+        from: url
+        pattern: '(?i)TBL_(\d+)_(\d+)_'
+        value: '{1}.{2} mm'
 
   - url: /en/components/products/em/connectors
     category_path: [Electromechanic Components, Connectors]
