@@ -100,3 +100,27 @@ def test_el_parentesis_del_conector_no_se_pierde(registry):
 def test_familia_desconocida_cae_en_generic(registry):
     query = extract_from_text(registry, "un cacharro raro de 3 unidades")
     assert query.family in (None, "generic")
+
+
+def test_un_valor_de_lista_desconocido_no_se_compara():
+    """Guardarlo como si fuera válido provoca descartes falsos.
+
+    La columna "Application" de los borneros mezcla el tipo de conexión con la
+    forma del conector: "Screwless Push In" sí lo es, "PCB Header" no. Tomar el
+    segundo por un tipo de conexión hacía que pedir push-in descartara la ficha,
+    cuando lo honesto es no saberlo.
+    """
+    from crossref.extract import coerce_value
+    from crossref.schema import load_registry
+    from tests.conftest import CATALOG_FAMILIES_DIR
+
+    spec = load_registry(CATALOG_FAMILIES_DIR)["terminal_block"].attributes["connection_type"]
+
+    bueno = coerce_value(spec, "Screwless Push In")
+    assert bueno.text == "push-in"
+    assert not bueno.is_empty()
+
+    desconocido = coerce_value(spec, "PCB Header")
+    assert desconocido.is_empty()            # no comparable
+    assert desconocido.raw == "PCB Header"   # pero no se pierde
+    assert "fuera de la lista" in (desconocido.note or "")

@@ -73,7 +73,12 @@ def coerce_value(spec: AttributeSpec, raw: str, source_field: str | None = None)
         elif spec.type == "enum":
             resolved = _resolve_enum(spec, raw)
             if resolved is None:
-                value.text = normalize_text(raw)
+                # Se deja sin valor a proposito, conservando el texto en 'raw'.
+                # Un valor fuera de la lista no es comparable: la columna
+                # "Application" de los borneros mezcla el tipo de conexion con
+                # cosas como "PCB Header", y guardarlo como si fuera un tipo de
+                # conexion hacia que pedir push-in descartara la ficha, cuando
+                # lo cierto es que no se sabe.
                 value.note = f"valor fuera de la lista conocida de '{spec.label}'"
             else:
                 value.text = resolved
