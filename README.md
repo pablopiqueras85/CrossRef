@@ -376,6 +376,13 @@ poniendo la variable de entorno `CROSSREF_ADMIN_TOKEN`; entonces exigen la cabec
 | `requiere revisión` | Falta un dato obligatorio en la petición o en la ficha | Pedir el dato que falta |
 | `descartado` | Incumple un campo obligatorio | Se muestra el motivo, no se oculta |
 
+## En tu PC
+
+Para tenerla como herramienta de escritorio, sin tocar la línea de comandos:
+[`docs/instalacion-local.md`](docs/instalacion-local.md). En Windows son dos
+doble-clics — `scripts\actualizar-catalogo.cmd` para construir el índice y
+`scripts\crossref.cmd` para abrirla en el navegador.
+
 ## Cómo preguntar
 
 La herramienta compara parámetros, no nombres: una referencia de fabricante, por
