@@ -147,6 +147,16 @@
       aliases: [relacion de impedancias, impedance ratio, impedancia, impedance,
                 relacion, ratio, zin zout, unbalanced balanced]
       rule: {kind: text_equal}
+    # El catalogo publica "L" en nH para 137 baluns. Sin este atributo ese
+    # valor caia en la longitud y quedaba como no interpretable.
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: nH
+      weight: 2
+      aliases: [inductancia, inductance, l, ln, l typ]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
     - use: insertion_loss
     - id: amplitude_balance
       label: Balance de amplitud
@@ -164,7 +174,13 @@
       weight: 1
       aliases: [balance de fase, phase balance, desequilibrio de fase, desfase]
       rule: {kind: at_most, alt_abs_tol: 3.0}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (codigo propio de serie): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: series
     - use: temperature_range
     - use: rohs

@@ -20,6 +20,16 @@
                 induktivitaet]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
     - use: tolerance
+    # La misma columna trae "±10%" o "±0.5nH": la unidad del valor
+    # decide a cual de los dos atributos va.
+    - id: tolerance_abs
+      label: Tolerancia absoluta
+      type: number
+      dimension: inductance
+      unit: nH
+      weight: 1
+      aliases: [tolerancia, tolerance, tol, tol. c, tol. l, tolerancia absoluta]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
       rule: {kind: at_most, alt_ratio: 1.0}
     - use: rated_current
       required: true
@@ -75,6 +85,16 @@
       aliases: [inductancia, inductance, valor, value, l]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.02}
     - use: tolerance
+    # La misma columna trae "±10%" o "±0.5nH": la unidad del valor
+    # decide a cual de los dos atributos va.
+    - id: tolerance_abs
+      label: Tolerancia absoluta
+      type: number
+      dimension: inductance
+      unit: nH
+      weight: 1
+      aliases: [tolerancia, tolerance, tol, tol. c, tol. l, tolerancia absoluta]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
     - use: package
     - use: q_factor
     - use: srf
@@ -134,7 +154,13 @@
       weight: 3
       aliases: [lineas, lines, pins, numero de lineas, canales, channels, hilos, vias]
       rule: {kind: numeric_equal}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (Type L, Round Profile...): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: mounting
     - use: aec_q
     - use: series
@@ -261,7 +287,13 @@
       required: true
     - use: rated_current
     - use: dcr
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (EFD20, EP13, EE13/7/4...): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: temperature_range
     - use: rohs
 

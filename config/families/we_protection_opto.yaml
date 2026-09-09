@@ -61,7 +61,13 @@
       aliases: [lineas, lines, pins, canales, channels, numero de lineas, vias,
                 numero de canales]
       rule: {kind: numeric_equal}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (DO-214AB 1500W Bidirectional...): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: mounting
     - use: aec_q
     - use: series
@@ -112,7 +118,13 @@
       weight: 2
       aliases: [energia, energy, julios, joules, wmax, absorcion de energia]
       rule: {kind: at_least, alt_ratio: 0.9}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (disco, SMD y codigos propios): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: mounting
     - use: aec_q
     - use: series
@@ -247,7 +259,13 @@
       aliases: [tecnologia del chip, chip technology, material del chip,
                 ingan, alingap]
       rule: {kind: informative}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (3535, PLCC...): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: temperature_range
     - use: rohs
 
@@ -301,7 +319,13 @@
                 lastkapazitaet]
       rule: {kind: numeric_equal, rel_tol: 0.0}
     - use: esr
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (CFPX-180, HC49/4H...): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: voltage
     - use: temperature_range
     - use: rohs
@@ -442,6 +466,12 @@
       weight: 1
       aliases: [rendimiento, eficiencia, efficiency, wirkungsgrad]
       rule: {kind: at_least, alt_ratio: 0.95}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (codigo propio de serie): con lista cerrada solo salia
+    # "valor fuera de la lista".
     - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
     - use: temperature_range
     - use: rohs

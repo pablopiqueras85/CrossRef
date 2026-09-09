@@ -491,3 +491,27 @@ def test_extra_aliases_amplia_sin_pisar_el_comun(tmp_path):
     assert "type" in con.alias_keys()
     assert "orientacion" in con.alias_keys()      # no pisa a los compartidos
     assert "type" not in sin.alias_keys()         # ni contamina a la otra familia
+
+
+@pytest.mark.parametrize(
+    "familia, valor, atributo",
+    [
+        # "L" es la inductancia o la longitud, y el catálogo usa la misma letra
+        # para las dos EN LA MISMA TABLA: hay que mirar la unidad del valor.
+        ("power_inductor", "28.5 mm", "length"),
+        ("power_inductor", "70 nH", "inductance"),
+        ("common_mode_choke", "63 mm", "length"),
+        ("common_mode_choke", "22 µH", "inductance"),
+        ("transformer", "14 µH", "inductance"),
+        ("transformer", "20.45 mm", "length"),
+        ("balun", "22 nH", "inductance"),
+        ("balun", "12 mm", "length"),
+        ("ferrite_bead", "3.1 mm", "length"),
+    ],
+)
+def test_la_unidad_decide_que_significa_L(catalog_registry, familia, valor, atributo):
+    from crossref.extract import map_fields
+
+    mapped, _ = map_fields(catalog_registry[familia], {"L": valor})
+    assert atributo in mapped, f"'L'={valor} en {familia} no fue a {atributo}: {list(mapped)}"
+    assert not mapped[atributo].is_empty()

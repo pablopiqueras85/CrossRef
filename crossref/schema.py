@@ -124,11 +124,19 @@ class FamilySpec:
 
     def attribute_for(self, field_name: str) -> AttributeSpec | None:
         """Mapea un nombre de campo recibido ('Frecuencia máx') a un atributo."""
+        candidatos = self.attributes_for(field_name)
+        return candidatos[0] if candidatos else None
+
+    def attributes_for(self, field_name: str) -> list[AttributeSpec]:
+        """Todos los atributos que aceptan ese nombre de campo.
+
+        Casi siempre hay uno solo, pero los simbolos cortos se repiten: "L" es
+        la inductancia de una bobina y la longitud de su encapsulado, y el
+        catalogo usa la misma letra para las dos en la misma tabla. Quien
+        llama desempata mirando la unidad del valor.
+        """
         key = slug(field_name)
-        for attribute in self.attributes.values():
-            if key in attribute.alias_keys():
-                return attribute
-        return None
+        return [a for a in self.attributes.values() if key in a.alias_keys()]
 
     def match_score(self, text: str) -> float:
         """Cuanto encaja un texto libre con esta familia (0..1)."""

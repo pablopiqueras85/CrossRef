@@ -12,7 +12,7 @@ from typing import Iterable
 from .models import AttributeValue, ComponentQuery
 from .normalize import find_word, normalize_pn, normalize_text, slug, tokens
 from .schema import AttributeSpec, FamilySpec, Registry
-from .units import UnitError, looks_like_range, parse_interval, parse_quantity
+from .units import UnitError, dimension_of_unit, looks_like_range, parse_interval, parse_quantity
 
 __all__ = ["coerce_value", "map_fields", "extract_from_text", "build_query"]
 
@@ -145,7 +145,7 @@ def map_fields(
         if raw is None or not str(raw).strip():
             continue
         bound = _range_bound(name)
-        spec = family.attribute_for(name) or (family.attributes.get(slug(name).replace(" ", "_")))
+        spec = _elige_atributo(family, name, str(raw))
         if spec is None:
             unmapped[name] = str(raw)
             continue
@@ -167,6 +167,42 @@ def map_fields(
 
 _MIN_RE = re.compile(r"\b(min|minimo|minima|inferior|desde|low|from|start)\b")
 _MAX_RE = re.compile(r"\b(max|maximo|maxima|superior|hasta|high|to|end)\b")
+
+
+def _elige_atributo(family: FamilySpec, name: str, raw: str) -> AttributeSpec | None:
+    """Que atributo corresponde a una columna, desempatando por la unidad.
+
+    El catalogo llama "L" tanto a la inductancia como a la longitud, y lo hace
+    dentro de la misma tabla: en las bobinas de potencia unas filas traen
+    "28.5 mm" y otras "70 nH". Elegir por familia no vale; hay que mirar lo que
+    pone el valor. Sin esto, 1.100 longitudes se guardaban como inductancias.
+    """
+    candidatos = family.attributes_for(name)
+    if not candidatos:
+        directo = family.attributes.get(slug(name).replace(" ", "_"))
+        return directo
+    if len(candidatos) > 1:
+        dimension = _dimension_declarada(raw)
+        if dimension:
+            for spec in candidatos:
+                if spec.dimension == dimension:
+                    return spec
+    return candidatos[0]
+
+
+def _dimension_declarada(raw: str) -> str | None:
+    """Dimension de la unidad escrita en el valor, si la trae."""
+    match = _UNIDAD_RE.search(str(raw))
+    if not match:
+        return None
+    try:
+        return dimension_of_unit(match.group(1))
+    except (UnitError, ValueError):
+        return None
+
+
+#: la unidad va detras del numero: "28.5 mm", "70 nH", "0.5 W"
+_UNIDAD_RE = re.compile(r"\d\s*([a-zA-Zµμ°ºΩω/%]+)\s*$")
 
 
 def _range_bound(field_name: str) -> str | None:

@@ -138,7 +138,9 @@ DIMENSIONS: dict[str, Dimension] = {
         prefixable=["h", "henry", "henrios"],
         rkm=True,
     ),
-    "decibel": _d("decibel", "dB", {"db": 1.0, "dbs": 1.0}),
+    # dBi y dBd son ganancia de antena referida a un radiador ideal o a un
+    # dipolo. Como magnitud comparable entre si valen igual que un dB.
+    "decibel": _d("decibel", "dB", {"db": 1.0, "dbs": 1.0, "dbi": 1.0, "dbd": 1.0}),
     "length": _d(
         "length",
         "m",
@@ -346,6 +348,15 @@ def _split_prefix(unit: str, dim: Dimension) -> float:
     lower = unit.lower()
     if lower in dim.units:
         return dim.units[lower]
+    # El catalogo escribe unidades compuestas con espacios y con distintos
+    # signos de multiplicacion: "ppm/ °C", "W/(m*K)", "W/(m·K)". Se comparan
+    # sin espacios y con un unico separador.
+    compacta = lower.replace(" ", "").replace("*", "·")
+    if compacta in dim.units:
+        return dim.units[compacta]
+    for conocida, factor in dim.units.items():
+        if conocida.replace(" ", "").replace("*", "·") == compacta:
+            return factor
 
     prefixes = dict(_PREFIXES)
     if dim.allow_length_prefixes:

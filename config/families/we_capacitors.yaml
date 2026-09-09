@@ -18,6 +18,16 @@
     - use: voltage
       required: true
     - use: tolerance
+    # La misma columna trae "±10%" o "±0.5pF": la unidad del valor
+    # decide a cual de los dos atributos va.
+    - id: tolerance_abs
+      label: Tolerancia absoluta
+      type: number
+      dimension: capacitance
+      unit: pF
+      weight: 1
+      aliases: [tolerancia, tolerance, tol, tol. c, tol. l, tolerancia absoluta]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
     - use: package
     - use: aec_q
     - use: series
@@ -39,6 +49,39 @@
         z5u: [z5u]
     - use: temperature_range
     - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: ripple_current
+      label: Corriente de rizado
+      type: number
+      dimension: current
+      unit: mA
+      weight: 2
+      aliases: [iripple, corriente de rizado, ripple current, i ripple]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+
 
 - id: aluminum_capacitor
   label: Condensador electrolitico de aluminio
@@ -77,6 +120,31 @@
     - use: series
     - use: temperature_range
     - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+
 
 - id: film_capacitor
   label: Condensador de pelicula
@@ -100,6 +168,16 @@
     - use: voltage
       required: true
     - use: tolerance
+    # La misma columna trae "±10%" o "±0.5pF": la unidad del valor
+    # decide a cual de los dos atributos va.
+    - id: tolerance_abs
+      label: Tolerancia absoluta
+      type: number
+      dimension: capacitance
+      unit: pF
+      weight: 1
+      aliases: [tolerancia, tolerance, tol, tol. c, tol. l, tolerancia absoluta]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
       required: true
     - id: safety_class
       label: Clase de seguridad
@@ -118,6 +196,39 @@
     - use: mounting
     - use: temperature_range
     - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: ripple_current
+      label: Corriente de rizado
+      type: number
+      dimension: current
+      unit: mA
+      weight: 2
+      aliases: [iripple, corriente de rizado, ripple current, i ripple]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+
 
 - id: supercapacitor
   label: Supercondensador
@@ -148,3 +259,36 @@
     - use: mounting
     - use: temperature_range
     - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: ripple_current
+      label: Corriente de rizado
+      type: number
+      dimension: current
+      unit: mA
+      weight: 2
+      aliases: [iripple, corriente de rizado, ripple current, i ripple]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+
