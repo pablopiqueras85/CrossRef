@@ -229,7 +229,7 @@ interno, no en tu portátil.
 | `El Python que hay es demasiado antiguo` | Hace falta 3.10+. Busca otra instalación en la máquina y apúntala en `python.txt`. |
 | `Este Python no trae el modulo venv` | Es un Python recortado, de los que vienen dentro de otro programa. Busca otro y apúntalo en `python.txt`. |
 | `Falta el catalogo indexado` | `catalog.db` no está en `C:\CrossRef\data\`. Repasa el paso 3. |
-| `Ha fallado la instalacion de dependencias` | Sin salida a internet, o el proxy de la empresa bloquea `pypi.org`. Habla con IT. |
+| `Ha fallado la instalacion de dependencias` | Sin salida a internet, o el proxy bloquea `pypi.org`. Ver *Instalar sin internet*, abajo. |
 | La ventana negra se abre y se cierra de golpe | Windows está bloqueando el script. Clic derecho → `Propiedades` → `Desbloquear`. |
 | El navegador dice "no se puede conectar" | Llegaste antes que el servidor. Espera cinco segundos y recarga. |
 | `crossref stats` dice 0 referencias | El fichero `catalog.db` no está donde toca o se copió a medias. |
@@ -237,6 +237,26 @@ interno, no en tu portátil.
 | La descarga del catálogo se corta a mitad | Vuelve a lanzarla: lo ya descargado queda en caché y no se vuelve a pedir. |
 
 ---
+
+## Instalar sin internet
+
+Si el proxy de la empresa bloquea `pypi.org` verás `Connection to pypi.org
+timed out` y la instalación no pasa de ahí. No hace falta internet: se puede
+instalar desde las librerías ya descargadas.
+
+1. Consigue el paquete de librerías **de tu versión exacta de Python** (los
+   ficheros son específicos de cada versión y de 32 o 64 bits). El lanzador
+   imprime la versión al arrancar: `Usando Python 3.14.7 C:\...`
+2. Descomprímelo dentro del proyecto, de forma que quede
+   `C:\CrossRef\wheelhouse\` con los ficheros `.whl` sueltos dentro.
+3. Borra la carpeta `.venv` si existe: puede haberse quedado a medias.
+4. Doble clic en `scripts\crossref.cmd` como siempre.
+
+El lanzador detecta la carpeta `wheelhouse` y se instala sin tocar la red.
+Dirá `Instalando desde wheelhouse, sin conexion`.
+
+Con esto la herramienta funciona entera. Lo único que seguirá necesitando
+internet es `actualizar-catalogo.cmd`, que descarga de we-online.com.
 
 ## Actualizar más adelante
 

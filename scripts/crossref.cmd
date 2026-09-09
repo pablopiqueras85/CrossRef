@@ -25,19 +25,36 @@ if not defined PY (
 )
 if not defined PY goto :sin_python
 
-if not exist ".venv\Scripts\python.exe" (
+REM Se mira crossref.exe y no python.exe: si la instalacion se corto a
+REM medias, el entorno existe pero esta vacio, y dandolo por bueno el arranque
+REM fallaba luego sin explicar por que.
+if not exist ".venv\Scripts\crossref.exe" (
     REM Se comprueba antes de crear nada: un Python viejo o sin el modulo venv
     REM falla mas adelante con un error que no dice nada.
     %PY% -c "import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)" 2>nul || goto :version_vieja
     %PY% -c "import venv" 2>nul || goto :sin_venv
 
     echo.
-    echo   Primera vez: preparando el entorno. Esto tarda un par de minutos.
+    echo   Primera vez: preparando el entorno.
     for /f "delims=" %%v in ('%PY% -c "import sys; print(sys.version.split()[0], sys.executable)"') do echo   Usando Python %%v
-    echo.
-    %PY% -m venv .venv || goto :error_venv
-    ".venv\Scripts\python.exe" -m pip install --upgrade pip --quiet
-    ".venv\Scripts\python.exe" -m pip install -e . --quiet || goto :error_deps
+
+    if not exist ".venv\Scripts\python.exe" (
+        %PY% -m venv .venv || goto :error_venv
+    )
+
+    REM Con una carpeta wheelhouse al lado, la instalacion no toca internet.
+    REM Es la salida cuando el proxy de la empresa bloquea pypi.org.
+    if exist "wheelhouse\*.whl" (
+        echo   Instalando desde wheelhouse, sin conexion.
+        echo.
+        ".venv\Scripts\python.exe" -m pip install --no-index --find-links wheelhouse -e . --quiet || goto :error_deps
+    ) else (
+        echo   Descargando dependencias. Esto tarda un par de minutos.
+        echo.
+        REM --retries 1: si no hay salida a pypi, que se sepa en 20 segundos y
+        REM no despues de cuatro reintentos de 15 segundos cada uno.
+        ".venv\Scripts\python.exe" -m pip install -e . --quiet --retries 1 --timeout 20 || goto :error_deps
+    )
     echo   Entorno listo.
     echo.
 )
@@ -108,9 +125,15 @@ exit /b 1
 :error_deps
 echo.
 echo   Ha fallado la instalacion de dependencias. El motivo esta arriba.
-echo   Lo mas habitual es no tener salida a internet, o que el proxy de la
-echo   empresa bloquee pypi.org. Si es el proxy, IT puede darte la variable
-echo   de entorno HTTPS_PROXY que toca.
+echo.
+echo   Si pone "Connection to pypi.org timed out", el proxy de la empresa
+echo   bloquea la descarga de librerias. Solucion sin internet:
+echo.
+echo     1. Consigue el paquete de librerias de tu version de Python.
+echo     2. Descomprimelo aqui, de forma que quede C:\CrossRef\wheelhouse\
+echo     3. Borra la carpeta .venv y vuelve a hacer doble clic aqui.
+echo.
+echo   El lanzador detecta esa carpeta y se instala sin tocar internet.
 echo.
 pause
 exit /b 1
