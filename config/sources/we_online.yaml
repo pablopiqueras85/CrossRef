@@ -149,16 +149,18 @@ categories:
     category_path: [Optoelectronic Components, Ultraviolet]
 
   # --- Conectores y electromecánica ---------------------------------------
-  # Los borneros cuelgan de subcategorías de tercer y cuarto nivel; el
-  # recorrido baja solo hasta ellas. Va antes que /em/connectors porque, a
-  # igualdad de referencia, manda la primera categoría que la encuentra.
+  - url: /en/components/products/em/connectors
+    category_path: [Electromechanic Components, Connectors]
+
+  # Los borneros vuelven a pasarse aquí, después de la categoría general, para
+  # poder deducirles el paso. Manda la última: ver la nota de ORDEN de arriba.
   - url: /en/components/products/em/connectors/terminal_blocks
     family: terminal_block
     category_path: [Electromechanic Components, Connectors, Terminal Blocks]
     # El paso no es una columna de la tabla: está en el nombre de la serie
     # ("WR-TBL Series 2545 - 5.08 mm Horizontal Cable Entry") y, cuando ahí no
-    # aparece, en la URL (TBL_5_08_2545_...). Sin esto no se puede confirmar
-    # el paso en 2.273 de las 2.297 fichas de bornero.
+    # aparece, en la URL (TBL_5_08_2545_...). Sin esto no se puede confirmar el
+    # paso en 2.272 de las 2.296 fichas de bornero.
     derived_specs:
       - column: Pitch
         from: title
@@ -168,9 +170,6 @@ categories:
         from: url
         pattern: '(?i)TBL_(\d+)_(\d+)_'
         value: '{1}.{2} mm'
-
-  - url: /en/components/products/em/connectors
-    category_path: [Electromechanic Components, Connectors]
 
   - url: /en/components/products/em/redcube_terminals
     category_path: [Electromechanic Components, REDCUBE Terminals]

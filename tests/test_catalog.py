@@ -168,3 +168,37 @@ def test_fuente_csv_desde_yaml(tmp_path):
     productos = list(source.fetch())
     assert productos[0].reference == "R-1"
     assert productos[0].specs == {"Impedancia": "50 Ohm"}
+
+
+def test_gana_la_ultima_categoria_declarada(registry, store):
+    """La misma referencia sale en varias categorías: manda la última.
+
+    De eso depende que la cualificación AEC-Q se aplique: las categorías de
+    automoción van al final justamente para pisar a la genérica. Y por lo mismo,
+    una categoría que aporta datos que la tabla no publica (el paso de un
+    bornero) tiene que declararse DESPUÉS de la genérica, no antes.
+    """
+    from crossref.ingest import ingest_source
+    from crossref.sources.base import RawProduct
+
+    class DosCategorias:
+        id = "prueba"
+
+        def fetch(self, limit=None):
+            yield RawProduct(
+                reference="691254510002",
+                family_hint="terminal_block",
+                specs={"Pins": "2"},
+                category_path=["Connectors"],
+            )
+            yield RawProduct(
+                reference="691254510002",
+                family_hint="terminal_block",
+                specs={"Pins": "2", "Pitch": "5.08 mm"},
+                category_path=["Connectors", "Terminal Blocks"],
+            )
+
+    ingest_source(registry, store, DosCategorias())
+    guardado = store.get("prueba:691254510002")
+    assert guardado.specs["Pitch"] == "5.08 mm"
+    assert guardado.category_path == ["Connectors", "Terminal Blocks"]
