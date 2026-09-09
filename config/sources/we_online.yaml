@@ -37,9 +37,20 @@ series:
   # En las mismas rejillas hay kits de diseño, bolsas de filtros, manuales y
   # placas de evaluación. No son componentes que se puedan ofrecer como
   # equivalencia, así que se dejan fuera.
-  exclude_pattern: '(?i)/(DESIGN_?KIT|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
+  exclude_pattern: '(?i)/(DESIGN_?KIT|DEMOBOARD|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
   url_pattern: '^/en/components/products/[A-Za-z0-9][A-Za-z0-9_\-]*$'
   title_selector: "h1"
+
+# Muchas categorías no enlazan sus series directamente: cuelgan de sí mismas
+# otras más concretas ("led/leds" -> "led/leds/color_led" -> ".../chip_led") y
+# las series solo aparecen en la hoja. Se baja por ellas, siempre dentro de la
+# rama de la categoría de partida.
+subcategories:
+  url_pattern: '^/en/components/products/[a-z0-9][a-z0-9_\-]*(?:/[a-z0-9][a-z0-9_\-]*)+$'
+  # Los kits de diseño y las placas de evaluación no son componentes que se
+  # puedan ofrecer como equivalencia: no merece la pena ni descargarlos.
+  exclude_pattern: '(?i)/(design_kits?[a-z0-9_\-]*|[a-z0-9_\-]*evaluation[a-z0-9_\-]*|[a-z0-9_\-]*_kits)$'
+  max_depth: 3
 
 table:
   selector: "table.wecProductTable"
@@ -54,6 +65,15 @@ table:
   # El estado trae detrás el texto del tooltip: se coge solo el estado.
   value_selectors:
     Status: ".wecLifecycle__status-wrapper > span"
+  # El tamaño no es una columna de la tabla de artículos: la página lo lista
+  # arriba, en la tabla de variantes de la serie, y cada fila de artículo
+  # lleva el id de la variante a la que pertenece. Se recupera de ahí, porque
+  # sin él un LED 0805 es indistinguible del mismo LED en 0603.
+  row_group:
+    key_attr: data-category-id
+    lookup_selector: "tr[data-category-id] td.sizeTitle"
+    column: Size
+
   # La página declara cuántos artículos tiene; se contrasta con las filas que
   # sirve de verdad para avisar si alguna vez deja de servirlas todas.
   total_selector: "div.parametricSearch"

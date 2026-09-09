@@ -40,9 +40,26 @@ def normalize_text(text: str) -> str:
     return out
 
 
+#: en las tablas de datos el simbolo ES el nombre del parametro: "λPeak" y
+#: "Φe" no son decoracion. Al quitar todo lo que no fuera a-z quedaban en
+#: 'peak' y 'e', y dos columnas distintas podian acabar con la misma clave.
+_GRIEGO = {
+    "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "Δ": "delta",
+    "ε": "epsilon", "ζ": "zeta", "η": "eta", "θ": "theta", "Θ": "theta",
+    "ι": "iota", "κ": "kappa", "λ": "lambda", "Λ": "lambda", "μ": "u", "µ": "u",
+    "ν": "nu", "ξ": "xi", "π": "pi", "Π": "pi", "ρ": "rho", "σ": "sigma",
+    "Σ": "sigma", "τ": "tau", "υ": "upsilon", "φ": "phi", "Φ": "phi",
+    "χ": "chi", "ψ": "psi", "Ψ": "psi", "ω": "omega", "Ω": "ohm",
+}
+
+
 def slug(text: str) -> str:
     """Clave estable para comparar nombres de campo: 'Frecuencia máx.' -> 'frecuencia max'."""
-    out = normalize_text(text)
+    out = str(text or "")
+    for simbolo, nombre in _GRIEGO.items():
+        if simbolo in out:
+            out = out.replace(simbolo, f" {nombre} ")
+    out = normalize_text(out)
     out = re.sub(r"[^a-z0-9]+", " ", out)
     return _WS_RE.sub(" ", out).strip()
 

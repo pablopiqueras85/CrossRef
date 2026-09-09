@@ -353,6 +353,17 @@ def test_el_atributo_propio_gana_el_alias_compartido(catalog_registry):
         ("thermal_interface", "κ", "thermal_conductivity"),
         ("ferrite_bead", "Z @ 100 MHz", "impedance_at_frequency"),
         ("ferrite_bead", "R_DC max", "dcr"),
+        # En optoelectronica el simbolo ES el nombre del parametro: sin
+        # transcribir la letra griega, "λPeak" y "Φe" quedaban en 'peak' y 'e'.
+        ("led", "Emitting Color", "color"),
+        ("led", "λPeak typ.", "wavelength"),
+        ("led", "λDom typ.", "dominant_wavelength"),
+        ("led", "IV typ.", "luminous_intensity"),
+        ("led", "VF typ.", "forward_voltage"),
+        ("led", "ΦV typ.", "luminous_flux"),
+        ("led", "Φe typ.", "radiant_power"),
+        ("led", "2θ50% typ.", "viewing_angle"),
+        ("led", "Size", "package"),
     ],
 )
 def test_la_notacion_del_catalogo_se_reconoce(catalog_registry, familia, columna, atributo):
@@ -438,3 +449,14 @@ def test_un_atributo_ya_resuelto_no_se_sobrescribe(catalog_registry):
         catalog_registry, "paso 5,08 mm y altura 11 mm", "terminal_block"
     )
     assert query.attributes["pitch"].number == pytest.approx(0.00508)
+
+
+def test_una_familia_no_se_detecta_dentro_de_otra_palabra(catalog_registry):
+    """'Coupled' contiene 'led': 195 inductores acoplados acabaron como diodos."""
+    for texto in ("WE-DD SMT Shielded Coupled Inductor",
+                  "WE-CFWI Coupled Flatwire Inductor",
+                  "WE-MTCI SMT Multi-Turn Ratio coupled Inductor"):
+        detectadas = dict(catalog_registry.detect(texto, top=5))
+        assert "led" not in detectadas, texto
+    # Y el LED de verdad se sigue reconociendo.
+    assert catalog_registry.detect("WL-SMCW SMT Mono-color Chip LED Waterclear")[0][0] == "led"

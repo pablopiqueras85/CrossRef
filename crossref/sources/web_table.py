@@ -56,6 +56,19 @@ class WebTableCatalogSource:
         self.series_title_selector = str(series.get("title_selector", "h1"))
         self.series_from_url = re.compile(str(series.get("name_from_url", r"([^/]+)$")))
 
+        # Una categoria puede colgar de si misma otras mas concretas
+        # ("led/leds" -> "led/leds/color_led" -> ".../chip_led") y las series
+        # solo se enlazan en la hoja. Sin bajar por ellas se pierde la rama
+        # entera: asi se quedaron fuera los LED de color y los borneros.
+        sub = config.get("subcategories") or {}
+        self.sub_enabled = bool(sub.get("enabled", True))
+        sub_pattern = sub.get("url_pattern")
+        self.sub_pattern = re.compile(str(sub_pattern)) if sub_pattern else None
+        sub_exclude = sub.get("exclude_pattern")
+        self.sub_exclude = re.compile(str(sub_exclude)) if sub_exclude else None
+        self.sub_max_depth = int(sub.get("max_depth", 3))
+        self.sub_link_selector = str(sub.get("link_selector", self.series_link_selector))
+
         table = config.get("table") or {}
         self.table_selector = str(table.get("selector", "table"))
         self.row_selector = str(table.get("row_selector", "tr"))
@@ -78,6 +91,16 @@ class WebTableCatalogSource:
         }
         self.only_active = bool(table.get("only_active", False))
         self.ignore_columns = {_clean_label(c) for c in table.get("ignore_columns", [])}
+        # Hay datos que la tabla de articulos no publica como columna porque
+        # los hereda de otra tabla de la misma pagina: el encapsulado vive en
+        # la lista de variantes de arriba, emparejado por el mismo id de
+        # subcategoria que llevan las filas. Sin esto, un LED 0805 no se puede
+        # distinguir de su gemelo en 0603.
+        group = table.get("row_group") or {}
+        self.group_key_attr = group.get("key_attr")
+        self.group_lookup_selector = group.get("lookup_selector")
+        self.group_column = _clean_label(group.get("column", "")) or None
+
         #: de donde sale el numero de articulos que la pagina dice tener, para
         #: poder contrastarlo con las filas que sirve de verdad
         self.total_selector = table.get("total_selector")
@@ -117,7 +140,13 @@ class WebTableCatalogSource:
         return [{"series_urls": self.config.get("series_urls", [])}]
 
     def _series_urls(self, category: dict[str, Any]) -> list[str]:
-        """URLs de las series: las indicadas a mano o las enlazadas en la categoria."""
+        """URLs de las series: las indicadas a mano o las enlazadas en la categoria.
+
+        La rejilla de una categoria mezcla dos cosas: enlaces a series
+        (".../WL-SMCW") y enlaces a categorias mas concretas
+        (".../led/leds/color_led"). Se recorren tambien las segundas, porque
+        hay ramas enteras cuyas series solo se enlazan ahi abajo.
+        """
         explicit = category.get("series_urls") or []
         if explicit:
             return [urljoin(self.base_url + "/", str(u)) for u in explicit]
@@ -125,23 +154,62 @@ class WebTableCatalogSource:
         category_url = category.get("url")
         if not category_url:
             raise SourceError(f"categoria sin 'url' ni 'series_urls': {category}")
-        html = self.fetcher.get(urljoin(self.base_url + "/", str(category_url)))
-        if html is None:
-            raise SourceError(f"no se ha podido descargar la categoria {category_url}")
 
-        tree = HTMLParser(html)
+        raiz = urljoin(self.base_url + "/", str(category_url))
+        pendientes: list[tuple[str, int]] = [(raiz, 0)]
+        visitadas: set[str] = set()
         found: list[str] = []
-        for node in tree.css(self.series_link_selector):
-            href = urldefrag(node.attributes.get("href", ""))[0]
-            if not href or not self.series_pattern.search(href):
+
+        while pendientes:
+            url, depth = pendientes.pop(0)
+            if url in visitadas:
                 continue
-            if self.series_exclude and self.series_exclude.search(href):
+            visitadas.add(url)
+
+            html = self.fetcher.get(url)
+            if html is None:
+                if url == raiz:
+                    raise SourceError(f"no se ha podido descargar la categoria {category_url}")
                 continue
-            if True:
-                absolute = urljoin(self.base_url + "/", href)
-                if absolute not in found:
-                    found.append(absolute)
+
+            tree = HTMLParser(html)
+            for node in tree.css(self.series_link_selector):
+                href = urldefrag(node.attributes.get("href", ""))[0]
+                if not href or (self.series_exclude and self.series_exclude.search(href)):
+                    continue
+                if self.series_pattern.search(href):
+                    absolute = urljoin(self.base_url + "/", href)
+                    if absolute not in found:
+                        found.append(absolute)
+
+            if depth < self.sub_max_depth:
+                for sub in self._subcategory_urls(tree, raiz):
+                    if sub not in visitadas:
+                        pendientes.append((sub, depth + 1))
+
         return found
+
+    def _subcategory_urls(self, tree: HTMLParser, raiz: str) -> list[str]:
+        """Enlaces de la pagina que llevan a una categoria por debajo de `raiz`.
+
+        Colgar de la raiz es la condicion importante: evita salirse de la rama
+        por el menu de navegacion, que enlaza el catalogo entero.
+        """
+        if not self.sub_enabled:
+            return []
+        salida: list[str] = []
+        for node in tree.css(self.sub_link_selector):
+            href = urldefrag(node.attributes.get("href", ""))[0]
+            if not href:
+                continue
+            if self.sub_pattern and not self.sub_pattern.search(href):
+                continue
+            if self.sub_exclude and self.sub_exclude.search(href):
+                continue
+            absolute = urljoin(self.base_url + "/", href)
+            if absolute.startswith(raiz.rstrip("/") + "/") and absolute not in salida:
+                salida.append(absolute)
+        return salida
 
     # --------------------------------------------------------------- parseo
 
@@ -157,6 +225,7 @@ class WebTableCatalogSource:
 
         series_name = self._series_name(tree, url)
         category_path = [str(c) for c in category.get("category_path", []) if c]
+        grupos = self._row_groups(tree)
         extraidos = 0
 
         for row in table.css(self.row_selector):
@@ -186,6 +255,10 @@ class WebTableCatalogSource:
                 status = (specs.get(self.status_column) or "").strip().lower()
                 if status and not any(a in status for a in self.active_values):
                     continue
+            if grupos and self.group_column:
+                etiqueta = grupos.get(row.attributes.get(self.group_key_attr) or "")
+                if etiqueta:
+                    specs.setdefault(self.group_column, etiqueta)
             if series_name:
                 specs.setdefault("Series", series_name)
             # Datos que la categoria da por sabidos y no publica como columna
@@ -213,6 +286,28 @@ class WebTableCatalogSource:
         declarados = self._declared_total(tree)
         if declarados is not None:
             self.coverage.append((url, declarados, extraidos))
+
+    def _row_groups(self, tree: HTMLParser) -> dict[str, str]:
+        """Empareja el id de subcategoria de una fila con su etiqueta.
+
+        La pagina lista arriba las variantes de la serie ("0603", "0805",
+        "1206") y cada fila de articulo lleva el id de la suya. Es la unica
+        forma de saber el encapsulado cuando no hay columna que lo diga.
+        """
+        if not (self.group_key_attr and self.group_lookup_selector and self.group_column):
+            return {}
+        salida: dict[str, str] = {}
+        for node in tree.css(self.group_lookup_selector):
+            fila = node.parent
+            while fila is not None and not fila.attributes.get(self.group_key_attr):
+                fila = fila.parent
+            if fila is None:
+                continue
+            clave = fila.attributes.get(self.group_key_attr) or ""
+            etiqueta = " ".join(node.text().split())
+            if clave and etiqueta and clave not in salida:
+                salida[clave] = etiqueta
+        return salida
 
     def _declared_total(self, tree: HTMLParser) -> int | None:
         """Cuantos articulos dice la pagina que tiene, si lo publica."""

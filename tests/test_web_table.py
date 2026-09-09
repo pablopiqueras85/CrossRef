@@ -337,3 +337,150 @@ def test_sin_total_declarado_no_se_avisa_de_nada():
     list(src.parse_table(SERIE_HTML, "https://catalogo.example/x", config()["categories"][0]))
     src.close()
     assert src.coverage == []
+
+
+# --------------------------------------------------------------------------
+# Subcategorías: hay ramas cuyas series solo se enlazan en la hoja
+# --------------------------------------------------------------------------
+
+SUBCATEGORIA_HTML = """
+<html><body>
+  <div class="wec-grid">
+    <div class="wec-grid__item"><a href="/en/components/products/led/leds/color_led">Color</a></div>
+    <div class="wec-grid__item"><a href="/en/components/products/WL-SMCW_2">WL-SMCW_2</a></div>
+    <div class="wec-grid__item"><a href="/en/components/products/emc/ferritas">otra rama</a></div>
+  </div>
+</body></html>
+"""
+
+HOJA_HTML = """
+<html><body>
+  <div class="wec-grid">
+    <div class="wec-grid__item"><a href="/en/components/products/WL-SMCW">WL-SMCW</a></div>
+  </div>
+</body></html>
+"""
+
+
+def _cliente(paginas: dict[str, str]):
+    import httpx
+
+    def responder(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=paginas.get(request.url.path, SERIE_HTML))
+
+    return httpx.Client(transport=httpx.MockTransport(responder))
+
+
+def _fuente_sub(paginas, **extra):
+    config_sub = {
+        **config(),
+        "request": {"respect_robots": False, "rate_limit_per_sec": 0},
+        "subcategories": {
+            "url_pattern": r"^/en/components/products/[a-z0-9][a-z0-9_\-]*(?:/[a-z0-9][a-z0-9_\-]*)+$",
+            **extra,
+        },
+        "categories": [{"url": "/en/components/products/led/leds", "family": "led"}],
+    }
+    return WebTableCatalogSource(config_sub, _cliente(paginas))
+
+
+def test_se_baja_a_las_subcategorias_para_encontrar_las_series():
+    """Toda la rama de LED de color colgaba de una subcategoría no visitada."""
+    src = _fuente_sub({
+        "/en/components/products/led/leds": SUBCATEGORIA_HTML,
+        "/en/components/products/led/leds/color_led": HOJA_HTML,
+    })
+    urls = src._series_urls({"url": "/en/components/products/led/leds"})  # noqa: SLF001
+    src.close()
+    assert [u.rsplit("/", 1)[-1] for u in urls] == ["WL-SMCW_2", "WL-SMCW"]
+
+
+def test_no_se_sale_de_la_rama_de_la_categoria():
+    """El menú de navegación enlaza el catálogo entero: seguirlo sería recorrerlo todo."""
+    visitadas = []
+    import httpx
+
+    def responder(request: httpx.Request) -> httpx.Response:
+        visitadas.append(request.url.path)
+        if request.url.path == "/en/components/products/led/leds":
+            return httpx.Response(200, text=SUBCATEGORIA_HTML)
+        return httpx.Response(200, text=HOJA_HTML)
+
+    src = WebTableCatalogSource(
+        {
+            **config(),
+            "request": {"respect_robots": False, "rate_limit_per_sec": 0},
+            "subcategories": {
+                "url_pattern": r"^/en/components/products/[a-z0-9][a-z0-9_\-]*(?:/[a-z0-9][a-z0-9_\-]*)+$"
+            },
+            "categories": [{"url": "/en/components/products/led/leds"}],
+        },
+        httpx.Client(transport=httpx.MockTransport(responder)),
+    )
+    src._series_urls({"url": "/en/components/products/led/leds"})  # noqa: SLF001
+    src.close()
+    assert "/en/components/products/emc/ferritas" not in visitadas
+
+
+def test_la_profundidad_maxima_corta_el_recorrido():
+    src = _fuente_sub(
+        {
+            "/en/components/products/led/leds": SUBCATEGORIA_HTML,
+            "/en/components/products/led/leds/color_led": HOJA_HTML,
+        },
+        max_depth=0,
+    )
+    urls = src._series_urls({"url": "/en/components/products/led/leds"})  # noqa: SLF001
+    src.close()
+    assert [u.rsplit("/", 1)[-1] for u in urls] == ["WL-SMCW_2"]
+
+
+# --------------------------------------------------------------------------
+# Datos que la fila hereda de la tabla de variantes de la serie
+# --------------------------------------------------------------------------
+
+SERIE_CON_TAMANOS = """
+<html><body>
+  <h1>WL-SMCW SMT Mono-color Chip LED Waterclear</h1>
+  <table class="productDetail__table productDetail__table--sizeTable">
+    <thead><tr><th class="sizeTitle">Size</th></tr></thead>
+    <tbody>
+      <tr data-category-id="10"><td class="sizeTitle"><div><span>0603</span></div></td></tr>
+      <tr data-category-id="11"><td class="sizeTitle"><div><span>0805</span></div></td></tr>
+    </tbody>
+  </table>
+  <table class="wecProductTable">
+    <tr><th data-column="Order Code">Order Code</th><th data-column="Emitting Color">Color</th></tr>
+    <tr data-category-id="10" data-order-code="150060GS75000">
+      <td data-column="Order Code">150060GS75000</td>
+      <td data-column="Emitting Color">Green</td>
+    </tr>
+    <tr data-category-id="11" data-order-code="150080GS75000">
+      <td data-column="Order Code">150080GS75000</td>
+      <td data-column="Emitting Color">Green</td>
+    </tr>
+  </table>
+</body></html>
+"""
+
+
+def test_el_encapsulado_se_hereda_de_la_tabla_de_variantes():
+    """El tamaño no es columna: sin heredarlo, un LED 0805 es indistinguible del 0603."""
+    src = WebTableCatalogSource({
+        **config(),
+        "table": {
+            **config()["table"],
+            "selector": "table.wecProductTable",
+            "row_group": {
+                "key_attr": "data-category-id",
+                "lookup_selector": "tr[data-category-id] td.sizeTitle",
+                "column": "Size",
+            },
+        },
+    })
+    items = list(src.parse_table(SERIE_CON_TAMANOS, "https://catalogo.example/x", {}))
+    src.close()
+    assert [(i.reference, i.specs["Size"]) for i in items] == [
+        ("150060GS75000", "0603"),
+        ("150080GS75000", "0805"),
+    ]

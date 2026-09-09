@@ -8,6 +8,7 @@ requiere tocar el codigo del motor.
 from __future__ import annotations
 
 import copy
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Sequence
@@ -39,6 +40,21 @@ VALID_RULES = {
 
 class SchemaError(ValueError):
     pass
+
+
+def _find_word(text: str, needle: str) -> int | None:
+    """Posicion de `needle` en `text` exigiendo que sea palabra completa.
+
+    Sin este limite, el alias "led" se encontraba dentro de "Coupled" y los
+    195 inductores acoplados del catalogo acababan clasificados como diodos
+    emisores. La frontera se comprueba solo si el extremo del alias es
+    alfanumerico: asi "0805" o "m12" siguen siendo palabra, pero un alias que
+    empieza por simbolo ("+-3 db") no exige nada raro delante.
+    """
+    izquierda = r"(?<![0-9a-z])" if needle[:1].isalnum() else ""
+    derecha = r"(?![0-9a-z])" if needle[-1:].isalnum() else ""
+    match = re.search(izquierda + re.escape(needle) + derecha, text)
+    return match.start() if match else None
 
 
 @dataclass(frozen=True)
@@ -141,8 +157,9 @@ class FamilySpec:
                 continue
             if alias_norm == norm:
                 return 1.0
-            position = norm.find(alias_norm)
-            if position >= 0:
+            found = _find_word(norm, alias_norm)
+            if found is not None:
+                position = found
                 # alias mas largo => senal mas especifica;
                 # aparecer al principio del texto suele indicar el nucleo del pedido
                 score = min(0.95, 0.55 + 0.05 * len(alias_norm.split()))

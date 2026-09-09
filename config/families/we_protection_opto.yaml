@@ -132,7 +132,7 @@
       type: enum
       required: true
       weight: 3
-      aliases: [color, colour, farbe, emision, tono]
+      aliases: [color, colour, farbe, emision, tono, emitting color, emission color]
       rule: {kind: enum_equal}
       values:
         rojo: [rojo, red, rot]
@@ -150,7 +150,11 @@
       dimension: length
       unit: nm
       weight: 2
-      aliases: [longitud de onda, wavelength, lambda, nm, wellenlaenge]
+      # El catalogo publica dos longitudes de onda: la de pico de emision
+      # (λPeak) y la dominante (λDom, la que percibe el ojo). Se compara la de
+      # pico, que es la que sale en casi todas las series.
+      aliases: [longitud de onda, wavelength, lambda, nm, wellenlaenge,
+                lambda peak typ, lambda peak, peak wavelength, lambda centroid max]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.03}
     - id: luminous_intensity
       label: Intensidad luminosa
@@ -159,7 +163,7 @@
       unit: mcd
       weight: 2
       aliases: [intensidad luminosa, luminous intensity, iv, brillo, brightness,
-                lichtstaerke, mcd]
+                lichtstaerke, mcd, iv typ]
       rule: {kind: at_least, alt_ratio: 0.85}
     - id: forward_voltage
       label: Tension directa
@@ -167,7 +171,8 @@
       dimension: voltage
       unit: V
       weight: 2
-      aliases: [tension directa, forward voltage, vf, caida de tension, flussspannung]
+      aliases: [tension directa, forward voltage, vf, caida de tension, flussspannung,
+                vf typ]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
     - id: forward_current
       label: Corriente directa
@@ -184,8 +189,65 @@
       unit: deg
       weight: 1
       aliases: [angulo de vision, viewing angle, apertura, abstrahlwinkel, angulo,
-                "2θ50% typ.", "2θ50%", 2 50 typ]
+                "2θ50% typ.", "2θ50%"]
       rule: {kind: at_least, alt_ratio: 0.9}
+    - id: dominant_wavelength
+      label: Longitud de onda dominante
+      type: number
+      dimension: length
+      unit: nm
+      weight: 1
+      aliases: [longitud de onda dominante, dominant wavelength, lambda dom typ,
+                lambda dom]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.03}
+    - id: luminous_flux
+      label: Flujo luminoso
+      type: number
+      dimension: luminous_flux
+      unit: lm
+      weight: 2
+      aliases: [flujo luminoso, luminous flux, lumenes, lm, phi v typ, phi v]
+      rule: {kind: at_least, alt_ratio: 0.85}
+    - id: radiant_power
+      label: Potencia radiante
+      type: number
+      dimension: power
+      unit: mW
+      weight: 2
+      aliases: [potencia radiante, radiant power, radiant flux, phi e typ,
+                phi e min, phi e max, phi e]
+      rule: {kind: at_least, alt_ratio: 0.85}
+    - id: radiant_intensity
+      label: Intensidad radiante
+      type: text
+      weight: 1
+      informative: true
+      aliases: [intensidad radiante, radiant intensity, ie typ, ie]
+      rule: {kind: informative}
+    - id: color_temperature
+      label: Temperatura de color
+      type: text
+      weight: 1
+      # Va en kelvin, pero 'K' tambien es el prefijo kilo: se guarda tal cual
+      # ("6000 K") en lugar de arriesgar una conversion equivocada.
+      aliases: [temperatura de color, color temperature, cct, cct typ, kelvin]
+      rule: {kind: text_equal}
+    - id: color_rendering_index
+      label: Indice de reproduccion cromatica (CRI)
+      type: number
+      dimension: ratio
+      weight: 1
+      aliases: [cri, cri typ, indice de reproduccion cromatica,
+                color rendering index, ra]
+      rule: {kind: at_least, alt_ratio: 0.95}
+    - id: chip_technology
+      label: Tecnologia del chip
+      type: text
+      weight: 1
+      informative: true
+      aliases: [tecnologia del chip, chip technology, material del chip,
+                ingan, alingap]
+      rule: {kind: informative}
     - use: package
     - use: temperature_range
     - use: rohs
