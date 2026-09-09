@@ -98,9 +98,8 @@ class IngestReport:
         if self.short_pages:
             faltan = sum(d - e for _, d, e in self.short_pages)
             lines.append(
-                f"  ! {len(self.short_pages)} paginas sirven menos filas de las que dicen "
-                f"tener ({faltan} articulos de diferencia). Comprueba si son variantes "
-                "de embalaje que la tabla agrupa o si faltan referencias:"
+                f"  ! {len(self.short_pages)} paginas con filas en la tabla que no se han "
+                f"leido ({faltan} filas). Es un fallo del conector, no del catalogo:"
             )
             for url, dec, ext in sorted(self.short_pages, key=lambda x: x[1] - x[2], reverse=True)[:5]:
                 lines.append(f"      {url.rsplit('/', 1)[-1]}: declara {dec}, sirve {ext}")

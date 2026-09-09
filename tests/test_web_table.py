@@ -301,42 +301,56 @@ def _config_con_total():
     return cfg
 
 
-def test_se_registra_lo_declarado_frente_a_lo_extraido():
+def test_se_registra_lo_que_hay_en_la_tabla_frente_a_lo_extraido():
     src = WebTableCatalogSource(_config_con_total())
     list(src.parse_table(SERIE_HTML, "https://catalogo.example/x", config()["categories"][0]))
     src.close()
     assert src.coverage == [("https://catalogo.example/x", 2, 2)]
 
 
-def test_una_pagina_que_sirve_menos_filas_de_las_que_dice_se_avisa(registry, store):
-    """Si la página declara 6 artículos y solo sirve 2, hay que enterarse."""
-    import httpx
+SERIE_CON_FILA_ILEGIBLE = """
+<html><body>
+  <h1>WE-CBF SMT EMI Suppression Ferrite Bead</h1>
+  <table class="wecProductTable">
+    <tr>
+      <th data-column="Order Code">Order Code</th>
+      <th data-column="Z @ 100 MHz">Z</th>
+    </tr>
+    <tr>
+      <td data-column="Order Code">742792510</td>
+      <td data-column="Z @ 100 MHz" data-unit="&#937;"><span data-sort-value="8">8</span></td>
+    </tr>
+    <tr>
+      <td data-column="Order Code"></td>
+      <td data-column="Z @ 100 MHz" data-unit="&#937;"><span data-sort-value="9">9</span></td>
+    </tr>
+  </table>
+</body></html>
+"""
 
-    from crossref.ingest import ingest_source
 
-    def responder(request: httpx.Request) -> httpx.Response:
-        cuerpo = CATEGORIA_HTML if request.url.path == "/cat" else SERIE_INCOMPLETA_HTML
-        return httpx.Response(200, text=cuerpo)
+def test_una_fila_de_la_tabla_que_no_se_lee_se_avisa():
+    """El aviso mide lo que el conector deja sin leer, no lo que la web dice.
 
-    cfg = _config_con_total()
-    cfg["request"] = {"respect_robots": False, "rate_limit_per_sec": 0}
-    cfg["categories"] = [{"url": "/cat", "family": "ferrite_bead"}]
-    src = WebTableCatalogSource(cfg, httpx.Client(transport=httpx.MockTransport(responder)))
-    report = ingest_source(registry, store, src)
+    El número que la página publica no es fiable: WE-TI_2 declaraba 328 en una
+    descarga y 1448 en la siguiente, sirviendo las mismas 140 filas que WE-TI,
+    que declara 140. Con aquel número salían 1.920 artículos "perdidos" que no
+    existen. Lo comprobable, y lo único accionable, es si quedan filas de la
+    tabla sin convertir en ficha.
+    """
+    src = WebTableCatalogSource(config())
+    items = list(src.parse_table(SERIE_CON_FILA_ILEGIBLE, "https://catalogo.example/x", {}))
     src.close()
-
-    assert len(report.short_pages) == 2          # las dos series del fixture
-    assert all(dec == 6 and ext == 2 for _, dec, ext in report.short_pages)
-    resumen = " ".join(report.summary_lines())
-    assert "menos filas de las que dicen" in resumen
-    assert "8 articulos de diferencia" in resumen
+    assert len(items) == 1                                   # la segunda no tiene referencia
+    assert src.coverage == [("https://catalogo.example/x", 2, 1)]
 
 
-def test_sin_total_declarado_no_se_avisa_de_nada():
-    src = WebTableCatalogSource(config())        # sin total_selector
+def test_una_tabla_leida_entera_no_genera_aviso():
+    src = WebTableCatalogSource(config())
     list(src.parse_table(SERIE_HTML, "https://catalogo.example/x", config()["categories"][0]))
     src.close()
-    assert src.coverage == []
+    url, en_marcado, extraidos = src.coverage[0]
+    assert en_marcado == extraidos == 2
 
 
 # --------------------------------------------------------------------------

@@ -289,9 +289,19 @@ class WebTableCatalogSource:
                 extra={"series_url": url},
             )
 
-        declarados = self._declared_total(tree)
-        if declarados is not None:
-            self.coverage.append((url, declarados, extraidos))
+        # Se compara contra las filas que hay en el marcado, no contra el
+        # numero que la pagina dice tener: ese no es fiable. La misma pagina
+        # WE-TI_2 declaraba 328 en una descarga y 1448 en la siguiente,
+        # sirviendo las mismas 140 filas que WE-TI, que si declara 140. Con
+        # aquel numero salian 1.920 "articulos que faltan" inexistentes.
+        #
+        # Lo que si se puede comprobar, y es lo unico accionable, es si el
+        # conector deja filas sin leer de la tabla que tiene delante.
+        en_el_marcado = len(
+            [row for row in table.css(self.row_selector) if row.css(self.cell_selector)]
+        )
+        if en_el_marcado:
+            self.coverage.append((url, en_el_marcado, extraidos))
 
     def _derived_specs(
         self, category: dict[str, Any], url: str, series_name: str | None
@@ -352,7 +362,11 @@ class WebTableCatalogSource:
         return salida
 
     def _declared_total(self, tree: HTMLParser) -> int | None:
-        """Cuantos articulos dice la pagina que tiene, si lo publica."""
+        """Cuantos articulos dice la pagina que tiene, si lo publica.
+
+        Ojo: no es fiable en todas las paginas (ver parse_table). Se conserva
+        porque el comando 'probe' lo muestra como dato informativo.
+        """
         if not self.total_selector or not self.total_attr:
             return None
         node = tree.css_first(self.total_selector)
