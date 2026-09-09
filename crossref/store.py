@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Iterable, Iterator
 
 from .models import AttributeValue, CatalogItem, utcnow
+from .grupos import grupo_de, raices
 from .normalize import normalize_pn, normalize_text
 
 __all__ = ["CatalogStore"]
@@ -165,12 +166,24 @@ class CatalogStore:
         ).fetchall()
         return [_from_row(row) for row in rows]
 
-    def iter_items(self, family: str | None = None, active_only: bool = True) -> Iterator[CatalogItem]:
+    def iter_items(
+        self,
+        family: str | None = None,
+        active_only: bool = True,
+        group: str | None = None,
+    ) -> Iterator[CatalogItem]:
         sql = "SELECT * FROM items WHERE 1=1"
         params: list[object] = []
         if family:
             sql += " AND family = ?"
             params.append(family)
+        if group:
+            # category_path se guarda como JSON: la raiz es el primer elemento,
+            # asi que basta con mirar el principio de la cadena.
+            roots = raices(group)
+            if roots:
+                sql += " AND (" + " OR ".join(["category_path LIKE ?"] * len(roots)) + ")"
+                params.extend(f'["{r}"%' for r in roots)
         if active_only:
             sql += " AND active = 1"
         with closing(self._conn.execute(sql, params)) as cursor:
@@ -182,17 +195,28 @@ class CatalogStore:
         family: str | None,
         text: str | None = None,
         limit: int = 5000,
+        group: str | None = None,
     ) -> list[CatalogItem]:
-        """Preselecciona fichas a evaluar: por familia y, si hace falta, por texto."""
+        """Preselecciona fichas a evaluar: por familia y, si hace falta, por texto.
+
+        `group` acota a un bloque del catalogo (pasivos, electromecanica...).
+        Se aplica siempre, tambien sobre lo que devuelve la busqueda por texto:
+        si se pide electromecanica, una ferrita no puede colarse.
+        """
+        def del_grupo(items: list[CatalogItem]) -> list[CatalogItem]:
+            if not group:
+                return items
+            return [i for i in items if grupo_de(i.category_path) == group]
+
         if family and family != "generic":
-            items = list(self.iter_items(family=family))
+            items = del_grupo(list(self.iter_items(family=family, group=group)))
             if items:
                 return items[:limit]
         if text:
-            hits = self.search_text(text, limit=limit)
+            hits = del_grupo(self.search_text(text, limit=limit))
             if hits:
                 return hits
-        return list(self.iter_items())[:limit]
+        return list(self.iter_items(group=group))[:limit]
 
     def search_text(self, text: str, limit: int = 100) -> list[CatalogItem]:
         """Busqueda libre por FTS; tolera consultas con sintaxis rara."""
@@ -232,9 +256,20 @@ class CatalogStore:
         last_sync = self._conn.execute(
             "SELECT source, started_at, ended_at, items, status, detail FROM sync_log ORDER BY id DESC LIMIT 5"
         ).fetchall()
+        by_group: dict[str, int] = {}
+        for row in self._conn.execute(
+            "SELECT category_path, COUNT(*) AS n FROM items WHERE active = 1 GROUP BY category_path"
+        ):
+            try:
+                camino = json.loads(row["category_path"] or "[]")
+            except (TypeError, ValueError):
+                camino = []
+            gid = grupo_de(camino) or "sin grupo"
+            by_group[gid] = by_group.get(gid, 0) + row["n"]
         return {
             "items": total,
             "by_family": by_family,
+            "by_group": by_group,
             "by_source": by_source,
             "recent_syncs": [dict(row) for row in last_sync],
         }

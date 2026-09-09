@@ -16,14 +16,13 @@
       required: true
       weight: 3
       aliases: [tension nominal, rated voltage, tension de red, mains voltage, vac,
-                tension de trabajo, nennspannung]
+                tension de trabajo, nennspannung, vr]
       rule: {kind: at_least, alt_ratio: 0.95}
     - use: leakage_current
     - id: stages
       label: Numero de etapas
       type: number
       dimension: ratio
-      required: true
       weight: 3
       aliases: [etapas, stages, numero de etapas, stage, etapa, stufen]
       rule: {kind: numeric_equal}
@@ -145,7 +144,6 @@
     - id: impedance_ratio
       label: Relacion de impedancias
       type: text
-      required: true
       weight: 3
       aliases: [relacion de impedancias, impedance ratio, impedancia, impedance,
                 relacion, ratio, zin zout, unbalanced balanced]
@@ -184,7 +182,6 @@
     - id: shielding_form
       label: Tipo
       type: enum
-      required: true
       weight: 3
       aliases: [tipo, type, formato, form, producto, categoria]
       rule: {kind: enum_equal}

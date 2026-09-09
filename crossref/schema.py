@@ -289,7 +289,14 @@ def _build_attribute(raw: dict[str, Any], common: dict[str, dict[str, Any]]) -> 
             raise SchemaError(f"atributo comun desconocido: {use}")
         data = copy.deepcopy(common[use])
         data.setdefault("id", use)
-    data.update({k: v for k, v in raw.items() if k != "use"})
+    # 'aliases' en un bloque 'use' sustituye a la lista compartida, que casi
+    # nunca es lo que se quiere: 'extra_aliases' la amplia solo para esa
+    # familia. Asi "Type" significa la orientacion en una tira de pines sin
+    # significarlo tambien en un balun, donde vale "Wide Band".
+    extra = [str(a) for a in raw.get("extra_aliases", [])]
+    data.update({k: v for k, v in raw.items() if k not in ("use", "extra_aliases")})
+    if extra:
+        data["aliases"] = [*data.get("aliases", []), *extra]
 
     attr_id = data.get("id")
     if not attr_id:

@@ -368,7 +368,7 @@ attributes:
     weight: 3
     aliases: [contactos, numero de contactos, posiciones, positions, pines, pins,
               numero de pines, vias, poles, polos, way, ways, no of pins, pin count,
-              polzahl]
+              polzahl, polarity, polaridad]
     rule: {kind: numeric_equal}
 
   rows:

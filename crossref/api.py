@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from .grupos import etiqueta, ids as grupo_ids
 from .schema import SchemaError
 from .service import DEFAULT_DB_PATH, DEFAULT_FAMILIES_DIR, CrossRefService
 
@@ -32,6 +33,9 @@ class CrossRefRequest(BaseModel):
     limit: int = Field(10, ge=1, le=100)
     include_rejected: bool = Field(False, description="Incluir descartados y su motivo")
     strict: bool = Field(False, description="Devolver solo equivalencias 1:1")
+    group: str | None = Field(
+        None, description="Acota a un bloque del catalogo: pasivos, electromecanica..."
+    )
 
 
 class BatchRequest(BaseModel):
@@ -91,6 +95,7 @@ def create_app(
             limit=request.limit,
             include_rejected=request.include_rejected,
             strict=request.strict,
+            group=request.group,
         )
 
     @app.post("/api/v1/parse", summary="Ver como se interpreta la peticion")
@@ -162,6 +167,16 @@ def create_app(
         )
 
     # -------------------------------------------------------------- esquema
+
+    @app.get("/api/v1/groups", summary="Bloques del catalogo")
+    def groups() -> dict[str, Any]:
+        por_grupo = service.store.stats().get("by_group", {})
+        return {
+            "groups": [
+                {"id": gid, "label": etiqueta(gid), "items": por_grupo.get(gid, 0)}
+                for gid in grupo_ids()
+            ]
+        }
 
     @app.get("/api/v1/families", summary="Familias configuradas")
     def families() -> dict[str, Any]:

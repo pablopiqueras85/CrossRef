@@ -99,7 +99,6 @@
     - id: coding
       label: Codificacion
       type: enum
-      required: true
       weight: 3
       aliases: [codificacion, coding, code, codigo, tipo de codificacion]
       rule: {kind: enum_equal}
@@ -138,12 +137,11 @@
       type: text
       required: true
       weight: 3
-      aliases: [rosca, thread, thread size, tamano de rosca, m, gewinde]
+      aliases: [rosca, thread, thread size, tamano de rosca, m, gewinde, ti]
       rule: {kind: text_equal}
     - id: mounting_style
       label: Tipo de montaje
       type: enum
-      required: true
       weight: 2
       aliases: [tipo de montaje, mounting style, montaje, mount, tecnica]
       rule: {kind: enum_equal}

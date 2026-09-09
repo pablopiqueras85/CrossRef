@@ -57,7 +57,6 @@
       label: Numero de lineas
       type: number
       dimension: ratio
-      required: true
       weight: 3
       aliases: [lineas, lines, pins, canales, channels, numero de lineas, vias,
                 numero de canales]
@@ -279,7 +278,6 @@
       type: number
       dimension: percent
       unit: ppm
-      required: true
       weight: 2
       aliases: [tolerancia, tolerance, tol f, tol. f, tolerancia de frecuencia,
                 frequency tolerance, precision, ppm, frequenztoleranz]
@@ -327,7 +325,6 @@
       aliases: [ganancia, gain, dbi, gpeak, g peak, peak gain, ganancia maxima]
       rule: {kind: at_least, alt_abs_tol: 0.5}
     - use: impedance
-      required: true
       assume: 50 ohm
     - use: vswr
     - id: antenna_type
@@ -384,7 +381,6 @@
       type: number
       dimension: length
       unit: mm
-      required: true
       weight: 3
       aliases: [espesor, thickness, grosor, altura, dicke, t]
       rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}

@@ -72,15 +72,21 @@ class CrossRefService:
         limit: int = 10,
         include_rejected: bool = False,
         strict: bool = False,
+        group: str | None = None,
     ) -> dict[str, Any]:
-        """Busca la equivalencia y devuelve el resultado ya explicado."""
+        """Busca la equivalencia y devuelve el resultado ya explicado.
+
+        `group` acota el catalogo a un bloque (pasivos, electromecanica...).
+        """
         query = self.parse(
             text=text, family=family, fields=fields,
             part_number=part_number, manufacturer=manufacturer,
         )
         family_spec = self.registry.get(query.family) or self.registry["generic"]
 
-        candidates = self.store.candidates(query.family, text=text or query.description)
+        candidates = self.store.candidates(
+            query.family, text=text or query.description, group=group
+        )
         results = rank(
             self.registry,
             query,

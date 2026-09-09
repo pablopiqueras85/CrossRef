@@ -70,7 +70,6 @@
     - id: case_size
       label: Formato (D x L)
       type: text
-      required: true
       weight: 3
       aliases: [formato, case size, dimensiones, dimensions, tamano, size, medidas,
                 diametro, diameter, d x l, carcasa]
@@ -146,7 +145,6 @@
     - id: case_size
       label: Formato
       type: text
-      required: true
       weight: 2
       aliases: [formato, case size, dimensiones, dimensions, tamano, size, medidas]
       rule: {kind: text_equal, alt_similarity: 0.9}

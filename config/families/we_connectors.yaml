@@ -15,8 +15,10 @@
     - use: rows
       required: true
     - use: gender
-      required: true
+    # En las tiras de pines la columna se llama "Type" y vale
+    # Straight / Right Angled / Vertical: es la orientacion.
     - use: orientation
+      extra_aliases: [type, tipo]
       required: true
     - use: mounting
       required: true
@@ -54,7 +56,7 @@
       required: true
       weight: 2
       aliases: [tipo de conexion, connection, conexion, connection type, sujecion,
-                anschluss]
+                anschluss, application, aplicacion]
       rule: {kind: enum_equal}
       values:
         tornillo: [tornillo, screw, screw clamp, atornillado]

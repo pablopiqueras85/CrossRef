@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .schema import SchemaError, load_registry
+from .grupos import ids as grupo_ids
 from .service import DEFAULT_DB_PATH, DEFAULT_FAMILIES_DIR, CrossRefService
 
 __all__ = ["main"]
@@ -55,6 +56,10 @@ def main(argv: list[str] | None = None) -> int:
     p_find.add_argument("--limit", type=int, default=5)
     p_find.add_argument("--rejected", action="store_true", help="mostrar tambien las descartadas")
     p_find.add_argument("--strict", action="store_true", help="solo equivalencias 1:1")
+    p_find.add_argument(
+        "--grupo", choices=grupo_ids(),
+        help="acotar a un bloque del catalogo (pasivos, electromecanica...)",
+    )
     p_find.add_argument("--json", action="store_true", help="salida JSON completa")
 
     p_batch = sub.add_parser("batch", help="procesar un fichero de peticiones")
@@ -126,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
 def _cmd_find(service: CrossRefService, args: argparse.Namespace, color: bool) -> int:
     response = service.crossref(
         text=args.text, family=args.family, limit=args.limit,
-        include_rejected=args.rejected, strict=args.strict,
+        include_rejected=args.rejected, strict=args.strict, group=args.grupo,
     )
     if args.json:
         print(json.dumps(response, ensure_ascii=False, indent=2))

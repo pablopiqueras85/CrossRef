@@ -202,3 +202,51 @@ def test_gana_la_ultima_categoria_declarada(registry, store):
     guardado = store.get("prueba:691254510002")
     assert guardado.specs["Pitch"] == "5.08 mm"
     assert guardado.category_path == ["Connectors", "Terminal Blocks"]
+
+
+# --------------------------------------------------------------------------
+# Bloques del catálogo: pasivos, electromecánica…
+# --------------------------------------------------------------------------
+
+def _ficha(ref, familia, raiz, **specs):
+    from crossref.models import CatalogItem, utcnow
+    return CatalogItem(
+        id=f"prueba:{ref}", reference=ref, family=familia,
+        description=f"{familia} {ref}", category_path=[raiz, "Sub"],
+        specs=specs, attributes={}, source="prueba", fetched_at=utcnow(),
+    )
+
+
+def test_el_bloque_acota_los_candidatos(store):
+    store.upsert([
+        _ficha("111", "ferrite_bead", "Passive Components"),
+        _ficha("222", "terminal_block", "Electromechanic Components"),
+        _ficha("333", "led", "Optoelectronic Components"),
+    ])
+    solo_em = [i.reference for i in store.candidates(None, group="electromecanica")]
+    assert solo_em == ["222"]
+    pasivos = [i.reference for i in store.candidates(None, group="pasivos")]
+    assert pasivos == ["111"]
+    assert len(store.candidates(None)) == 3      # sin bloque, todo
+
+
+def test_el_bloque_manda_sobre_la_familia(store):
+    """Pedir electromecánica y una familia pasiva no puede colar la pasiva."""
+    store.upsert([_ficha("111", "ferrite_bead", "Passive Components")])
+    assert store.candidates("ferrite_bead", group="electromecanica") == []
+    assert len(store.candidates("ferrite_bead", group="pasivos")) == 1
+
+
+def test_automocion_cuenta_como_pasivo(store):
+    """Son los mismos componentes con cualificación AEC-Q."""
+    store.upsert([_ficha("444", "power_inductor", "Automotive")])
+    assert len(store.candidates(None, group="pasivos")) == 1
+
+
+def test_las_estadisticas_reparten_por_bloque(store):
+    store.upsert([
+        _ficha("111", "ferrite_bead", "Passive Components"),
+        _ficha("222", "terminal_block", "Electromechanic Components"),
+    ])
+    por_grupo = store.stats()["by_group"]
+    assert por_grupo == {"pasivos": 1, "electromecanica": 1}

@@ -460,3 +460,34 @@ def test_una_familia_no_se_detecta_dentro_de_otra_palabra(catalog_registry):
         assert "led" not in detectadas, texto
     # Y el LED de verdad se sigue reconociendo.
     assert catalog_registry.detect("WL-SMCW SMT Mono-color Chip LED Waterclear")[0][0] == "led"
+
+
+def test_extra_aliases_amplia_sin_pisar_el_comun(tmp_path):
+    """Un alias propio de la familia no puede borrar los compartidos.
+
+    "Type" es la orientación en una tira de pines, pero en un balun vale
+    "Wide Band": el alias tiene que poder añadirse en una familia sin
+    aparecer en las demás.
+    """
+    import yaml
+    from crossref.schema import load_registry
+
+    (tmp_path / "_common.yaml").write_text(yaml.safe_dump({
+        "attributes": {"orientation": {
+            "id": "orientation", "label": "Orientacion", "type": "text",
+            "aliases": ["orientacion", "orientation"],
+        }}
+    }), encoding="utf-8")
+    (tmp_path / "f.yaml").write_text(yaml.safe_dump([
+        {"id": "con_extra", "label": "Con extra",
+         "attributes": [{"use": "orientation", "extra_aliases": ["type"]}]},
+        {"id": "sin_extra", "label": "Sin extra",
+         "attributes": [{"use": "orientation"}]},
+    ]), encoding="utf-8")
+
+    reg = load_registry(str(tmp_path))
+    con = reg["con_extra"].attributes["orientation"]
+    sin = reg["sin_extra"].attributes["orientation"]
+    assert "type" in con.alias_keys()
+    assert "orientacion" in con.alias_keys()      # no pisa a los compartidos
+    assert "type" not in sin.alias_keys()         # ni contamina a la otra familia

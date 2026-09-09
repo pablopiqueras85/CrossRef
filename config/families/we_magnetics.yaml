@@ -132,7 +132,6 @@
       label: Numero de lineas
       type: number
       dimension: ratio
-      required: true
       weight: 3
       aliases: [lineas, lines, pins, numero de lineas, canales, channels, hilos, vias]
       rule: {kind: numeric_equal}

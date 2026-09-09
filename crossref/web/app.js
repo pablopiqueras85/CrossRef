@@ -7,6 +7,8 @@ const state = {
   families: [],
   familyDetail: {},   // id -> detalle con atributos
   lastQuery: null,    // ultima respuesta de /parse
+  groups: [],         // bloques del catalogo
+  group: null,        // bloque activo; null = todo el catalogo
 };
 
 /* ----------------------------------------------------------------- utils */
@@ -58,10 +60,13 @@ $$(".tab").forEach((tab) => {
 
 async function init() {
   try {
-    const [{ families }, stats] = await Promise.all([
+    const [{ families }, stats, { groups }] = await Promise.all([
       api("/api/v1/families"),
       api("/api/v1/catalog/stats"),
+      api("/api/v1/groups"),
     ]);
+    state.groups = groups.filter((g) => g.items > 0);
+    renderGroupSwitch();
     state.families = families;
     const options = families
       .filter((f) => f.id !== "generic")
@@ -74,6 +79,34 @@ async function init() {
     $("#catalog-badge").textContent = "catálogo no disponible";
   }
 }
+
+/* El conmutador de bloque: acota la busqueda a pasivos, electromecanica, etc.
+   Se guarda la eleccion para que no haya que repetirla en cada consulta. */
+function renderGroupSwitch() {
+  const guardado = localStorage.getItem("crossref.group");
+  if (guardado && state.groups.some((g) => g.id === guardado)) state.group = guardado;
+
+  const opciones = [{ id: null, label: "Todo", items: null }, ...state.groups];
+  $("#group-switch").innerHTML = opciones
+    .map((g) => {
+      const activo = (g.id || null) === state.group ? " active" : "";
+      const cuenta = g.items === null ? "" : ` <em>${g.items}</em>`;
+      return `<button type="button" class="group-option${activo}" data-group="${g.id || ""}">` +
+             `${escapeHtml(g.label)}${cuenta}</button>`;
+    })
+    .join("");
+}
+
+$("#group-switch").addEventListener("click", (event) => {
+  const boton = event.target.closest(".group-option");
+  if (!boton) return;
+  state.group = boton.dataset.group || null;
+  try {
+    if (state.group) localStorage.setItem("crossref.group", state.group);
+    else localStorage.removeItem("crossref.group");
+  } catch (_) { /* navegador sin almacenamiento: da igual, es una comodidad */ }
+  renderGroupSwitch();
+});
 
 async function familyDetail(id) {
   if (!state.familyDetail[id]) {
@@ -186,6 +219,7 @@ async function search() {
         limit: 10,
         include_rejected: $("#opt-rejected").checked,
         strict: $("#opt-strict").checked,
+        group: state.group,
       }),
     });
     renderResults(response);
