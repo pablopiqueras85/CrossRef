@@ -37,7 +37,10 @@ series:
   # En las mismas rejillas hay kits de diseño, bolsas de filtros, manuales y
   # placas de evaluación. No son componentes que se puedan ofrecer como
   # equivalencia, así que se dejan fuera.
-  exclude_pattern: '(?i)/(DESIGN_?KIT|DEMOBOARD|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_PLIER[^/]*|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
+  # Herramientas de montaje y accesorios: crimpadoras, prensas, tapas,
+  # tornillos. No son componentes que se puedan ofrecer como equivalencia
+  # y ensucian cualquier busqueda de conectores.
+  exclude_pattern: '(?i)/([^/]*CRIMPING_TOOL[^/]*|[^/]*EXTRACTION_TOOL[^/]*|[^/]*IDC_PRESS[^/]*|[^/]*_TOOLS?([_/]|$)[^/]*|[^/]*LOCK_SCREWS[^/]*|[^/]*PLASTIC_CAPS[^/]*|[^/]*CONNECTOR_COVERS[^/]*|DESIGN_?KIT|DEMOBOARD|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_PLIER[^/]*|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
   url_pattern: '^/en/components/products/[A-Za-z0-9][A-Za-z0-9_\-]*$'
   title_selector: "h1"
 

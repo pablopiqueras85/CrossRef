@@ -158,3 +158,100 @@
       rule: {kind: at_most, alt_rel_tol: 0.2}
     - use: length
     - use: height_max
+
+# Conectores y latiguillos coaxiales de RF. Hasta ahora caian en la familia de
+# conectores FFC/FPC, con la que no comparten ni un solo parametro: 706 fichas
+# comparandose contra reglas que no les aplicaban.
+# (el id lleva 'coax' porque las familias de demostracion de examples/
+# ya usan 'rf_connector' para una version simplificada)
+- id: rf_coax_connector
+  label: Conector / latiguillo RF coaxial
+  aliases: [conector rf, rf connector, coaxial, conector coaxial, coaxial connector,
+            latiguillo, latiguillo coaxial,
+            sma, rp-sma, rpsma, mcx, mmcx, smb, smp, bnc, tnc, u.fl, ufl, umrf,
+            n type, tipo n, wr-sma, wr-umrf, wr-cxasy, wr-mcx, wr-mmcx, wr-bnc,
+            wr-tnc, wr-ntype, wr-smb, wr-smp, wr-rpsma, wr-adpt]
+  keywords: [coaxial, rf, sma, bnc, impedancia, latiguillo, antena, 50 ohm]
+  source_categories: [RF Connectors, Coaxial Connectors, Signal & Communications,
+                      Connectors]
+  attributes:
+    - id: connector_a
+      label: Conector 1 (entrada)
+      type: enum
+      required: true
+      weight: 3
+      aliases: [conector 1, connector 1, connector type 1, conector entrada, entrada,
+                conector a, interfaz 1]
+      rule: {kind: enum_equal}
+      values:
+        sma: [sma, sma macho, sma hembra]
+        rp-sma: [rp-sma, rpsma, reverse polarity sma]
+        mcx: [mcx]
+        mmcx: [mmcx]
+        smb: [smb]
+        smp: [smp]
+        bnc: [bnc]
+        tnc: [tnc, rp-tnc]
+        n: [n, n type, tipo n]
+        umrf: [umrf, u.fl, ufl, ipex, mhf]
+        fakra: [fakra]
+    - id: connector_b
+      label: Conector 2 (salida)
+      type: enum
+      weight: 3
+      aliases: [conector 2, connector 2, connector type 2, conector salida, salida,
+                conector b, interfaz 2]
+      rule: {kind: enum_equal}
+      values:
+        sma: [sma, sma macho, sma hembra]
+        rp-sma: [rp-sma, rpsma, reverse polarity sma]
+        mcx: [mcx]
+        mmcx: [mmcx]
+        smb: [smb]
+        smp: [smp]
+        bnc: [bnc]
+        tnc: [tnc, rp-tnc]
+        n: [n, n type, tipo n]
+        umrf: [umrf, u.fl, ufl, ipex, mhf]
+        fakra: [fakra]
+        pcb: [pcb, placa, soldar a placa, end launch]
+    - id: impedance
+      label: Impedancia
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 3
+      # Casi todo el RF es de 50 ohm; se da por supuesto si no se dice, pero
+      # queda marcado como asumido en el resultado.
+      assume: "50 ohm"
+      aliases: [impedancia, impedance, z, z0, ohmios]
+      rule: {kind: numeric_equal, rel_tol: 0.0}
+    - id: cable_type
+      label: Tipo de cable
+      type: text
+      weight: 2
+      aliases: [cable, tipo de cable, cable type, coaxial, rg]
+      rule: {kind: text_equal}
+    - id: cable_length
+      label: Longitud del cable
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [longitud del cable, nominal cable length, largo, cable length]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - id: body_style
+      label: Forma del cuerpo
+      type: text
+      weight: 2
+      aliases: [forma, body style, size, estilo, tipo de cuerpo]
+      rule: {kind: text_equal}
+    - id: protection_rating
+      label: Grado de proteccion
+      type: text
+      weight: 2
+      aliases: [proteccion, ip, grado de proteccion, ingress protection code,
+                ingress protection, protection]
+      rule: {kind: text_equal}
+    - use: mounting
+    - use: gender

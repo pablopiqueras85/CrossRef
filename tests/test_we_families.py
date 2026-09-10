@@ -545,3 +545,26 @@ def test_admitir_el_plural_no_reabre_los_falsos_positivos(catalog_registry):
     assert find_word("coupled inductor", "led") is None
     assert find_word("thick film resistors", "thick film resistor") == 0
     assert find_word("condensadores ceramicos", "condensador") == 0
+
+
+@pytest.mark.parametrize(
+    "serie, familia",
+    [
+        # La familia de conectores FFC/FPC era un cajón de sastre: 706 fichas de
+        # RF coaxial se comparaban contra reglas de paso y número de contactos,
+        # que no les aplican.
+        ("WR-UMRF SMA to UMRF", "rf_coax_connector"),
+        ("WR-CXASY SMA to SMA", "rf_coax_connector"),
+        ("WR-BNC PCB Connectors - THT", "rf_coax_connector"),
+        ("WR-MCX PCB THT/SMT", "rf_coax_connector"),
+        ("WR-NTYPE N Type PCB Connectors", "rf_coax_connector"),
+        # Y sin llevarse por delante lo que no es RF:
+        ("WR-FPC Zero Insertion Force Connectors - 0.50mm", "ffc_fpc_connector"),
+        ("WR-CIRCM12 Cable Assembly", "circular_connector"),
+        ("WR-FFC Flat Flexible Cable - 0.50 mm", "flat_cable"),
+    ],
+)
+def test_el_rf_coaxial_tiene_su_propia_familia(catalog_registry, serie, familia):
+    detectadas = catalog_registry.detect(serie, top=1)
+    assert detectadas, f"'{serie}' no detecta familia"
+    assert detectadas[0][0] == familia, f"'{serie}' -> {detectadas}"
