@@ -1,0 +1,477 @@
+# Proteccion de circuito, optoelectronica, control de frecuencia y RF.
+- id: esd_tvs
+  label: Diodo TVS / supresor ESD
+  aliases: [tvs, diodo tvs, tvs diode, supresor esd, esd suppressor, esd protection,
+            proteccion esd, transil, diodo de proteccion, we-tvs]
+  keywords: [tvs, esd, proteccion, clamping, supresor, transitorio]
+  source_categories: [ESD Protection, EMC Components, TVS Diodes, Circuit Protection,
+                      WE-TVS TVS Diode, WE-VE ESD Suppressor, Proteccion]
+  attributes:
+    - id: standoff_voltage
+      label: Tension de trabajo (VRWM)
+      type: number
+      dimension: voltage
+      unit: V
+      required: true
+      weight: 3
+      aliases: [vrwm, vdc, v dc, tension de trabajo, working voltage, standoff voltage,
+                vrm, reverse standoff voltage, tension inversa de trabajo]
+      rule: {kind: at_least, alt_ratio: 0.95}
+    - id: breakdown_voltage
+      label: Tension de ruptura (VBR)
+      type: number
+      dimension: voltage
+      unit: V
+      weight: 2
+      aliases: [vbr, tension de ruptura, breakdown voltage, tension de avalancha]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - id: clamping_voltage
+      label: Tension de clampado (VC)
+      type: number
+      dimension: voltage
+      unit: V
+      weight: 2
+      aliases: [vc, vclamp, vclamp max, vclamp max., clamping voltage,
+                tension de clampado, tension de recorte, clamping, klemmspannung]
+      rule: {kind: at_most, alt_rel_tol: 0.1}
+    - id: peak_pulse_current
+      label: Corriente de pico (IPP)
+      type: number
+      dimension: current
+      unit: A
+      weight: 2
+      aliases: [ipp, ipeak, i peak, corriente de pico, peak pulse current, ip,
+                corriente de impulso]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: junction_capacitance
+      label: Capacidad de union
+      type: number
+      dimension: capacitance
+      unit: pF
+      weight: 2
+      aliases: [capacidad, capacitance, cj, capacidad de union, junction capacitance,
+                capacidad parasita]
+      # Menos capacidad es mejor para lineas rapidas: es un maximo.
+      rule: {kind: at_most, alt_rel_tol: 0.2}
+    - id: lines
+      label: Numero de lineas
+      type: number
+      dimension: ratio
+      weight: 3
+      aliases: [lineas, lines, pins, canales, channels, numero de lineas, vias,
+                numero de canales]
+      rule: {kind: numeric_equal}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (DO-214AB 1500W Bidirectional...): con lista cerrada solo salia
+    # "valor fuera de la lista".
+    - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
+    - use: mounting
+    - use: aec_q
+    - use: series
+    - use: temperature_range
+    - use: rohs
+
+- id: varistor
+  label: Varistor
+  aliases: [varistor, varistores, mov, metal oxide varistor, varistor de oxido metalico,
+            we-vd, we-ve]
+  keywords: [varistor, mov, sobretension, surge, energia]
+  source_categories: [Surge Protection, EMC Components, Varistors, WE-VS SMT Varistor,
+                      WE-VD Disk Varistor, WE-TVSP Power TVS Diode, Varistores]
+  attributes:
+    - id: varistor_voltage
+      required: true
+      label: Tension de varistor
+      type: number
+      dimension: voltage
+      unit: V
+      weight: 3
+      aliases: [tension de varistor, varistor voltage, vv, v1ma, vbr, tension nominal,
+                varistorspannung]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - id: max_ac_voltage
+      label: Tension maxima AC
+      type: number
+      dimension: voltage
+      unit: V
+      weight: 2
+      aliases: [tension maxima ac, max ac voltage, vac, vrms, v rms, tension de red,
+                mains voltage]
+      rule: {kind: at_least, alt_ratio: 0.95}
+    - id: surge_current
+      label: Corriente de choque
+      type: number
+      dimension: current
+      unit: A
+      weight: 2
+      aliases: [corriente de choque, surge current, ipeak, i peak, corriente de descarga,
+                peak current, 8/20us]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: energy_rating
+      label: Energia admisible
+      type: number
+      dimension: energy
+      unit: J
+      weight: 2
+      aliases: [energia, energy, julios, joules, wmax, absorcion de energia]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (disco, SMD y codigos propios): con lista cerrada solo salia
+    # "valor fuera de la lista".
+    - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
+    - use: mounting
+    - use: aec_q
+    - use: series
+    - use: temperature_range
+    - use: rohs
+
+- id: led
+  label: LED
+  aliases: [led, leds, diodo led, light emitting diode, led smd, led smt, wl-smcw,
+            wl-smdc, wl-tmrw, led rgb]
+  keywords: [led, luminosa, intensidad, mcd, color, longitud de onda]
+  source_categories: [LEDs, Optoelectronic Components, Optoelectronica]
+  attributes:
+    - id: color
+      label: Color
+      type: enum
+      required: true
+      weight: 3
+      aliases: [color, colour, farbe, emision, tono, emitting color, emission color]
+      rule: {kind: enum_equal}
+      values:
+        rojo: [rojo, red, rot]
+        verde: [verde, green, gruen]
+        azul: [azul, blue, blau]
+        amarillo: [amarillo, yellow, gelb]
+        ambar: [ambar, amber, naranja, orange]
+        blanco: [blanco, white, weiss, blanco frio, blanco calido]
+        rgb: [rgb, multicolor, tricolor]
+        infrarrojo: [infrarrojo, infrared, ir]
+        ultravioleta: [ultravioleta, uv, ultraviolet]
+    - id: wavelength
+      label: Longitud de onda
+      type: number
+      dimension: length
+      unit: nm
+      weight: 2
+      # El catalogo publica dos longitudes de onda: la de pico de emision
+      # (λPeak) y la dominante (λDom, la que percibe el ojo). Se compara la de
+      # pico, que es la que sale en casi todas las series.
+      aliases: [longitud de onda, wavelength, lambda, nm, wellenlaenge,
+                lambda peak typ, lambda peak, peak wavelength, lambda centroid max]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.03}
+    - id: luminous_intensity
+      label: Intensidad luminosa
+      type: number
+      dimension: luminous_intensity
+      unit: mcd
+      weight: 2
+      aliases: [intensidad luminosa, luminous intensity, iv, brillo, brightness,
+                lichtstaerke, mcd, iv typ]
+      rule: {kind: at_least, alt_ratio: 0.85}
+    - id: forward_voltage
+      label: Tension directa
+      type: number
+      dimension: voltage
+      unit: V
+      weight: 2
+      aliases: [tension directa, forward voltage, vf, caida de tension, flussspannung,
+                vf typ]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - id: forward_current
+      label: Corriente directa
+      type: number
+      dimension: current
+      unit: mA
+      weight: 2
+      aliases: [corriente directa, forward current, if, corriente nominal, i f]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: viewing_angle
+      label: Angulo de vision
+      type: number
+      dimension: angle
+      unit: deg
+      weight: 1
+      aliases: [angulo de vision, viewing angle, apertura, abstrahlwinkel, angulo,
+                "2θ50% typ.", "2θ50%"]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: dominant_wavelength
+      label: Longitud de onda dominante
+      type: number
+      dimension: length
+      unit: nm
+      weight: 1
+      aliases: [longitud de onda dominante, dominant wavelength, lambda dom typ,
+                lambda dom]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.03}
+    - id: luminous_flux
+      label: Flujo luminoso
+      type: number
+      dimension: luminous_flux
+      unit: lm
+      weight: 2
+      aliases: [flujo luminoso, luminous flux, lumenes, lm, phi v typ, phi v]
+      rule: {kind: at_least, alt_ratio: 0.85}
+    - id: radiant_power
+      label: Potencia radiante
+      type: number
+      dimension: power
+      unit: mW
+      weight: 2
+      aliases: [potencia radiante, radiant power, radiant flux, phi e typ,
+                phi e min, phi e max, phi e]
+      rule: {kind: at_least, alt_ratio: 0.85}
+    - id: radiant_intensity
+      label: Intensidad radiante
+      type: text
+      weight: 1
+      informative: true
+      aliases: [intensidad radiante, radiant intensity, ie typ, ie]
+      rule: {kind: informative}
+    - id: color_temperature
+      label: Temperatura de color
+      type: text
+      weight: 1
+      # Va en kelvin, pero 'K' tambien es el prefijo kilo: se guarda tal cual
+      # ("6000 K") en lugar de arriesgar una conversion equivocada.
+      aliases: [temperatura de color, color temperature, cct, cct typ, kelvin]
+      rule: {kind: text_equal}
+    - id: color_rendering_index
+      label: Indice de reproduccion cromatica (CRI)
+      type: number
+      dimension: ratio
+      weight: 1
+      aliases: [cri, cri typ, indice de reproduccion cromatica,
+                color rendering index, ra]
+      rule: {kind: at_least, alt_ratio: 0.95}
+    - id: chip_technology
+      label: Tecnologia del chip
+      type: text
+      weight: 1
+      informative: true
+      aliases: [tecnologia del chip, chip technology, material del chip,
+                ingan, alingap]
+      rule: {kind: informative}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (3535, PLCC...): con lista cerrada solo salia
+    # "valor fuera de la lista".
+    - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
+    - use: temperature_range
+    - use: rohs
+
+- id: crystal_oscillator
+  label: Cristal / oscilador
+  aliases: [cristal, cristal de cuarzo, crystal, quartz crystal, oscilador, oscillator,
+            tcxo, xo, resonador, resonator, we-xtal]
+  keywords: [cristal, cuarzo, oscilador, mhz, ppm, carga]
+  source_categories: [Quartz Crystals & Oscillators, WE-XTAL Quartz Crystal,
+                      WE-XTAL Watch Crystals, WE-SPXO Simple Packaged Quartz Oscillator,
+                      Quartz Crystals, Oscillators, Frequency Control, Cristales]
+  attributes:
+    - id: frequency
+      label: Frecuencia
+      type: number
+      dimension: frequency
+      # El catalogo publica la frecuencia como numero desnudo en Hz
+      # (38400000 = 38,4 MHz). Con MHz por defecto, un cristal de reloj de
+      # 32,768 kHz se leia como 32,768 GHz.
+      unit: Hz
+      required: true
+      weight: 3
+      aliases: [frecuencia, frequency, f, f nominal, nominal frequency,
+                frecuencia nominal, frequenz]
+      rule: {kind: numeric_equal, rel_tol: 0.0}
+    - id: frequency_tolerance
+      label: Tolerancia de frecuencia
+      type: number
+      dimension: percent
+      unit: ppm
+      weight: 2
+      aliases: [tolerancia, tolerance, tol f, tol. f, tolerancia de frecuencia,
+                frequency tolerance, precision, ppm, frequenztoleranz]
+      rule: {kind: at_most, alt_ratio: 1.0}
+    - id: frequency_stability
+      label: Estabilidad
+      type: number
+      dimension: percent
+      unit: ppm
+      weight: 2
+      aliases: [estabilidad, stability, frequency stability, deriva, drift,
+                estabilidad termica]
+      rule: {kind: at_most, alt_ratio: 1.0}
+    - id: load_capacitance
+      label: Capacidad de carga
+      type: number
+      dimension: capacitance
+      unit: pF
+      weight: 3
+      aliases: [capacidad de carga, load capacitance, cl, cload, c load, carga,
+                lastkapazitaet]
+      rule: {kind: numeric_equal, rel_tol: 0.0}
+    - use: esr
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (CFPX-180, HC49/4H...): con lista cerrada solo salia
+    # "valor fuera de la lista".
+    - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
+    - use: voltage
+    - use: temperature_range
+    - use: rohs
+
+- id: antenna
+  label: Antena
+  aliases: [antena, antenna, antena embebida, embedded antenna, antena chip,
+            chip antenna, antena externa, we-mca]
+  keywords: [antena, antenna, ganancia, banda, wifi, lte, bluetooth, gnss]
+  source_categories: [WE-MCA Antennas, Signal & Communications, Antennas, Antenas,
+                      Wireless Connectivity]
+  attributes:
+    - use: frequency_range
+      required: true
+    - id: gain
+      label: Ganancia
+      type: number
+      dimension: decibel
+      unit: dB
+      weight: 2
+      aliases: [ganancia, gain, dbi, gpeak, g peak, peak gain, ganancia maxima]
+      rule: {kind: at_least, alt_abs_tol: 0.5}
+    - use: impedance
+      assume: 50 ohm
+    - use: vswr
+    - id: antenna_type
+      label: Tipo de antena
+      type: enum
+      weight: 2
+      aliases: [tipo, type, tipo de antena, antenna type, formato, tecnologia]
+      rule: {kind: enum_equal}
+      values:
+        chip: [chip, ceramica, ceramic, smd]
+        flexible: [flexible, fpc, flex, pcb flexible]
+        externa: [externa, external, dipolo, dipole, con cable]
+        pcb: [pcb, trace, impresa, integrada]
+    - id: polarization
+      label: Polarizacion
+      type: enum
+      weight: 1
+      aliases: [polarizacion, polarization, polarisation]
+      rule: {kind: enum_equal}
+      values:
+        lineal: [lineal, linear, vertical, horizontal]
+        circular: [circular, rhcp, lhcp]
+    - use: connector_a
+    - id: footprint
+      label: Dimensiones
+      type: text
+      weight: 2
+      aliases: [dimensiones, dimensions, tamano, size, medidas, footprint]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - use: temperature_range
+    - use: rohs
+
+- id: thermal_interface
+  label: Material de interfaz termica
+  aliases: [interfaz termica, thermal interface, tim, almohadilla termica, thermal pad,
+            gap filler, pasta termica, thermal grease, disipador, heat sink,
+            we-tgf, we-tps]
+  keywords: [termica, thermal, conductividad, disipacion, almohadilla, pad]
+  source_categories: [Thermal Management, Thermal Interface Materials, Gestion termica,
+                      Heat Sinks]
+  attributes:
+    - id: thermal_conductivity
+      label: Conductividad termica
+      type: number
+      dimension: thermal_conductivity
+      unit: W/mK
+      required: true
+      weight: 3
+      aliases: [conductividad, conductividad termica, thermal conductivity, k, "κ",
+                waermeleitfaehigkeit, w/mk]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: thickness
+      label: Espesor
+      type: number
+      dimension: length
+      unit: mm
+      weight: 3
+      aliases: [espesor, thickness, grosor, altura, dicke, t]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - id: footprint
+      label: Dimensiones
+      type: text
+      weight: 2
+      aliases: [dimensiones, dimensions, tamano, size, medidas, formato, hoja, sheet]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - id: hardness
+      label: Dureza
+      type: text
+      weight: 1
+      aliases: [dureza, hardness, shore, shore 00, durometro]
+      rule: {kind: text_equal}
+    - use: isolation_voltage
+    - use: temperature_range
+    - use: rohs
+
+- id: power_module
+  label: Modulo de alimentacion
+  aliases: [modulo de alimentacion, power module, convertidor dc-dc, dc-dc converter,
+            regulador, buck converter, modulo dc dc, magi3c, magic3]
+  keywords: [modulo, convertidor, dc-dc, buck, tension de salida, alimentacion]
+  source_categories: [Power Modules, Modulos de alimentacion, DC-DC Converters]
+  attributes:
+    - id: input_voltage_range
+      label: Tension de entrada
+      type: range
+      dimension: voltage
+      unit: V
+      required: true
+      weight: 3
+      aliases: [tension de entrada, input voltage, vin, entrada, rango de entrada,
+                eingangsspannung]
+      rule: {kind: range_covers, alt_margin: 0.05}
+    - id: output_voltage
+      label: Tension de salida
+      type: number
+      dimension: voltage
+      unit: V
+      required: true
+      weight: 3
+      aliases: [tension de salida, output voltage, vout, vout1, salida, ausgangsspannung]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.02}
+    - id: output_current
+      label: Corriente de salida
+      type: number
+      dimension: current
+      unit: A
+      weight: 3
+      aliases: [corriente de salida, output current, iout, iout1, corriente maxima, i out]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: efficiency
+      label: Rendimiento
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [rendimiento, eficiencia, efficiency, wirkungsgrad]
+      rule: {kind: at_least, alt_ratio: 0.95}
+    # Aqui el encapsulado no es un codigo de chip normalizado sino uno
+    # propio (codigo propio de serie): con lista cerrada solo salia
+    # "valor fuera de la lista".
+    - use: package
+      type: text
+      values: {}
+      rule: {kind: text_equal}
+    - use: temperature_range
+    - use: rohs

@@ -1,0 +1,137 @@
+# Conectores (linea WR-...).
+- id: pin_header
+  label: Tira de pines / zocalo
+  aliases: [tira de pines, pin header, header, conector de pines, zocalo, socket header,
+            box header, board to board, board-to-board, btb, minimodule, mini module,
+            conector placa a placa, wr-phd, wr-bhd, wr-mpc, wr-mm]
+  keywords: [pines, header, paso, pitch, contactos, tira, zocalo]
+  source_categories: [Pin Headers, Board-to-Board Connectors, Headers and Sockets,
+                      Conectores placa a placa]
+  attributes:
+    - use: pitch
+    - use: positions
+      required: true
+    - use: rows
+    - use: gender
+    # En las tiras de pines la columna se llama "Type" y vale
+    # Straight / Right Angled / Vertical: es la orientacion.
+    - use: orientation
+      extra_aliases: [type, tipo]
+      required: true
+    - use: mounting
+      required: true
+    - use: rated_current
+    - use: voltage
+    - id: plating
+      label: Acabado del contacto
+      type: enum
+      weight: 1
+      aliases: [acabado, plating, recubrimiento, contacto, finish, bano]
+      rule: {kind: enum_equal}
+      values:
+        oro: [oro, gold, au, dorado, gold plated]
+        estano: [estano, tin, sn, estanado]
+        niquel: [niquel, nickel, ni]
+        oro sobre niquel: [oro sobre niquel, gold over nickel, au over ni]
+    - use: height_max
+    - use: temperature_range
+    - use: rohs
+
+- id: terminal_block
+  label: Bornero / regleta
+  aliases: [bornero, borne, regleta, terminal block, conector de tornillo,
+            screw terminal, push-in terminal, wr-tbl]
+  keywords: [bornero, terminal, regleta, tornillo, cable, paso]
+  source_categories: [Terminal Blocks, Borneros, Wire-to-Board Connectors]
+  attributes:
+    - use: pitch
+      required: true
+    - use: positions
+      required: true
+    - id: connection_type
+      label: Tipo de conexion
+      type: enum
+      required: true
+      weight: 2
+      aliases: [tipo de conexion, connection, conexion, connection type, sujecion,
+                anschluss, application, aplicacion]
+      rule: {kind: enum_equal}
+      values:
+        tornillo: [tornillo, screw, screw clamp, atornillado]
+        push-in: [push in, push-in, insercion directa, spring, resorte, cage clamp]
+        crimpar: [crimp, crimpar, a crimpar]
+        soldar: [solder, soldar, a soldar]
+    - use: orientation
+      aliases: [orientacion, orientation, type, tipo, entrada, plug entry, cable entry,
+                salida, angulo, angle, ausrichtung]
+    - use: mounting
+    - use: rated_current
+      aliases: [corriente nominal, rated current, ir, i r, "ir culus", "ir vde",
+                "ir[culus]", "ir[vde]", corriente, current]
+    - use: voltage
+      aliases: [tension, tension nominal, voltage, working voltage,
+                "working voltage culus", vr, rated voltage]
+    - id: wire_size
+      label: Seccion de cable
+      type: text
+      weight: 2
+      aliases: [seccion, wire size, wire section, cable, awg, seccion de cable,
+                conductor, leiterquerschnitt, seccion de conductor]
+      rule: {kind: text_equal, alt_similarity: 0.85}
+    - id: connector_side
+      label: Lado del conector
+      type: enum
+      required: true
+      weight: 3
+      aliases: [lado, side, pcb cable panel, pcb/cable/panel, montaje en, tipo de pieza]
+      rule: {kind: enum_equal}
+      values:
+        # La base macho va soldada a la placa; el conector hembra va al cable.
+        placa: [pcb, placa, base, header, regleta, board]
+        cable: [cable, plug, conector volante, hembra]
+        panel: [panel, chasis]
+    - use: temperature_range
+    - use: rohs
+
+- id: io_connector
+  label: Conector de entrada/salida (USB, RJ45, jack)
+  aliases: [conector usb, usb connector, usb, rj45, conector rj45, jack, conector jack,
+            micro usb, usb-c, usb tipo c, hdmi, tarjeta sd, sd card, wr-com]
+  keywords: [usb, rj45, jack, hdmi, conector, puerto, io]
+  source_categories: [USB Connectors, I/O Connectors, Modular Jacks, Card Connectors]
+  attributes:
+    - id: interface
+      label: Interfaz
+      type: enum
+      weight: 3
+      aliases: [interfaz, interface, tipo, type, conector, estandar, norma]
+      rule: {kind: enum_equal}
+      values:
+        usb-a: [usb a, usb-a, usb tipo a, usb type a]
+        usb-b: [usb b, usb-b, usb tipo b, usb type b]
+        usb micro-b: [micro usb, micro-b, usb micro b, microusb]
+        usb mini-b: [mini usb, mini-b, usb mini b]
+        usb-c: [usb c, usb-c, usb tipo c, type c, usb type-c]
+        rj45: [rj45, rj-45, modular jack, 8p8c, ethernet]
+        rj11: [rj11, rj-11, 6p6c]
+        jack 3.5mm: [jack 3.5, 3.5mm jack, minijack, audio jack]
+        hdmi: [hdmi]
+        micro sd: [micro sd, microsd, tarjeta micro sd]
+        sd: [sd, tarjeta sd, sd card]
+    - use: gender
+    - use: orientation
+    - use: mounting
+      required: true
+    - use: rated_current
+    - use: voltage
+    - id: shielding
+      label: Apantallado
+      type: enum
+      weight: 1
+      aliases: [apantallado, shielded, blindaje, shielding, con pantalla]
+      rule: {kind: enum_equal}
+      values:
+        apantallado: [apantallado, shielded, con pantalla, blindado]
+        no apantallado: [no apantallado, unshielded, sin pantalla]
+    - use: temperature_range
+    - use: rohs

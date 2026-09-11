@@ -1,0 +1,146 @@
+"""Unidades: el mismo valor escrito de mil formas debe dar el mismo numero."""
+
+from __future__ import annotations
+
+import math
+
+import pytest
+
+from crossref.units import (
+    UnitError,
+    dimension_of_unit,
+    format_quantity,
+    parse_interval,
+    parse_number,
+    parse_quantity,
+)
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [("1.5", 1.5), ("1,5", 1.5), ("1.234", 1234.0), ("1,234,567.5", 1234567.5),
+     ("1.234.567,5", 1234567.5), ("2e3", 2000.0), ("-3,5", -3.5)],
+)
+def test_parse_number_admite_formatos_es_y_en(text, expected):
+    assert parse_number(text) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("text", ["0.005", "0,005", "0.500", "0,500", "0.001"])
+def test_un_cero_delante_es_siempre_separador_decimal(text):
+    """Nadie escribe "0.005" queriendo decir 5.
+
+    La agrupacion de millares nunca empieza por cero, y confundirlos desviaba
+    el valor por mil: un shunt de 5 mohm se leia como 5 ohm.
+    """
+    assert parse_number(text) < 1.0
+
+
+def test_un_shunt_no_se_desvia_por_mil():
+    assert parse_quantity("0.005", "resistance", "ohm").value == pytest.approx(0.005)
+    assert format_quantity(parse_quantity("0.005", "resistance", "ohm")) == "5 mohm"
+
+
+@pytest.mark.parametrize(
+    "text,dimension,expected",
+    [
+        ("1,5 GHz", "frequency", 1.5e9),
+        ("1500MHz", "frequency", 1.5e9),
+        ("1500000 kHz", "frequency", 1.5e9),
+        ("50 Ohm", "resistance", 50.0),
+        ("50Ω", "resistance", 50.0),
+        ("4K7", "resistance", 4700.0),
+        ("1R5", "resistance", 1.5),
+        ("4n7", "capacitance", 4.7e-9),
+        ("100 nF", "capacitance", 1e-7),
+        ("10uH", "inductance", 1e-5),
+        ("-3 dB", "decibel", -3.0),
+        ("2 W", "power", 2.0),
+        ("30 dBm", "power", 1.0),
+        ("0,25W", "power", 0.25),
+        ("4", "ratio", 4.0),
+    ],
+)
+def test_parse_quantity_convierte_a_unidad_base(text, dimension, expected):
+    assert parse_quantity(text, dimension).value == pytest.approx(expected)
+
+
+def test_misma_magnitud_distinto_formato_mismo_valor():
+    formas = ["1,5 GHz", "1500 MHz", "1500000 kHz", "1.5GHz", "1500000000 Hz"]
+    valores = {parse_quantity(f, "frequency").value for f in formas}
+    assert len(valores) == 1
+
+
+def test_mili_y_mega_no_se_confunden():
+    assert parse_quantity("5 mW", "power").value == pytest.approx(0.005)
+    assert parse_quantity("5 MW", "power").value == pytest.approx(5e6)
+
+
+@pytest.mark.parametrize(
+    "text,dimension,low,high",
+    [
+        ("DC-18GHz", "frequency", 0.0, 18e9),
+        ("DC - 3000 MHz", "frequency", 0.0, 3e9),
+        ("0,5 a 6 GHz", "frequency", 0.5e9, 6e9),
+        ("700 MHz - 2,7 GHz", "frequency", 0.7e9, 2.7e9),
+        ("-55 a 125 °C", "temperature", -55.0, 125.0),
+        ("-40 ... +85 C", "temperature", -40.0, 85.0),
+        ("2 GHz", "frequency", 2e9, 2e9),
+    ],
+)
+def test_parse_interval(text, dimension, low, high):
+    interval = parse_interval(text, dimension)
+    assert interval.low == pytest.approx(low)
+    assert interval.high == pytest.approx(high)
+
+
+def test_interval_desde_deja_limite_superior_infinito():
+    assert parse_interval("desde 1 GHz", "frequency").high == math.inf
+
+
+def test_covers():
+    pedido = parse_interval("DC-18GHz", "frequency")
+    amplio = parse_interval("DC-26,5GHz", "frequency")
+    corto = parse_interval("DC-12GHz", "frequency")
+    assert amplio.covers(pedido)
+    assert not corto.covers(pedido)
+
+
+@pytest.mark.parametrize("unit,dimension", [("GHz", "frequency"), ("ghz", "frequency"),
+                                            ("mW", "power"), ("Ohm", "resistance"),
+                                            ("dB", "decibel"), ("nF", "capacitance")])
+def test_dimension_of_unit(unit, dimension):
+    assert dimension_of_unit(unit) == dimension
+
+
+def test_format_quantity_usa_prefijo_legible():
+    assert format_quantity(parse_quantity("1500 MHz", "frequency")) == "1.5 GHz"
+    assert format_quantity(parse_quantity("0,25 W", "power")) == "250 mW"
+
+
+def test_valor_no_interpretable_lanza():
+    with pytest.raises(UnitError):
+        parse_quantity("azul", "frequency")
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [("3.3E-11", 3.3e-11), ("1.0E-08", 1e-8), ("2.2e-6", 2.2e-6), ("1E3", 1e3)],
+)
+def test_la_notacion_cientifica_no_es_un_rango(text, expected):
+    """En "3.3E-11" el guion es el signo del exponente, no un separador.
+
+    El catalogo publica asi las capacidades: leerlo como rango dejaba a todos
+    los condensadores ceramicos fuera de cualquier busqueda.
+    """
+    from crossref.units import looks_like_range
+
+    assert not looks_like_range(text)
+    assert parse_quantity(text, "capacitance", "F").value == pytest.approx(expected)
+
+
+def test_un_rango_de_verdad_si_se_detecta():
+    from crossref.units import looks_like_range
+
+    assert looks_like_range("10 to 2700 Ohm")
+    assert looks_like_range("0.009 to 0.03 Ohm")
+    assert not looks_like_range("100 nF")

@@ -1,0 +1,4 @@
+# Los .cmd de Windows necesitan fin de linea CRLF: con LF, cmd.exe puede
+# perderse en los saltos a etiqueta (goto) y el script muere a medias.
+*.cmd text eol=crlf
+*.sh  text eol=lf

@@ -1,0 +1,606 @@
+# Atributos que se anaden automaticamente a TODAS las familias, porque toda
+# ficha del catalogo los publica. Van al final de cada familia, de modo que un
+# atributo propio gana el alias cuando lo comparten (la columna "L" es la
+# inductancia en una bobina y la longitud en una resistencia).
+always:
+  - series
+  - test_frequency
+  - core_material
+  - application
+  - variant
+  - measurement_condition
+  - lifecycle
+  - mounting
+  - aec_q
+  - packaging
+  - length
+  - width
+  - height_max
+  - temperature_range
+  - rohs
+
+# Atributos reutilizables por varias familias.
+# Una familia los incorpora con `- use: impedance` y puede sobrescribir
+# cualquier campo (por ejemplo `required: true` o una tolerancia distinta).
+attributes:
+
+  impedance:
+    id: impedance
+    label: Impedancia
+    type: number
+    dimension: resistance
+    unit: ohm
+    weight: 3
+    aliases: [impedancia, impedance, z, zo, z0, impedancia caracteristica,
+              characteristic impedance, imped]
+    rule: {kind: numeric_equal, rel_tol: 0.0}
+
+  frequency_range:
+    id: frequency_range
+    label: Rango de frecuencia
+    type: range
+    dimension: frequency
+    unit: MHz
+    weight: 3
+    aliases: [frecuencia, frequency, rango de frecuencia, frequency range,
+              banda, band, bandwidth, ancho de banda, freq, frecuencia de trabajo,
+              operating frequency, frecuencia min, frecuencia max, frecuencia minima,
+              frecuencia maxima, min frequency, max frequency]
+    # El catalogo debe cubrir TODO el rango pedido para ser 1:1.
+    # alt_margin: fraccion del rango pedido que puede quedar fuera en una alternativa.
+    rule: {kind: range_covers, alt_margin: 0.05}
+
+  power:
+    id: power
+    label: Potencia media
+    type: number
+    dimension: power
+    unit: W
+    weight: 2
+    aliases: [potencia, power, potencia media, average power, potencia nominal,
+              rated power, power handling, manejo de potencia, potencia maxima,
+              max power, cw power, potencia cw]
+    # Basta con que el catalogo aguante lo pedido; por debajo del 100% no es 1:1.
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  peak_power:
+    id: peak_power
+    label: Potencia de pico
+    type: number
+    dimension: power
+    unit: W
+    weight: 1
+    aliases: [potencia de pico, peak power, pico, potencia pico]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  vswr:
+    id: vswr
+    label: VSWR / ROE
+    type: number
+    dimension: ratio
+    weight: 1
+    aliases: [vswr, roe, swr, relacion de onda estacionaria, standing wave ratio]
+    # Menos es mejor: el catalogo no puede empeorar lo pedido.
+    rule: {kind: at_most, alt_abs_tol: 0.1}
+
+  insertion_loss:
+    id: insertion_loss
+    label: Perdida de insercion
+    type: number
+    dimension: decibel
+    unit: dB
+    weight: 1
+    aliases: [perdida de insercion, insertion loss, il, perdidas, perdida]
+    rule: {kind: at_most, alt_abs_tol: 0.2}
+
+  return_loss:
+    id: return_loss
+    label: Perdida de retorno
+    type: number
+    dimension: decibel
+    unit: dB
+    weight: 1
+    aliases: [perdida de retorno, return loss, rl]
+    rule: {kind: at_least, alt_abs_tol: 1.0}
+
+  connector_a:
+    id: connector_a
+    label: Conector 1 (entrada)
+    type: enum
+    weight: 2
+    aliases: [conector, conector 1, conector a, conector entrada, conector de entrada,
+              connector, connector 1, connector a, input connector, in, entrada,
+              interfaz, interface, conectores]
+    rule: {kind: enum_equal}
+    values: &connector_values
+      sma macho: [sma male, sma m, sma-m, sma plug, sma macho, sma (m), male sma]
+      sma hembra: [sma female, sma f, sma-f, sma jack, sma hembra, sma (f), female sma]
+      n macho: [n male, n-m, n type male, tipo n macho, n plug, n (m)]
+      n hembra: [n female, n-f, n type female, tipo n hembra, n jack, n (f)]
+      bnc macho: [bnc male, bnc-m, bnc plug, bnc (m)]
+      bnc hembra: [bnc female, bnc-f, bnc jack, bnc (f)]
+      tnc macho: [tnc male, tnc-m, tnc plug]
+      tnc hembra: [tnc female, tnc-f, tnc jack]
+      7-16 din macho: [7/16 male, 7-16 din male, din male, 7/16 din macho, l29 male]
+      7-16 din hembra: [7/16 female, 7-16 din female, din female, 7/16 din hembra, l29 female]
+      4.3-10 macho: [4.3-10 male, 4310 male, 4.3/10 male]
+      4.3-10 hembra: [4.3-10 female, 4310 female, 4.3/10 female]
+      2.92mm macho: [2.92 male, k male, 2.92 mm male, k connector male, 2,92 mm macho]
+      2.92mm hembra: [2.92 female, k female, 2.92 mm female, k connector female, 2,92 mm hembra]
+      2.4mm macho: [2.4 male, 2.4 mm male, 2,4 mm macho]
+      2.4mm hembra: [2.4 female, 2.4 mm female, 2,4 mm hembra]
+      1.85mm macho: [1.85 male, v male, 1.85 mm male]
+      1.85mm hembra: [1.85 female, v female, 1.85 mm female]
+      3.5mm macho: [3.5 male, 3.5 mm male]
+      3.5mm hembra: [3.5 female, 3.5 mm female]
+      smb macho: [smb male, smb plug]
+      smb hembra: [smb female, smb jack]
+      mcx macho: [mcx male, mcx plug]
+      mcx hembra: [mcx female, mcx jack]
+      mmcx macho: [mmcx male, mmcx plug]
+      mmcx hembra: [mmcx female, mmcx jack]
+      qma macho: [qma male]
+      qma hembra: [qma female]
+      f macho: [f male, f-m, f type male, conector f macho]
+      f hembra: [f female, f-f, f type female, conector f hembra]
+      sma-h montaje panel: [sma bulkhead female, sma panel hembra, sma bulkhead]
+      sin conector: [solder, soldadura, pigtail, sin conector, no connector, terminales]
+
+  connector_b:
+    id: connector_b
+    label: Conector 2 (salida)
+    type: enum
+    weight: 2
+    aliases: [conector 2, conector b, conector salida, conector de salida,
+              connector 2, connector b, output connector, out, salida]
+    rule: {kind: enum_equal}
+    values: *connector_values
+
+  mounting:
+    id: mounting
+    label: Montaje
+    type: enum
+    weight: 1
+    aliases: [montaje, mounting, tipo de montaje, mount, instalacion, formato]
+    rule: {kind: enum_equal}
+    values:
+      en linea: [in-line, inline, en linea, entre conectores, in line]
+      panel: [bulkhead, panel, montaje en panel, panel mount, chasis, chassis]
+      brida: [flange, flange mount, brida, con brida]
+      smd: [smd, smt, superficie, surface mount, smd/smt, montaje superficial]
+      through hole: [tht, through hole, pasante, orificio pasante, thd, dip]
+      press-fit: [press fit, press-fit, a presion, einpress]
+      rack: [rack, 19 pulgadas, 19", rack mount]
+
+  package:
+    id: package
+    label: Encapsulado
+    type: enum
+    weight: 2
+    aliases: [encapsulado, package, case, caja, footprint, tamano, size, carcasa,
+              case size, formato, tamano de caja, dimensiones de caja]
+    rule: {kind: enum_equal}
+    values:
+      "0201": ["0201", "0603 metric"]
+      "0402": ["0402", "1005 metric"]
+      "0603": ["0603", "1608 metric"]
+      "0805": ["0805", "2012 metric"]
+      "1206": ["1206", "3216 metric"]
+      "1210": ["1210"]
+      "0612": ["0612"]
+      "1008": ["1008"]
+      "1014": ["1014"]
+      "1016": ["1016"]
+      "1018": ["1018"]
+      "1020": ["1020"]
+      "1111": ["1111"]
+      "1225": ["1225"]
+      "1280": ["1280"]
+      "1612": ["1612"]
+      "1806": ["1806"]
+      "1808": ["1808"]
+      "1812": ["1812"]
+      "2211": ["2211"]
+      "2220": ["2220"]
+      "3029": ["3029"]
+      "3225": ["3225"]
+      "3312": ["3312"]
+      "4030": ["4030"]
+      "4532": ["4532"]
+      "5075": ["5075"]
+      "6065": ["6065"]
+      "7847": ["7847"]
+      "8012": ["8012"]
+      "8055": ["8055"]
+      "8075": ["8075"]
+      "8095": ["8095"]
+      "8530": ["8530"]
+      "2010": ["2010"]
+      "2512": ["2512"]
+      do-214: [do-214, smb diodo, do214]
+      sot-23: [sot-23, sot23]
+      axial: [axial, through hole axial]
+      radial: [radial]
+
+  tolerance:
+    id: tolerance
+    label: Tolerancia
+    type: number
+    dimension: percent
+    unit: "%"
+    weight: 2
+    aliases: [tolerancia, tolerance, tol, precision,
+              tol, tol., tol l, tol r, tol c, tol f, tol z, tol. l, tol. r, tol. c, tol. f]
+    # Una tolerancia mas estrecha siempre sirve; mas ancha no es 1:1.
+    rule: {kind: at_most, alt_ratio: 1.0}
+
+  voltage:
+    id: voltage
+    label: Tension nominal
+    type: number
+    dimension: voltage
+    unit: V
+    weight: 2
+    aliases: [tension, tension nominal, voltage, rated voltage, working voltage,
+              tension de trabajo, vdc, tension maxima, max voltage,
+              vr, v r, vdc, vrms, ve, vsupply, v supply, working voltage, vr dc, vr ac]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  current:
+    id: current
+    label: Corriente nominal
+    type: number
+    dimension: current
+    unit: A
+    weight: 2
+    aliases: [corriente, corriente nominal, current, rated current, intensidad,
+              amperaje, max current]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  temperature_range:
+    id: temperature_range
+    label: Rango de temperatura
+    type: range
+    dimension: temperature
+    unit: degC
+    weight: 1
+    aliases: [temperatura, temperature, rango de temperatura, temperature range,
+              operating temperature, temperatura de trabajo]
+    rule: {kind: range_covers, alt_margin: 0.1}
+
+  rohs:
+    id: rohs
+    label: RoHS
+    type: bool
+    weight: 0.5
+    informative: true
+    aliases: [rohs, rohs compliant, cumple rohs, directiva rohs]
+
+  manufacturer_ref:
+    id: manufacturer_ref
+    label: Referencia equivalente declarada
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [equivalencia, cross reference, cross-ref, referencia equivalente,
+              equivalente, sustituto, replaces]
+
+  # ---------------------------------------------------------------------
+  # Atributos habituales en componentes de montaje (pasivos, EMC, conectores)
+  # ---------------------------------------------------------------------
+
+  rated_current:
+    id: rated_current
+    label: Corriente nominal
+    type: number
+    dimension: current
+    unit: A
+    weight: 3
+    # 'IR 2' es la corriente nominal medida con otro incremento de temperatura
+    # (normalmente delta T = 40 K). Se trata como corriente nominal y la
+    # condicion queda a la vista en 'current_condition'.
+    aliases: [corriente nominal, rated current, ir, i r, i_r, ir 2, i r 2, ir2,
+              corriente, current, corriente maxima, max current, corriente continua,
+              dc current, nennstrom, corriente de trabajo, rated current ir,
+              irp 40k, irp40k, irated, i rated, imax, i max, ir dc1, ir dc]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  saturation_current:
+    id: saturation_current
+    label: Corriente de saturacion
+    type: number
+    dimension: current
+    unit: A
+    weight: 2
+    aliases: [corriente de saturacion, saturation current, isat, i sat, i_sat,
+              corriente saturacion, saettigungsstrom,
+              isat, i sat 10, isat 10, isat 20, isat 30, isat 40]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  dcr:
+    id: dcr
+    label: Resistencia DC (DCR)
+    type: number
+    dimension: resistance
+    unit: ohm
+    weight: 2
+    aliases: [dcr, rdc, r dc, r_dc, rdc max, r dc max, r_dc max, dcr max, dcr maximo,
+              resistencia dc, dc resistance, resistencia en continua, resistencia ohmica,
+              gleichstromwiderstand, dc resistance rdc max,
+              rdc typ, rdc typ., rdc1 typ, rdc2 typ, rdc min]
+    # Mas resistencia que la pedida empeora el rendimiento: es un maximo.
+    rule: {kind: at_most, alt_ratio: 1.1}
+
+  srf:
+    id: srf
+    label: Frecuencia de autorresonancia (SRF)
+    type: number
+    dimension: frequency
+    unit: MHz
+    weight: 1
+    aliases: [srf, autorresonancia, self resonant frequency, self-resonant frequency,
+              frecuencia de resonancia propia, resonanzfrequenz,
+              fres, f res, self resonance]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  q_factor:
+    id: q_factor
+    label: Factor Q
+    type: number
+    dimension: ratio
+    weight: 1
+    aliases: [q, factor q, q factor, quality factor, factor de calidad,
+              qmin, qmin., q min, q typ, q min.]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  esr:
+    id: esr
+    label: ESR
+    type: number
+    dimension: resistance
+    unit: ohm
+    weight: 2
+    aliases: [esr, resistencia serie equivalente, equivalent series resistance,
+              esr max, resistencia serie,
+              resr, resr dc, resr ac]
+    rule: {kind: at_most, alt_ratio: 1.1}
+
+  ripple_current:
+    id: ripple_current
+    label: Corriente de rizado
+    type: number
+    dimension: current
+    unit: A
+    weight: 2
+    aliases: [rizado, ripple, ripple current, corriente de rizado, i ripple,
+              corriente rizado]
+    rule: {kind: at_least, alt_ratio: 0.9}
+
+  pitch:
+    id: pitch
+    label: Paso (pitch)
+    type: number
+    dimension: length
+    unit: mm
+    weight: 3
+    aliases: [paso, pitch, raster, separacion, spacing, distancia entre pines,
+              rastermass, paso de pines]
+    # El paso es mecanico: no admite tolerancia comercial.
+    rule: {kind: numeric_equal, rel_tol: 0.0}
+
+  positions:
+    id: positions
+    label: Numero de contactos
+    type: number
+    dimension: ratio
+    weight: 3
+    aliases: [contactos, numero de contactos, posiciones, positions, pines, pins,
+              numero de pines, vias, poles, polos, way, ways, no of pins, pin count,
+              polzahl, polarity, polaridad]
+    rule: {kind: numeric_equal}
+
+  rows:
+    id: rows
+    label: Numero de filas
+    type: number
+    dimension: ratio
+    weight: 2
+    aliases: [filas, rows, numero de filas, hileras, row count, reihen]
+    rule: {kind: numeric_equal}
+
+  orientation:
+    id: orientation
+    label: Orientacion
+    type: enum
+    weight: 2
+    aliases: [orientacion, orientation, salida, angulo, angle, tipo de salida,
+              ausrichtung, forma]
+    rule: {kind: enum_equal}
+    values:
+      recto: [recto, straight, vertical, 180, gerade, recta]
+      acodado: [acodado, angled, right angle, 90, horizontal, abgewinkelt, codo]
+
+  gender:
+    id: gender
+    label: Genero
+    type: enum
+    weight: 2
+    aliases: [genero, gender, macho hembra, tipo de contacto, sexo]
+    rule: {kind: enum_equal}
+    values:
+      macho: [macho, male, pin, plug, header, tira de pines, stift]
+      hembra: [hembra, female, socket, jack, receptacle, zocalo, buchse]
+
+  height_max:
+    id: height_max
+    label: Altura maxima
+    type: number
+    dimension: length
+    unit: mm
+    weight: 2
+    aliases: [altura, height, altura maxima, max height, alto, h, hoehe,
+              altura total]
+    # Un componente mas bajo siempre cabe; mas alto no.
+    rule: {kind: at_most, alt_rel_tol: 0.05}
+
+  isolation_voltage:
+    id: isolation_voltage
+    label: Tension de aislamiento
+    type: number
+    dimension: voltage
+    unit: V
+    weight: 2
+    aliases: [aislamiento, isolation, isolation voltage, tension de aislamiento,
+              rigidez dielectrica, dielectric strength, hipot, vdc aislamiento,
+              vt, v t, vt ac, viso, withstanding voltage, vt dc]
+    rule: {kind: at_least, alt_ratio: 0.95}
+
+  lifetime_hours:
+    id: lifetime_hours
+    label: Vida util
+    type: number
+    dimension: time
+    unit: h
+    weight: 1
+    aliases: [vida util, lifetime, load life, horas, endurance, useful life,
+              lebensdauer]
+    rule: {kind: at_least, alt_ratio: 0.8}
+
+  # ---------------------------------------------------------------------
+  # Identificacion y cualificacion (aparecen como filtro en el catalogo)
+  # ---------------------------------------------------------------------
+
+  series:
+    id: series
+    label: Serie
+    type: text
+    weight: 1
+    informative: true
+    aliases: [serie, series, product series, familia de producto, product family,
+              gama, linea de producto, baureihe]
+
+  aec_q:
+    id: aec_q
+    label: Cualificacion AEC-Q
+    type: bool
+    weight: 2
+    aliases: [aec-q, aecq, aec q, aec-q200, aecq200, aec-q101, aecq101, aec-q product,
+              aecq product, automocion, automotive, automotive grade, grado automocion,
+              cualificacion automocion, calificacion aec-q, qualified]
+    # Si el cliente exige AEC-Q, una referencia sin cualificar NO es equivalente.
+    # Si no lo exige, que la referencia lo cumpla no penaliza.
+    rule: {kind: bool_equal}
+
+  leakage_current:
+    id: leakage_current
+    label: Corriente de fuga
+    type: number
+    dimension: current
+    unit: mA
+    weight: 2
+    aliases: [corriente de fuga, leakage current, fuga, leakage, ableitstrom,
+              corriente de derivacion,
+              ileak, i leak]
+    rule: {kind: at_most, alt_rel_tol: 0.1}
+
+  packaging:
+    id: packaging
+    label: Presentacion
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [presentacion, packaging, embalaje, suministro, tape and reel, carrete,
+              verpackung, formato de entrega]
+
+  lifecycle:
+    id: lifecycle
+    label: Ciclo de vida
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [estado, status, ciclo de vida, lifecycle, life cycle status,
+              product status, disponibilidad, lebenszyklus]
+
+  current_condition:
+    id: current_condition
+    label: Condicion de la corriente nominal
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [test condition ir, test condition ir 2, condicion de medida,
+              condicion de la corriente, delta t, incremento de temperatura]
+
+  length:
+    id: length
+    label: Longitud
+    type: number
+    dimension: length
+    unit: mm
+    weight: 2
+    aliases: [longitud, length, largo, l, laenge]
+    rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+
+  width:
+    id: width
+    label: Anchura
+    type: number
+    dimension: length
+    unit: mm
+    weight: 2
+    aliases: [anchura, ancho, width, w, breite]
+    rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+
+  application:
+    id: application
+    label: Aplicacion
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [aplicacion, application, uso, anwendung, recommended use]
+
+  variant:
+    id: variant
+    label: Variante
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [variante, version, variant, ausfuehrung, ejecucion]
+
+  measurement_condition:
+    id: measurement_condition
+    label: Condiciones de medida
+    type: text
+    weight: 0.5
+    informative: true
+    aliases: [condiciones de medida, test condition, test condition l, test condition q,
+              test condition c, test condition r, test conditions, messbedingung]
+
+  test_frequency:
+    id: test_frequency
+    label: Frecuencia de medida
+    type: number
+    dimension: frequency
+    unit: MHz
+    weight: 2
+    aliases: [frecuencia de medida, test frequency, medido a, measured at, at frequency,
+              frecuencia de referencia, messfrequenz]
+    rule: {kind: numeric_equal, rel_tol: 0.0}
+
+  core_material:
+    id: core_material
+    label: Material del nucleo
+    type: text
+    weight: 1
+    informative: true
+    aliases: [material, material del nucleo, core material, mix, werkstoff, base material]
+
+  power_rating:
+    id: power_rating
+    label: Potencia
+    type: number
+    dimension: power
+    unit: W
+    weight: 2
+    aliases: [potencia, power, power rating, prated, p rated, potencia nominal, vatios,
+              pdiss, p diss, disipacion, nennleistung]
+    rule: {kind: at_least, alt_ratio: 0.9}

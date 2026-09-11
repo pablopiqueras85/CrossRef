@@ -1,0 +1,294 @@
+# Condensadores (linea WCAP-...).
+- id: mlcc
+  label: Condensador ceramico MLCC
+  aliases: [condensador ceramico, ceramic capacitor, mlcc, condensador multicapa,
+            multilayer ceramic capacitor, ceramico, wcap-csgp, wcap-csrf]
+  keywords: [ceramico, mlcc, x7r, x5r, c0g, np0, condensador]
+  source_categories: [Ceramic Capacitors, Capacitors, MLCC, Condensadores ceramicos]
+  attributes:
+    - id: capacitance
+      label: Capacidad
+      type: number
+      dimension: capacitance
+      unit: F
+      required: true
+      weight: 3
+      aliases: [capacidad, capacitance, valor, value, c, kapazitaet]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: voltage
+      required: true
+    - use: tolerance
+    # La misma columna trae "±10%" o "±0.5pF": la unidad del valor
+    # decide a cual de los dos atributos va.
+    - id: tolerance_abs
+      label: Tolerancia absoluta
+      type: number
+      dimension: capacitance
+      unit: pF
+      weight: 1
+      aliases: [tolerancia, tolerance, tol, tol. c, tol. l, tolerancia absoluta]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
+    - use: package
+    - use: aec_q
+    - use: series
+    - id: dielectric
+      label: Dielectrico
+      type: enum
+      weight: 3
+      aliases: [dielectrico, dielectric, material, ceramic type, tipo ceramico,
+                temperature characteristic, caracteristica de temperatura, clase, class,
+                dielektrikum]
+      rule: {kind: enum_equal}
+      values:
+        c0g: [c0g, np0, cog, clase 1, class 1]
+        x7r: [x7r]
+        x5r: [x5r]
+        x7s: [x7s]
+        x6s: [x6s]
+        y5v: [y5v]
+        z5u: [z5u]
+    - use: temperature_range
+    - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: ripple_current
+      label: Corriente de rizado
+      type: number
+      dimension: current
+      unit: mA
+      weight: 2
+      aliases: [iripple, corriente de rizado, ripple current, i ripple]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+
+
+- id: aluminum_capacitor
+  label: Condensador electrolitico de aluminio
+  aliases: [condensador electrolitico, electrolitico, aluminum electrolytic capacitor,
+            electrolytic capacitor, condensador de aluminio, polymer capacitor,
+            condensador de polimero, wcap-atg5, wcap-atli, wcap-pslp]
+  keywords: [electrolitico, aluminio, polimero, esr, rizado, ripple, condensador]
+  source_categories: [Aluminum Electrolytic Capacitors, Aluminum Polymer Capacitors,
+                      Aluminum Hybrid Polymer Capacitors, Capacitors, Polymer Capacitors,
+                      Condensadores electroliticos]
+  attributes:
+    - id: capacitance
+      label: Capacidad
+      type: number
+      dimension: capacitance
+      unit: uF
+      required: true
+      weight: 3
+      aliases: [capacidad, capacitance, valor, value, c]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - use: voltage
+      required: true
+    - use: tolerance
+    - use: esr
+    - use: ripple_current
+    - use: lifetime_hours
+    - id: case_size
+      label: Formato (D x L)
+      type: text
+      weight: 3
+      aliases: [formato, case size, dimensiones, dimensions, tamano, size, medidas,
+                diametro, diameter, d x l, carcasa]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - use: mounting
+    - use: aec_q
+    - use: series
+    - use: temperature_range
+    - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+
+
+- id: film_capacitor
+  label: Condensador de pelicula
+  aliases: [condensador de pelicula, film capacitor, condensador de poliester,
+            polypropylene capacitor, condensador de polipropileno, mkt, mkp,
+            condensador de supresion, x2 capacitor]
+  keywords: [pelicula, film, poliester, polipropileno, mkt, mkp, x2, y2]
+  source_categories: [Interference Suppression Capacitor, Film Capacitors, Capacitors,
+                      WCAP-FTX2 Film Capacitors, WCAP-FTXX Film Capacitors,
+                      Condensadores de pelicula]
+  attributes:
+    - id: capacitance
+      label: Capacidad
+      type: number
+      dimension: capacitance
+      unit: uF
+      required: true
+      weight: 3
+      aliases: [capacidad, capacitance, valor, value, c]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: voltage
+      required: true
+    - use: tolerance
+    # La misma columna trae "±10%" o "±0.5pF": la unidad del valor
+    # decide a cual de los dos atributos va.
+    - id: tolerance_abs
+      label: Tolerancia absoluta
+      type: number
+      dimension: capacitance
+      unit: pF
+      weight: 1
+      aliases: [tolerancia, tolerance, tol, tol. c, tol. l, tolerancia absoluta]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
+      required: true
+    - id: safety_class
+      label: Clase de seguridad
+      type: enum
+      weight: 2
+      aliases: [clase, class, clase de seguridad, safety class, categoria]
+      rule: {kind: enum_equal}
+      values:
+        x1: [x1]
+        x2: [x2]
+        y1: [y1]
+        y2: [y2]
+        x1/y2: [x1/y2, x1 y2]
+        sin clase: [sin clase, ninguna, general purpose, uso general]
+    - use: pitch
+    - use: mounting
+    - use: temperature_range
+    - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: ripple_current
+      label: Corriente de rizado
+      type: number
+      dimension: current
+      unit: mA
+      weight: 2
+      aliases: [iripple, corriente de rizado, ripple current, i ripple]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+
+
+- id: supercapacitor
+  label: Supercondensador
+  aliases: [supercondensador, supercapacitor, edlc, ultracapacitor, ultracondensador,
+            double layer capacitor, wcap-stsc]
+  keywords: [supercondensador, supercapacitor, edlc, faradios, backup]
+  source_categories: [Supercapacitors, Capacitors, Supercondensadores, EDLC]
+  attributes:
+    - id: capacitance
+      label: Capacidad
+      type: number
+      dimension: capacitance
+      unit: F
+      required: true
+      weight: 3
+      aliases: [capacidad, capacitance, valor, value, c]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - use: voltage
+      required: true
+    - use: esr
+    - use: tolerance
+    - id: case_size
+      label: Formato
+      type: text
+      weight: 2
+      aliases: [formato, case size, dimensiones, dimensions, tamano, size, medidas]
+      rule: {kind: text_equal, alt_similarity: 0.9}
+    - use: mounting
+    - use: temperature_range
+    - use: rohs
+    - id: dissipation_factor
+      label: Factor de disipacion (DF)
+      type: number
+      dimension: percent
+      unit: "%"
+      weight: 1
+      aliases: [df, factor de disipacion, dissipation factor, tan d, tan delta]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: ripple_current
+      label: Corriente de rizado
+      type: number
+      dimension: current
+      unit: mA
+      weight: 2
+      aliases: [iripple, corriente de rizado, ripple current, i ripple]
+      rule: {kind: at_least, alt_ratio: 0.9}
+    - id: leakage_current
+      label: Corriente de fuga
+      type: number
+      dimension: current
+      unit: µA
+      weight: 1
+      aliases: [ileak, corriente de fuga, leakage current, i leak]
+      rule: {kind: at_most, alt_rel_tol: 0.3}
+    - id: diameter
+      label: Diametro
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [diametro, diameter, d, o d, phi d]
+      rule: {kind: numeric_equal, alt_rel_tol: 0.05}
+

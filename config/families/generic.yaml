@@ -1,0 +1,21 @@
+# Familia de reserva: se usa cuando no se identifica ninguna otra.
+# Compara solo lo que exista en ambos lados y nunca confirma un 1:1 por si sola.
+id: generic
+label: Generico (sin familia identificada)
+aliases: []
+keywords: []
+attributes:
+  - use: impedance
+  - use: frequency_range
+  - use: power
+  - use: voltage
+  - use: current
+  - use: connector_a
+  - use: connector_b
+  - use: package
+  - use: mounting
+  - use: tolerance
+  - use: temperature_range
+  - use: vswr
+  - use: insertion_loss
+  - use: rohs

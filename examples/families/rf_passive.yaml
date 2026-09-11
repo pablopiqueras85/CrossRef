@@ -1,0 +1,275 @@
+# Familias de RF/microondas pasivas.
+- id: rf_attenuator
+  label: Atenuador fijo
+  aliases: [atenuador, atenuadores, atenuador fijo, atenuador coaxial, attenuator,
+            fixed attenuator, coaxial attenuator, atenuador de potencia]
+  keywords: [atenuador, attenuator, db, atenuacion, attenuation]
+  source_categories: [Atenuadores, Attenuators, Atenuadores fijos]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - id: attenuation
+      label: Atenuacion
+      type: number
+      dimension: decibel
+      unit: dB
+      required: true
+      weight: 3
+      aliases: [atenuacion, attenuation, valor de atenuacion, att, db de atenuacion,
+                nivel de atenuacion, atten]
+      rule: {kind: numeric_equal, abs_tol: 0.0, alt_abs_tol: 0.5}
+    - use: frequency_range
+      required: true
+    - use: power
+      required: true
+    - use: connector_a
+      required: true
+    - use: connector_b
+    - use: vswr
+    - id: accuracy
+      label: Precision de la atenuacion
+      type: number
+      dimension: decibel
+      unit: dB
+      aliases: [precision, accuracy, tolerancia de atenuacion, atenuacion tolerancia]
+      rule: {kind: at_most, alt_abs_tol: 0.2}
+    - use: mounting
+    - use: temperature_range
+    - use: rohs
+
+- id: rf_load
+  label: Carga / terminacion
+  aliases: [carga, cargas, terminacion, terminaciones, carga coaxial, termination,
+            terminator, dummy load, carga fantasma, load]
+  keywords: [carga, load, termination, terminacion, 50 ohm]
+  source_categories: [Cargas, Terminaciones, Loads, Terminations]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - use: frequency_range
+      required: true
+    - use: power
+      required: true
+    - use: connector_a
+      required: true
+    - use: vswr
+    - use: mounting
+    - use: temperature_range
+    - use: rohs
+
+- id: rf_power_divider
+  label: Divisor / combinador de potencia
+  aliases: [divisor, divisores, divisor de potencia, combinador, splitter, power divider,
+            power splitter, combiner, divisor wilkinson]
+  keywords: [divisor, splitter, combinador, combiner, vias, ways]
+  source_categories: [Divisores, Splitters, Divisores de potencia, Power dividers]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - id: ways
+      label: Numero de vias
+      type: number
+      dimension: ratio
+      required: true
+      weight: 3
+      aliases: [vias, via, numero de vias, ways, way, salidas, outputs, puertos,
+                ports, n vias, canales]
+      rule: {kind: numeric_equal}
+    - use: frequency_range
+      required: true
+    - use: power
+      required: true
+    - use: insertion_loss
+    - id: isolation
+      label: Aislamiento
+      type: number
+      dimension: decibel
+      unit: dB
+      aliases: [aislamiento, isolation, iso]
+      rule: {kind: at_least, alt_abs_tol: 2.0}
+    - id: amplitude_balance
+      label: Balance de amplitud
+      type: number
+      dimension: decibel
+      unit: dB
+      aliases: [balance de amplitud, amplitude balance, desequilibrio]
+      rule: {kind: at_most, alt_abs_tol: 0.2}
+    - use: connector_a
+      required: true
+    - use: vswr
+    - use: mounting
+    - use: rohs
+
+- id: rf_coupler
+  label: Acoplador direccional
+  aliases: [acoplador, acopladores, acoplador direccional, coupler, directional coupler,
+            acoplador bidireccional, dual directional coupler]
+  keywords: [acoplador, coupler, acoplamiento, coupling, directividad, directivity]
+  source_categories: [Acopladores, Couplers, Acopladores direccionales]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - id: coupling
+      label: Acoplamiento
+      type: number
+      dimension: decibel
+      unit: dB
+      required: true
+      weight: 3
+      aliases: [acoplamiento, coupling, valor de acoplamiento, factor de acoplamiento]
+      rule: {kind: numeric_equal, abs_tol: 0.0, alt_abs_tol: 0.5}
+    - use: frequency_range
+      required: true
+    - use: power
+      required: true
+    - id: directivity
+      label: Directividad
+      type: number
+      dimension: decibel
+      unit: dB
+      aliases: [directividad, directivity]
+      rule: {kind: at_least, alt_abs_tol: 2.0}
+    - use: insertion_loss
+    - use: connector_a
+      required: true
+    - use: vswr
+    - use: mounting
+    - use: rohs
+
+- id: rf_filter
+  label: Filtro RF
+  aliases: [filtro, filtros, filter, filtro paso banda, band pass filter, filtro paso bajo,
+            low pass filter, filtro paso alto, high pass filter, filtro notch, bandstop]
+  keywords: [filtro, filter, paso banda, bandpass, rechazo, rejection]
+  source_categories: [Filtros, Filters]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - id: filter_type
+      label: Tipo de filtro
+      type: enum
+      required: true
+      weight: 3
+      aliases: [tipo de filtro, filter type, tipo, topologia, response]
+      rule: {kind: enum_equal}
+      values:
+        paso banda: [band pass, bandpass, bpf, paso banda, pasa banda]
+        paso bajo: [low pass, lowpass, lpf, paso bajo, pasa bajo]
+        paso alto: [high pass, highpass, hpf, paso alto, pasa alto]
+        banda eliminada: [band stop, bandstop, notch, bsf, rechazo de banda]
+        duplexor: [duplexer, duplexor, diplexer, diplexor]
+    - id: passband
+      label: Banda de paso
+      type: range
+      dimension: frequency
+      unit: MHz
+      required: true
+      weight: 3
+      aliases: [banda de paso, passband, pass band, frecuencia central, banda,
+                frecuencia, frequency, frequency range, rango de frecuencia]
+      rule: {kind: range_covers, alt_margin: 0.02}
+    - id: rejection
+      label: Rechazo fuera de banda
+      type: number
+      dimension: decibel
+      unit: dB
+      aliases: [rechazo, rejection, atenuacion fuera de banda, stopband attenuation]
+      rule: {kind: at_least, alt_abs_tol: 3.0}
+    - use: insertion_loss
+    - use: power
+    - use: connector_a
+      required: true
+    - use: vswr
+    - use: mounting
+    - use: rohs
+
+- id: rf_adapter
+  label: Adaptador coaxial
+  aliases: [adaptador, adaptadores, adapter, transicion, transition, entre series,
+            between series adapter]
+  keywords: [adaptador, adapter, transicion]
+  source_categories: [Adaptadores, Adapters, Transiciones]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - use: connector_a
+      required: true
+    - use: connector_b
+      required: true
+    - use: frequency_range
+      required: true
+    - use: vswr
+    - use: mounting
+    - use: rohs
+
+- id: rf_cable_assembly
+  label: Latiguillo / cable ensamblado
+  aliases: [latiguillo, latiguillos, cable, cables, cable assembly, jumper, patch cord,
+            cable coaxial, coaxial cable assembly]
+  keywords: [cable, latiguillo, longitud, length, jumper]
+  source_categories: [Cables, Latiguillos, Cable assemblies]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - use: connector_a
+      required: true
+    - use: connector_b
+      required: true
+    - id: length
+      label: Longitud
+      type: number
+      dimension: length
+      unit: mm
+      required: true
+      weight: 3
+      aliases: [longitud, length, largo, medida, l]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.05}
+    - use: frequency_range
+      required: true
+    - id: cable_type
+      label: Tipo de cable
+      type: text
+      aliases: [tipo de cable, cable type, cable, referencia de cable]
+      rule: {kind: text_equal}
+    - use: insertion_loss
+    - use: vswr
+    - use: rohs
+
+- id: rf_connector
+  label: Conector coaxial
+  aliases: [conector, conectores, connector, connectors, conector coaxial]
+  keywords: [conector, connector, crimpar, crimp, soldar]
+  source_categories: [Conectores, Connectors]
+  attributes:
+    - use: impedance
+      required: true
+      assume: 50 ohm
+    - use: connector_a
+      required: true
+    - use: mounting
+      required: true
+    - id: termination
+      label: Terminacion
+      type: enum
+      aliases: [terminacion, termination, tipo de terminacion, union, attachment]
+      rule: {kind: enum_equal}
+      values:
+        crimpar: [crimp, crimpar, a crimpar, crimping]
+        soldar: [solder, soldar, a soldar, soldadura]
+        atornillar: [screw, atornillar, roscado, clamp]
+        press-fit: [press fit, press-fit, a presion]
+    - id: cable_for
+      label: Cable compatible
+      type: text
+      aliases: [cable, para cable, cable compatible, cable type, rg]
+      rule: {kind: text_equal}
+    - use: frequency_range
+    - use: vswr
+    - use: rohs

@@ -1,0 +1,240 @@
+# Catálogo de we-online.com.
+#
+# El catálogo no tiene una página por referencia: tiene una página por línea de
+# producto (serie) con una tabla donde cada fila es una referencia. Se recorre
+# en dos niveles:
+#
+#     categoría  ->  enlaces a las series  ->  tabla de artículos de cada serie
+#
+# Eso son ~11 peticiones por categoría en lugar de una por referencia.
+#
+# Cada celda de la tabla trae el dato ya etiquetado:
+#   <td data-column="Z @ 100 MHz" data-unit="Ω">
+#     <span class="...data--mobile">Impedance @ 100 MHz</span>   <- nombre completo
+#     <span data-sort-value="8">8 Ω</span>                        <- valor limpio
+#
+# ALTERNATIVA MEJOR: la empresa publica una API REST para clientes
+# (we-online.com/en/support/collaboration/api) con datos de artículo,
+# disponibilidad y hojas de datos. Si se consigue acceso, usar type: api en
+# lugar de esto: no se rompe con los rediseños de la web.
+
+id: we_online
+type: web_table
+base_url: https://www.we-online.com
+manufacturer: Würth Elektronik
+
+request:
+  user_agent: "CrossRefBot/0.1 (catalogo interno)"
+  rate_limit_per_sec: 0.5      # una petición cada 2 s: sin prisa, sin molestar
+  timeout: 60
+  respect_robots: true
+  cache_dir: data/cache_we
+
+series:
+  # Los enlaces de serie viven en la rejilla de líneas de producto. Sin acotar
+  # el contenedor se cuelan las migas de pan (que apuntan a la categoría padre).
+  link_selector: ".wec-grid__item a[href]"
+  # En las mismas rejillas hay kits de diseño, bolsas de filtros, manuales y
+  # placas de evaluación. No son componentes que se puedan ofrecer como
+  # equivalencia, así que se dejan fuera.
+  # Herramientas de montaje y accesorios: crimpadoras, prensas, tapas,
+  # tornillos. No son componentes que se puedan ofrecer como equivalencia
+  # y ensucian cualquier busqueda de conectores.
+  exclude_pattern: '(?i)/([^/]*CRIMPING_TOOL[^/]*|[^/]*EXTRACTION_TOOL[^/]*|[^/]*IDC_PRESS[^/]*|[^/]*_TOOLS?([_/]|$)[^/]*|[^/]*LOCK_SCREWS[^/]*|[^/]*PLASTIC_CAPS[^/]*|[^/]*CONNECTOR_COVERS[^/]*|DESIGN_?KIT|DEMOBOARD|EMC_FILTER_BAGS|ABC_OF_|DYEF_|[^/]*_PLIER[^/]*|[^/]*_HANDBOOK$|[^/]*EVALUATION[^/]*$|[^/]*EVAL_BOARD[^/]*$)'
+  url_pattern: '^/en/components/products/[A-Za-z0-9][A-Za-z0-9_\-]*$'
+  title_selector: "h1"
+
+# Muchas categorías no enlazan sus series directamente: cuelgan de sí mismas
+# otras más concretas ("led/leds" -> "led/leds/color_led" -> ".../chip_led") y
+# las series solo aparecen en la hoja. Se baja por ellas, siempre dentro de la
+# rama de la categoría de partida.
+subcategories:
+  url_pattern: '^/en/components/products/[a-z0-9][a-z0-9_\-]*(?:/[a-z0-9][a-z0-9_\-]*)+$'
+  # Los kits de diseño y las placas de evaluación no son componentes que se
+  # puedan ofrecer como equivalencia: no merece la pena ni descargarlos.
+  exclude_pattern: '(?i)/(design_kits?[a-z0-9_\-]*|[a-z0-9_\-]*evaluation[a-z0-9_\-]*|[a-z0-9_\-]*_kits)$'
+  max_depth: 3
+
+table:
+  selector: "table.wecProductTable"
+  row_selector: "tr"
+  cell_selector: "td[data-column]"
+  label_attr: "data-column"
+  label_selector: "span.wecProductTableBody__data--mobile"
+  unit_attr: "data-unit"
+  value_attr: "data-sort-value"
+  reference_columns: ["Order Code"]
+  datasheet_selector: 'a[href$=".pdf"]'
+  # El estado trae detrás el texto del tooltip: se coge solo el estado.
+  value_selectors:
+    Status: ".wecLifecycle__status-wrapper > span"
+  # El tamaño no es una columna de la tabla de artículos: la página lo lista
+  # arriba, en la tabla de variantes de la serie, y cada fila de artículo
+  # lleva el id de la variante a la que pertenece. Se recupera de ahí, porque
+  # sin él un LED 0805 es indistinguible del mismo LED en 0603.
+  row_group:
+    key_attr: data-category-id
+    lookup_selector: "tr[data-category-id] td.sizeTitle"
+    column: Size
+
+  # La página declara cuántos artículos tiene; se contrasta con las filas que
+  # sirve de verdad para avisar si alguna vez deja de servirlas todas.
+  total_selector: "div.parametricSearch"
+  total_attr: "data-total-article-count"
+  status_column: "Status"
+  active_values: ["active"]
+  only_active: false           # true para indexar solo lo que está en producción
+  ignore_columns:
+    - Datasheet
+    - Simulation
+    - Downloads
+    - Availability
+    - Design Kit
+    - Filter Stick
+    - Filter Bag
+    - Sample
+    - Compare
+
+# Categorías a indexar.
+#
+#   family:        fuerza la familia para toda la categoría. Se usa solo cuando
+#                  la categoría es homogénea. En las que mezclan (EMC Components
+#                  lleva ferritas, chokes, varistores y apantallamiento) se omite
+#                  y la familia se deduce del nombre de la serie, que es
+#                  descriptivo ("WE-CBF SMT EMI Suppression Ferrite Bead").
+#   constant_specs: datos que la categoría da por sabidos y no publica como
+#                  columna. Nunca pisan a una columna real.
+#
+# ORDEN: las categorías se procesan de arriba abajo y, si una referencia aparece
+# en dos, gana la última. Por eso las de automoción van al final: una referencia
+# listada en la categoría AEC-Q lo está por algo, y esa es la lectura correcta.
+#
+# La cualificación AEC-Q no la publica el catálogo como columna de la tabla: se
+# deduce de la categoría en la que aparece la serie. Las series de automoción son
+# líneas propias (WE-CBA, WE-MPSA, AUTOMOTIVE_IND_WE_PD…) con sus propios códigos
+# de artículo, así que no contamina a las referencias estándar. Aun así, para un
+# uso en automoción hay que confirmarlo contra la hoja de datos.
+categories:
+
+  # --- Passive Components -------------------------------------------------
+  - url: /en/components/products/pbs/emc_components
+    category_path: [Passive Components, EMC Components]
+    constant_specs:
+      Test frequency: 100 MHz
+
+  - url: /en/components/products/pbs/power_magnetics
+    category_path: [Passive Components, Power Magnetics]
+
+  - url: /en/components/products/pbs/capacitors
+    category_path: [Passive Components, Capacitors]
+
+  - url: /en/components/products/pbs/eiris
+    category_path: [Passive Components, Resistors]
+
+  - url: /en/components/products/pbs/frq_frequency_products_fp
+    family: crystal_oscillator
+    category_path: [Passive Components, Quartz Crystals & Oscillators]
+
+  - url: /en/components/products/pbs/signal_and_communications
+    category_path: [Passive Components, Signal & Communications]
+
+  # --- Optoelectrónica ----------------------------------------------------
+  - url: /en/components/products/led/leds
+    family: led
+    category_path: [Optoelectronic Components, LEDs]
+
+  - url: /en/components/products/led/infrared
+    family: led
+    category_path: [Optoelectronic Components, Infrared]
+
+  - url: /en/components/products/led/ultraviolet
+    family: led
+    category_path: [Optoelectronic Components, Ultraviolet]
+
+  # --- Conectores y electromecánica ---------------------------------------
+  - url: /en/components/products/em/connectors
+    category_path: [Electromechanic Components, Connectors]
+
+  # Los borneros vuelven a pasarse aquí, después de la categoría general, para
+  # poder deducirles el paso. Manda la última: ver la nota de ORDEN de arriba.
+  - url: /en/components/products/em/connectors/terminal_blocks
+    family: terminal_block
+    category_path: [Electromechanic Components, Connectors, Terminal Blocks]
+    # El paso no es una columna de la tabla: está en el nombre de la serie
+    # ("WR-TBL Series 2545 - 5.08 mm Horizontal Cable Entry") y, cuando ahí no
+    # aparece, en la URL (TBL_5_08_2545_...). Sin esto no se puede confirmar el
+    # paso en 2.272 de las 2.296 fichas de bornero.
+    derived_specs:
+      - column: Pitch
+        from: title
+        pattern: '(\d+[.,]\d+|\d+)\s*mm'
+        value: '{1} mm'
+      - column: Pitch
+        from: url
+        pattern: '(?i)TBL_(\d+)_(\d+)_'
+        value: '{1}.{2} mm'
+
+  - url: /en/components/products/em/redcube_terminals
+    category_path: [Electromechanic Components, REDCUBE Terminals]
+
+  # --- Gestión térmica ----------------------------------------------------
+  - url: /en/components/products/tm/gap_filling_solutions
+    family: thermal_interface
+    category_path: [Thermal Management, Gap Filling Solutions]
+
+  - url: /en/components/products/tm/thermal_heat_spreading_solutions
+    family: thermal_interface
+    category_path: [Thermal Management, Heat Spreading Solutions]
+
+  - url: /en/components/products/tm/thermal_hybrid_solutions
+    family: thermal_interface
+    category_path: [Thermal Management, Hybrid Solutions]
+
+  # --- Módulos de alimentación --------------------------------------------
+  - url: /en/components/products/ac/pm_active
+    family: power_module
+    category_path: [Active Components, Power Modules]
+
+  # --- Automoción (AEC-Q). Van aparte porque son referencias distintas. ----
+  - url: /en/components/products/am/aecq_ferrites_for_pcb_assembly
+    family: ferrite_bead
+    category_path: [Automotive, Ferrites for PCB Assembly]
+    constant_specs:
+      Test frequency: 100 MHz
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/aecq_ferrites_for_cable_assembly
+    family: cable_ferrite
+    category_path: [Automotive, Ferrites for Cable Assembly]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/aecq_single_coil_power_inductors
+    family: power_inductor
+    category_path: [Automotive, Single Coil Power Inductors]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/we_automotive_common_mode_chokes
+    family: common_mode_choke
+    category_path: [Automotive, Common Mode Chokes]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/we_automotive_rf_inductors
+    family: rf_chip_inductor
+    category_path: [Automotive, RF Inductors]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/filterchokes
+    family: common_mode_choke
+    category_path: [Automotive, Filter Chokes]
+    constant_specs:
+      AEC-Q: "si"
+
+  - url: /en/components/products/am/automotive_aecq_group_power_magnetics
+    family: transformer
+    category_path: [Automotive, Power Transformer]
+    constant_specs:
+      AEC-Q: "si"

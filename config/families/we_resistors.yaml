@@ -1,0 +1,75 @@
+# Resistencias (Passive Components > Resistors).
+- id: metal_plate_resistor
+  label: Resistencia de placa metalica (shunt)
+  aliases: [resistencia de placa metalica, metal plate resistor, shunt, resistencia shunt,
+            current sense resistor, resistencia de medida de corriente, metal strip,
+            resistencia de potencia de bajo valor]
+  keywords: [shunt, current sense, placa metalica, metal plate, mohm, medida de corriente]
+  source_categories: [Metal Plate Resistors, Resistors, Passive Components]
+  attributes:
+    - id: resistance
+      label: Valor
+      type: number
+      dimension: resistance
+      unit: ohm
+      required: true
+      weight: 3
+      aliases: [valor, value, resistencia, resistance, ohm, ohmios, r, r nominal,
+                widerstand]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.01}
+    - use: tolerance
+      required: true
+    - use: power_rating
+      required: true
+      weight: 3
+    - use: package
+    - id: tcr
+      label: Coeficiente de temperatura (TCR)
+      type: number
+      dimension: percent
+      unit: ppm
+      weight: 2
+      aliases: [tcr, coeficiente de temperatura, temperature coefficient, ppm/k,
+                ppm por grado, temperaturkoeffizient]
+      rule: {kind: at_most, alt_ratio: 1.0}
+    - use: mounting
+    - use: aec_q
+    - use: series
+    - use: temperature_range
+    - use: rohs
+
+- id: thick_film_resistor
+  label: Resistencia de capa gruesa
+  aliases: [resistencia, resistencias, resistor, thick film resistor, resistencia de chip,
+            chip resistor, resistencia de capa gruesa, resistencia smd]
+  keywords: [resistencia, resistor, capa gruesa, thick film, ohmios, chip]
+  source_categories: [Thick Film Resistors, Resistors, Passive Components]
+  attributes:
+    - id: resistance
+      label: Valor
+      type: number
+      dimension: resistance
+      unit: ohm
+      required: true
+      weight: 3
+      aliases: [valor, value, resistencia, resistance, ohm, ohmios, r, widerstand]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.01}
+    - use: tolerance
+      required: true
+    - use: power_rating
+      required: true
+      weight: 3
+    - use: package
+    - use: voltage
+    - id: tcr
+      label: Coeficiente de temperatura (TCR)
+      type: number
+      dimension: percent
+      unit: ppm
+      weight: 2
+      aliases: [tcr, coeficiente de temperatura, temperature coefficient, ppm/k]
+      rule: {kind: at_most, alt_ratio: 1.0}
+    - use: aec_q
+    - use: series
+    - use: temperature_range
+    - use: rohs

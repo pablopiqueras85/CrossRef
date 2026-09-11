@@ -1,0 +1,13 @@
+Referencia,Descripcion,Categoria,Impedancia,Frecuencia de medida,Corriente nominal,R_DC max,Serie,Procedencia
+WE-TMSB,Tiny Multilayer Suppression Bead - Tiny Allrounder,Ferrites for PCB Assembly,10 to 1800 Ohm,100 MHz,150 to 7500 mA,,WE-TMSB,listado web (sin verificar)
+WE-CBF,SMT EMI Suppression Ferrite Bead - Multi-purpose Ferrite,Ferrites for PCB Assembly,10 to 2700 Ohm,100 MHz,450 to 12000 mA,,WE-CBF,listado web (sin verificar)
+WE-CBF-HF,SMT EMI Suppression Ferrite Bead High Frequency - High Frequency Specialist,Ferrites for PCB Assembly,180 to 1000 Ohm,100 MHz,250 to 1300 mA,,WE-CBF HF,listado web (sin verificar)
+WE-MPSB,EMI Multilayer Power Suppression Bead - Low RDC Expert for High Peak Currents,Ferrites for PCB Assembly,8 to 600 Ohm,100 MHz,2100 to 10500 mA,,WE-MPSB,listado web (sin verificar)
+WE-PBF,Flat Wire High Current SMT Ferrite Bead - Wired SMT Ferrite,Ferrites for PCB Assembly,39 to 98 Ohm,100 MHz,14 to 18 A,,WE-PBF,listado web (sin verificar)
+WE-RFI,SMT Wirewound Ferrite Bead,Ferrites for PCB Assembly,11 to 2300 Ohm,100 MHz,110 to 1910 mA,,WE-RFI,listado web (sin verificar)
+WE-PF,SMT EMI Suppression Power Ferrite - High Current Version for a Wide Frequency Range,Ferrites for PCB Assembly,,100 MHz,4.5 to 10 A,0.009 to 0.03 Ohm,WE-PF,listado web (sin verificar)
+WE-CMS,SMT Bead Array - Line Filter Array,Ferrites for PCB Assembly,30 to 83 Ohm,100 MHz,34 to 41 A,,WE-CMS,listado web (sin verificar - revisar corriente)
+WE-SUKW,EMI Suppression 5-Hole Ferrite Bead - Wired SMT Ferrite with Different Number of Turns,Ferrites for PCB Assembly,416 to 580 Ohm,100 MHz,8.5 to 9 A,,WE-SUKW,listado web (sin verificar)
+WE-UKW,EMI Suppression 6-Hole Ferrite Bead - Wired THT Ferrite with Different Number of Turns,Ferrites for PCB Assembly,230 to 1240 Ohm,100 MHz,3 A,,WE-UKW,listado web (sin verificar)
+WE-MLS,Multiline EMI Suppression Ferrite - Multiline Ferrite with High Impedance,Ferrites for PCB Assembly,150 to 334 Ohm,100 MHz,,,WE-MLS,listado web (sin verificar)
+WE-WAFB,Sleeve Choke for EMI Solutions,Ferrites for PCB Assembly,70 to 130 Ohm,100 MHz,,,WE-WAFB,listado web (sin verificar)

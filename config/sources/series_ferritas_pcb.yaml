@@ -1,0 +1,21 @@
+# Indice de SERIES (no de referencias) de "Ferrites for PCB Assembly".
+#
+# ORIGEN: transcrito a mano del listado de la web del catalogo, que publica el
+# RANGO de cada serie, no el valor de cada referencia. PENDIENTE DE VERIFICAR.
+#
+# Para que sirve: permite responder "esto cae en la serie WE-CBF" antes de tener
+# el catalogo sincronizado a nivel de referencia. Como los valores son rangos de
+# serie, CrossRef nunca lo dara por equivalencia 1:1: como mucho sale como
+# "alternativa / requiere revision", indicando que falta confirmar la referencia
+# concreta. Cuando este sincronizado el catalogo real, esta fuente sobra.
+id: series_ferritas_pcb
+type: file
+path: data/series_ferritas_pcb.csv
+
+columns:
+  reference: Referencia
+  description: Descripcion
+  category_path: Categoria
+
+family_by_category:
+  Ferrites for PCB Assembly: ferrite_bead

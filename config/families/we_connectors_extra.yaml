@@ -1,0 +1,257 @@
+# Familias de conexión que aparecen en el catálogo y no estaban cubiertas.
+- id: ffc_fpc_connector
+  label: Conector FFC/FPC (ZIF/LIF)
+  aliases: [conector ffc, conector fpc, ffc fpc, zero insertion force, zif,
+            low insertion force, lif, zero insertion force connectors,
+            low insertion force connectors, conector para cable plano, wr-fpc]
+  keywords: [ffc, fpc, zif, lif, cable plano, insertion force]
+  source_categories: [FFC/FPC Connectors, Connectors]
+  attributes:
+    - use: pitch
+    - use: positions
+      required: true
+    - id: contact_style
+      label: Contacto
+      type: enum
+      weight: 2
+      aliases: [contacto, contact, contact style, tipo de contacto, contact type,
+                lado de contacto, contact side]
+      rule: {kind: enum_equal}
+      values:
+        superior: [top, top contact, superior, arriba]
+        inferior: [bottom, bottom contact, inferior, abajo]
+        doble: [dual, doble, both, ambos]
+    - id: actuation
+      label: Accionamiento
+      type: enum
+      weight: 2
+      aliases: [accionamiento, actuation, mecanismo, tipo, type, cierre, lock]
+      rule: {kind: enum_equal}
+      values:
+        zif: [zif, zero insertion force, palanca, slider, flip lock, back lock]
+        lif: [lif, low insertion force, sin palanca]
+    - use: orientation
+    - use: mounting
+    - use: rated_current
+    - use: voltage
+    - id: contact_resistance
+      label: Resistencia de contacto
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 1
+      aliases: [resistencia de contacto, contact resistance, rc]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
+
+- id: flat_cable
+  label: Cable plano (FFC / cinta)
+  aliases: [cable plano, flat cable, flat flexible cable, ffc, cable flexible plano,
+            ribbon cable, cable de cinta, wr-ffc, wr-cab]
+  keywords: [cable plano, ffc, ribbon, cinta, conductores, flexible]
+  source_categories: [Flat Flexible Cable, Ribbon Flat Cable, Cables]
+  attributes:
+    - use: pitch
+      required: true
+    - id: conductors
+      label: Numero de conductores
+      type: number
+      dimension: ratio
+      required: true
+      weight: 3
+      aliases: [conductores, conductors, numero de conductores, vias, hilos, pins,
+                positions, contactos, leiter]
+      rule: {kind: numeric_equal}
+    - use: length
+      required: true
+    - id: termination_style
+      label: Terminacion
+      type: enum
+      weight: 2
+      aliases: [terminacion, termination, type, tipo, contactos, contact style]
+      rule: {kind: enum_equal}
+      values:
+        mismo lado: [same side, mismo lado, type a, a]
+        lados opuestos: [opposite side, opuesto, lados opuestos, type d, d]
+    - use: rated_current
+    - use: voltage
+
+- id: circular_connector
+  label: Conector circular (M12 / M8)
+  aliases: [conector circular, circular connector, m12, m8, circular m12, wr-circm12,
+            conector industrial circular]
+  keywords: [circular, m12, m8, codificacion, ip67, industrial]
+  source_categories: [Circular Connectors, Connectors]
+  attributes:
+    - id: thread_size
+      label: Rosca
+      type: enum
+      required: true
+      weight: 3
+      aliases: [rosca, thread, tamano, size, thread size, formato]
+      rule: {kind: enum_equal}
+      values:
+        m12: [m12, m 12]
+        m8: [m8, m 8]
+        m5: [m5, m 5]
+    - use: positions
+      required: true
+    - id: coding
+      label: Codificacion
+      type: enum
+      weight: 3
+      aliases: [codificacion, coding, code, codigo, tipo de codificacion]
+      rule: {kind: enum_equal}
+      values:
+        a: [a, a-coded, codificacion a]
+        b: [b, b-coded]
+        d: [d, d-coded]
+        x: [x, x-coded]
+        s: [s, s-coded]
+        t: [t, t-coded]
+    - use: gender
+      required: true
+    - use: rated_current
+    - use: voltage
+    - id: protection_rating
+      label: Grado de proteccion
+      type: text
+      weight: 2
+      aliases: [proteccion, ip, grado de proteccion, protection, ingress protection,
+                schutzart]
+      rule: {kind: text_equal}
+    - use: orientation
+    - use: mounting
+
+- id: press_fit_terminal
+  label: Terminal de potencia / press-fit
+  aliases: [terminal de potencia, power terminal, redcube, press fit, press-fit,
+            terminal press fit, thr, wp-thrsh, screw terminal redcube, busbar]
+  keywords: [redcube, press fit, terminal, potencia, thr, tornillo]
+  source_categories: [REDCUBE Terminals, REDCUBE PRESS FIT Terminals, Power Elements]
+  attributes:
+    - use: rated_current
+      required: true
+    - id: thread_size
+      label: Rosca
+      type: text
+      weight: 3
+      aliases: [rosca, thread, thread size, tamano de rosca, m, gewinde, ti]
+      rule: {kind: text_equal}
+    - id: mounting_style
+      label: Tipo de montaje
+      type: enum
+      weight: 2
+      aliases: [tipo de montaje, mounting style, montaje, mount, tecnica]
+      rule: {kind: enum_equal}
+      values:
+        press-fit: [press fit, press-fit, einpress, a presion]
+        thr: [thr, through hole reflow, reflow]
+        soldar: [solder, soldar, tht]
+        atornillar: [screw, atornillar, roscado]
+    - id: contact_resistance
+      label: Resistencia de contacto
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 2
+      aliases: [resistencia de contacto, contact resistance, rc]
+      rule: {kind: at_most, alt_rel_tol: 0.2}
+    - use: length
+    - use: height_max
+
+# Conectores y latiguillos coaxiales de RF. Hasta ahora caian en la familia de
+# conectores FFC/FPC, con la que no comparten ni un solo parametro: 706 fichas
+# comparandose contra reglas que no les aplicaban.
+# (el id lleva 'coax' porque las familias de demostracion de examples/
+# ya usan 'rf_connector' para una version simplificada)
+- id: rf_coax_connector
+  label: Conector / latiguillo RF coaxial
+  aliases: [conector rf, rf connector, coaxial, conector coaxial, coaxial connector,
+            latiguillo, latiguillo coaxial,
+            sma, rp-sma, rpsma, mcx, mmcx, smb, smp, bnc, tnc, u.fl, ufl, umrf,
+            n type, tipo n, wr-sma, wr-umrf, wr-cxasy, wr-mcx, wr-mmcx, wr-bnc,
+            wr-tnc, wr-ntype, wr-smb, wr-smp, wr-rpsma, wr-adpt]
+  keywords: [coaxial, rf, sma, bnc, impedancia, latiguillo, antena, 50 ohm]
+  source_categories: [RF Connectors, Coaxial Connectors, Signal & Communications,
+                      Connectors]
+  attributes:
+    - id: connector_a
+      label: Conector 1 (entrada)
+      type: enum
+      required: true
+      weight: 3
+      aliases: [conector 1, connector 1, connector type 1, conector entrada, entrada,
+                conector a, interfaz 1]
+      rule: {kind: enum_equal}
+      values:
+        sma: [sma, sma macho, sma hembra]
+        rp-sma: [rp-sma, rpsma, reverse polarity sma]
+        mcx: [mcx]
+        mmcx: [mmcx]
+        smb: [smb]
+        smp: [smp]
+        bnc: [bnc]
+        tnc: [tnc, rp-tnc]
+        n: [n, n type, tipo n]
+        umrf: [umrf, u.fl, ufl, ipex, mhf]
+        fakra: [fakra]
+    - id: connector_b
+      label: Conector 2 (salida)
+      type: enum
+      weight: 3
+      aliases: [conector 2, connector 2, connector type 2, conector salida, salida,
+                conector b, interfaz 2]
+      rule: {kind: enum_equal}
+      values:
+        sma: [sma, sma macho, sma hembra]
+        rp-sma: [rp-sma, rpsma, reverse polarity sma]
+        mcx: [mcx]
+        mmcx: [mmcx]
+        smb: [smb]
+        smp: [smp]
+        bnc: [bnc]
+        tnc: [tnc, rp-tnc]
+        n: [n, n type, tipo n]
+        umrf: [umrf, u.fl, ufl, ipex, mhf]
+        fakra: [fakra]
+        pcb: [pcb, placa, soldar a placa, end launch]
+    - id: impedance
+      label: Impedancia
+      type: number
+      dimension: resistance
+      unit: ohm
+      weight: 3
+      # Casi todo el RF es de 50 ohm; se da por supuesto si no se dice, pero
+      # queda marcado como asumido en el resultado.
+      assume: "50 ohm"
+      aliases: [impedancia, impedance, z, z0, ohmios]
+      rule: {kind: numeric_equal, rel_tol: 0.0}
+    - id: cable_type
+      label: Tipo de cable
+      type: text
+      weight: 2
+      aliases: [cable, tipo de cable, cable type, coaxial, rg]
+      rule: {kind: text_equal}
+    - id: cable_length
+      label: Longitud del cable
+      type: number
+      dimension: length
+      unit: mm
+      weight: 2
+      aliases: [longitud del cable, nominal cable length, largo, cable length]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.1}
+    - id: body_style
+      label: Forma del cuerpo
+      type: text
+      weight: 2
+      aliases: [forma, body style, size, estilo, tipo de cuerpo]
+      rule: {kind: text_equal}
+    - id: protection_rating
+      label: Grado de proteccion
+      type: text
+      weight: 2
+      aliases: [proteccion, ip, grado de proteccion, ingress protection code,
+                ingress protection, protection]
+      rule: {kind: text_equal}
+    - use: mounting
+    - use: gender
