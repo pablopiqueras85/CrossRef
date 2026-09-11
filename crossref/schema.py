@@ -102,8 +102,19 @@ class AttributeSpec:
     #: (p. ej. 50 ohm en RF). Siempre se marca como asumido en el resultado.
     assume: str | None = None
 
+    #: se calcula una vez: los alias no cambian despues de cargar el YAML
+    _alias_keys: set[str] | None = field(default=None, repr=False, compare=False)
+
     def alias_keys(self) -> set[str]:
-        return {slug(a) for a in [self.id, self.label, *self.aliases] if a}
+        """Claves por las que este atributo reconoce un nombre de columna.
+
+        Va cacheado porque se consulta para cada columna de cada ficha: sin
+        esto eran 1,3 millones de normalizaciones por cada 500 fichas y el
+        reindexado entero se iba a doce minutos.
+        """
+        if self._alias_keys is None:
+            self._alias_keys = {slug(a) for a in [self.id, self.label, *self.aliases] if a}
+        return self._alias_keys
 
 
 @dataclass
