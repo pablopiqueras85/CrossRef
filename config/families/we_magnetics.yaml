@@ -70,7 +70,7 @@
 - id: rf_chip_inductor
   label: Inductancia de chip / RF
   aliases: [inductancia de chip, chip inductor, multilayer inductor, inductancia multicapa,
-            wire wound inductor, inductancia rf, rf inductor, we-ki, we-mk]
+            wire wound inductor, inductancia rf, rf inductor, we-ki, we-mk, air coil, bobina de aire, aircoil, we-cair, we-ac hc, bobina rf]
   keywords: [inductancia, chip, multicapa, rf, factor q, srf]
   source_categories: [RF Inductors, Signal & Communications, Chip Inductors,
                       Multilayer Inductors, WE-MI SMT Multilayer Inductor]
@@ -175,6 +175,14 @@
   source_categories: [Ferrites for PCB Assembly, EMC Components, Ferrites,
                       EMI Suppression, Chip Beads, Ferrite Beads]
   attributes:
+    - id: inductance
+      label: Inductancia
+      type: number
+      dimension: inductance
+      unit: µH
+      weight: 2
+      aliases: [inductancia, inductance, l, ln, l typ]
+      rule: {kind: numeric_equal, rel_tol: 0.0, alt_rel_tol: 0.2}
     - id: impedance_at_frequency
       label: Impedancia
       type: number

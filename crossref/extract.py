@@ -48,7 +48,7 @@ def coerce_value(spec: AttributeSpec, raw: str, source_field: str | None = None)
         return value
 
     numeric = spec.type in ("number", "range")
-    cleaned = (_TRAILING_NOTE_RE.sub("", _QUALIFIER_RE.sub("", raw)).strip() or raw) if numeric else raw
+    cleaned = _limpia_numerico(raw) if numeric else raw
 
     try:
         if spec.type == "number":
@@ -90,6 +90,23 @@ def coerce_value(spec: AttributeSpec, raw: str, source_field: str | None = None)
     except (UnitError, ValueError) as exc:
         value.note = f"no interpretable ({exc})"
     return value
+
+
+def _limpia_numerico(raw: str) -> str:
+    """Quita notas y calificadores de un valor numerico: "5 V (DC)" -> "5 V".
+
+    Con una salvedad: hay unidades compuestas que llevan parentesis de por si,
+    como "1 W/(m*K)". Quitarlos dejaba la unidad en "W/" y el valor sin
+    interpretar, asi que si el valor literal ya se entiende, se deja como
+    esta.
+    """
+    if _UNIDAD_COMPUESTA_RE.search(raw):
+        return raw
+    return _TRAILING_NOTE_RE.sub("", _QUALIFIER_RE.sub("", raw)).strip() or raw
+
+
+#: una barra antes del parentesis delata que forma parte de la unidad
+_UNIDAD_COMPUESTA_RE = re.compile(r"/\s*\(")
 
 
 def _resolve_enum(spec: AttributeSpec, raw: str) -> str | None:
@@ -182,11 +199,21 @@ def _elige_atributo(family: FamilySpec, name: str, raw: str) -> AttributeSpec | 
         directo = family.attributes.get(slug(name).replace(" ", "_"))
         return directo
     if len(candidatos) > 1:
+        # 1) la unidad escrita en el valor: "28.5 mm" no es una inductancia
         dimension = _dimension_declarada(raw)
         if dimension:
             for spec in candidatos:
                 if spec.dimension == dimension:
                     return spec
+        # 2) si no hay unidad, gana el que sepa interpretar el valor: la
+        #    columna "Type" de un conector FFC vale "ZIF" (accionamiento) o
+        #    "Right Angled" (orientacion), y solo uno de los dos lo reconoce.
+        reconocen = [
+            spec for spec in candidatos
+            if spec.type == "enum" and spec.values and _resolve_enum(spec, raw)
+        ]
+        if len(reconocen) == 1:
+            return reconocen[0]
     return candidatos[0]
 
 

@@ -96,7 +96,7 @@
 - id: io_connector
   label: Conector de entrada/salida (USB, RJ45, jack)
   aliases: [conector usb, usb connector, usb, rj45, conector rj45, jack, conector jack,
-            micro usb, usb-c, usb tipo c, hdmi, tarjeta sd, sd card, wr-com]
+            micro usb, usb-c, usb tipo c, hdmi, tarjeta sd, sd card, wr-com, single pair ethernet, spe, we-spe]
   keywords: [usb, rj45, jack, hdmi, conector, puerto, io]
   source_categories: [USB Connectors, I/O Connectors, Modular Jacks, Card Connectors]
   attributes:
@@ -119,7 +119,10 @@
         micro sd: [micro sd, microsd, tarjeta micro sd]
         sd: [sd, tarjeta sd, sd card]
     - use: gender
+    # "Type" trae unas veces la interfaz (USB-C, RJ45) y otras la
+    # orientacion (Horizontal, Vertical): decide cual reconoce el valor.
     - use: orientation
+      extra_aliases: [type, tipo]
     - use: mounting
       required: true
     - use: rated_current

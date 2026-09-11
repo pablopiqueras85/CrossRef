@@ -30,7 +30,10 @@
       values:
         zif: [zif, zero insertion force, palanca, slider, flip lock, back lock]
         lif: [lif, low insertion force, sin palanca]
+    # "Type" vale ZIF/LIF (accionamiento) o Right Angled (orientacion):
+    # decide cual de los dos reconoce el valor.
     - use: orientation
+      extra_aliases: [type, tipo]
     - use: mounting
     - use: rated_current
     - use: voltage

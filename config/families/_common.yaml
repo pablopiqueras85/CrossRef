@@ -169,8 +169,13 @@ attributes:
       brida: [flange, flange mount, brida, con brida]
       smd: [smd, smt, superficie, surface mount, smd/smt, montaje superficial]
       through hole: [tht, through hole, pasante, orificio pasante, thd, dip]
-      press-fit: [press fit, press-fit, a presion, einpress]
+      press-fit: [press fit, press-fit, a presion, einpress, press-in, press in,
+                  thr, through hole reflow]
       rack: [rack, 19 pulgadas, 19", rack mount]
+      # Como se une el contacto al cable: el catalogo lo publica en la misma
+      # columna que el montaje en placa.
+      crimpar: [crimp, crimpar, a crimpar, crimped]
+      soldar: [solder, soldar, a soldar, soldered, solder cup]
 
   package:
     id: package
@@ -417,8 +422,16 @@ attributes:
               ausrichtung, forma]
     rule: {kind: enum_equal}
     values:
-      recto: [recto, straight, vertical, 180, gerade, recta]
-      acodado: [acodado, angled, right angle, 90, horizontal, abgewinkelt, codo]
+      recto: [recto, straight, vertical, 180, gerade, recta, vertical cable entry,
+              vertical plug entry, top entry]
+      acodado: [acodado, angled, right angle, 90, horizontal, abgewinkelt, codo,
+                right angled, horizontal cable entry, horizontal plug entry]
+      # Entradas inclinadas: el catalogo publica 45 y 55 grados.
+      inclinado: [inclinado, 45, 45 grados, 45 cable entry, 45 plug entry,
+                  closed 45 plug entry, 55, 55 grados, 55 cable entry, diagonal]
+      # Por debajo de la placa, o placa contra placa.
+      entrada inferior: [bottom entry, entrada inferior, bottom entry low profile,
+                         bottom entry large, board stacker, mezzanine]
 
   gender:
     id: gender

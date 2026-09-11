@@ -568,3 +568,49 @@ def test_el_rf_coaxial_tiene_su_propia_familia(catalog_registry, serie, familia)
     detectadas = catalog_registry.detect(serie, top=1)
     assert detectadas, f"'{serie}' no detecta familia"
     assert detectadas[0][0] == familia, f"'{serie}' -> {detectadas}"
+
+
+def test_una_unidad_con_parentesis_no_se_confunde_con_una_nota(catalog_registry):
+    """"1 W/(m*K)" es una unidad compuesta; "5 V (DC)" es un valor con nota."""
+    from crossref.extract import coerce_value
+
+    k = catalog_registry["thermal_interface"].attributes["thermal_conductivity"]
+    assert coerce_value(k, "1 W/(m*K)").number == 1.0
+    assert coerce_value(k, "3.5 W/mK").number == 3.5
+
+    v = catalog_registry["esd_tvs"].attributes["standoff_voltage"]
+    assert coerce_value(v, "5 V (DC)").number == 5.0
+
+
+@pytest.mark.parametrize(
+    "valor, atributo",
+    [
+        # La columna "Type" de un conector FFC vale el accionamiento o la
+        # orientación según la fila: decide cuál de los dos reconoce el valor.
+        ("ZIF", "actuation"),
+        ("LIF", "actuation"),
+        ("Right Angled", "orientation"),
+        ("Straight", "orientation"),
+    ],
+)
+def test_gana_el_atributo_que_sabe_interpretar_el_valor(catalog_registry, valor, atributo):
+    from crossref.extract import map_fields
+
+    mapped, _ = map_fields(catalog_registry["ffc_fpc_connector"], {"Type": valor})
+    assert atributo in mapped, f"Type={valor} -> {list(mapped)}"
+    assert not mapped[atributo].is_empty()
+
+
+@pytest.mark.parametrize(
+    "serie, familia",
+    [
+        # Una bobina de aire no es un conector RF: no se detectaba y caía en la
+        # familia de la categoría, que para esa rama son los coaxiales.
+        ("WE-CAIR Air Coil", "rf_chip_inductor"),
+        ("WE-AC HC High Current Air Coil", "rf_chip_inductor"),
+        ("WE-SPE Single Pair Ethernet", "io_connector"),
+    ],
+)
+def test_las_bobinas_no_acaban_entre_los_conectores(catalog_registry, serie, familia):
+    detectadas = catalog_registry.detect(serie, top=1)
+    assert detectadas and detectadas[0][0] == familia, f"'{serie}' -> {detectadas}"
